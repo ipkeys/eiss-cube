@@ -4,6 +4,7 @@ import lombok.Data;
 import org.bson.types.ObjectId;
 import xyz.morphia.annotations.*;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -16,7 +17,7 @@ public class CubeCommand {
     @Id ObjectId id;
 
     @Indexed(options = @IndexOptions(name = "CubeCommandsCreatedIndex", unique = true))
-    @Property Date created;
+    @Property Instant created;
 
     @Property String deviceID; // reference to EISScube.deviceID
 
@@ -25,8 +26,8 @@ public class CubeCommand {
     @Property Boolean target1;
     @Property Boolean target2;
 
-    @Property Date startTime;
-    @Property Date endTime;
+    @Property Instant startTime;
+    @Property Instant endTime;
 
     @Property Integer completeCycle;
     @Property Integer dutyCycle;
@@ -34,7 +35,7 @@ public class CubeCommand {
     @Property String transition;
 
     @Property String status = "pending";
-    @Property Date updated;
+    @Property Instant updated;
 
     @Override
     public String toString() {
@@ -58,15 +59,15 @@ public class CubeCommand {
         }
 
         if (startTime != null) {
-            long starttime = startTime.getTime() / 1000;
+            long starttime = startTime.toEpochMilli() / 1000;
             b.append("&st=").append(String.format("%d", starttime));
         }
 
         if (endTime != null) {
             long starttime;
-            long endtime = endTime.getTime() / 1000;
+            long endtime = endTime.toEpochMilli() / 1000;
             if (startTime != null) {
-                starttime = startTime.getTime() / 1000;
+                starttime = startTime.toEpochMilli() / 1000;
             } else {
                 starttime = new Date().getTime() / 1000;
             }

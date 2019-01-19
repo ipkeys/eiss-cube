@@ -20,6 +20,7 @@ import xyz.morphia.query.UpdateResults;
 
 import javax.inject.Inject;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.*;
 
 @Slf4j
@@ -79,7 +80,7 @@ public class CubeHandler implements Handler<NetSocket> {
             ops.set("status", "pending");
         }
 
-        ops.set("updated", new Date());
+        ops.set("updated", Instant.now());
 
         vertx.executeBlocking(future -> {
             UpdateResults result = datastore.update(q, ops);
@@ -178,10 +179,10 @@ public class CubeHandler implements Handler<NetSocket> {
                 cube.setDeviceID(deviceID);
                 cube.setPassword(password);
                 cube.setOnline(Boolean.TRUE);
-                cube.setLastPing(new Date());
+                cube.setLastPing(Instant.now());
             } else {
                 cube.setOnline(Boolean.TRUE);
-                cube.setLastPing(new Date());
+                cube.setLastPing(Instant.now());
             }
 
             saveEissCube(cube);
@@ -323,7 +324,7 @@ public class CubeHandler implements Handler<NetSocket> {
     private void saveReport(String deviceID, String message) {
         vertx.executeBlocking(future -> {
             String rid = null;
-            Date ts = null;
+            Instant ts = null;
             String v = null;
             String type = "pulse"; // default
 
@@ -333,7 +334,7 @@ public class CubeHandler implements Handler<NetSocket> {
                 }
                 if (part.startsWith("ts=")) {
                     String timestamp = part.replace("ts=", "");
-                    ts = new Date(Long.valueOf(timestamp) * 1000);
+                    ts = Instant.ofEpochMilli(Long.valueOf(timestamp) * 1000);
                 }
                 if (part.startsWith("v=")) {
                     v = part.replace("v=", "");

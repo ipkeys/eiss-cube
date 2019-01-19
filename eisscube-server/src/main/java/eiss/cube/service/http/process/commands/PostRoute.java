@@ -20,7 +20,7 @@ import xyz.morphia.Key;
 import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import java.util.Date;
+import java.time.Instant;
 
 import static javax.servlet.http.HttpServletResponse.*;
 
@@ -63,7 +63,7 @@ public class PostRoute implements Handler<RoutingContext> {
             }
 
             vertx.executeBlocking(op -> {
-                cmd.setCreated(new Date());
+                cmd.setCreated(Instant.now());
 
                 try {
                     Key<CubeCommand> key = datastore.save(cmd);

@@ -22,8 +22,11 @@ import xyz.morphia.Key;
 import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import java.time.Instant;
 import java.util.Date;
 
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.*;
 
 @Slf4j
@@ -73,6 +76,7 @@ public class PostRoute implements Handler<RoutingContext> {
 
             vertx.executeBlocking(op -> {
                 try {
+/*
                     if (cube.getAddress() != null && cube.getCity() != null && cube.getZipCode() != null) {
                         String address = cube.getAddress() + ", " + cube.getCity() + " " + cube.getZipCode();
 
@@ -89,8 +93,13 @@ public class PostRoute implements Handler<RoutingContext> {
                         location.setLng(results[0].geometry.location.lng);
                         cube.setLocation(location);
                     }
+*/
+                    CubePoint location = new CubePoint();
+                    location.setLat(40.2769179);
+                    location.setLng(-74.0388226);
+                    cube.setLocation(location);
 
-                    cube.setLastPing(new Date());
+                    cube.setLastPing(Instant.now());
                     Key<EISScube> key = datastore.save(cube);
                     cube.setId((ObjectId)key.getId());
                     op.complete(cube);
@@ -104,7 +113,7 @@ public class PostRoute implements Handler<RoutingContext> {
             }, res -> {
                 if (res.succeeded()) {
                     response
-                        .putHeader("content-type", "application/json")
+                        .putHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .setStatusCode(SC_CREATED)
                         .end(gson.toJson(cube));
                 } else {

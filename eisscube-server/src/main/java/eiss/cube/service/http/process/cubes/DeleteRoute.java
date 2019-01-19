@@ -1,23 +1,24 @@
 package eiss.cube.service.http.process.cubes;
 
 import com.google.gson.Gson;
-import com.mongodb.WriteResult;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.EISScube;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import xyz.morphia.Datastore;
+import xyz.morphia.query.Query;
 
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.Path;
 
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.*;
 
 @Slf4j
@@ -44,30 +45,39 @@ public class DeleteRoute implements Handler<RoutingContext> {
 
         String id = request.getParam("id");
         if (!ObjectId.isValid(id)) {
-            response.setStatusCode(SC_BAD_REQUEST);
-            response.setStatusMessage(String.format("id: %s is not valid", id));
-            response.end();
+            response.setStatusCode(SC_BAD_REQUEST)
+                .setStatusMessage(String.format("id: %s is not valid", id))
+                .end();
             return;
         }
 
         ObjectId oid = new ObjectId(id);
 
+        Query<EISScube> q = datastore.createQuery(EISScube.class);
+        q.criteria("_id").equal(oid);
+
         vertx.executeBlocking(op -> {
-            WriteResult result = datastore.delete(EISScube.class, oid);
-            if (result.wasAcknowledged() && result.getN() > 0) {
-                op.complete(new JsonObject().put("id", id));
+            // react-admin expect previous data
+            EISScube cube = q.get();
+
+            if (cube != null) {
+                // delete EISScube
+                datastore.delete(q);
+                op.complete(cube);
             } else {
                 op.fail(String.format("Cannot delete EISScube id: %s", id));
             }
         }, res -> {
             if (res.succeeded()) {
-                response.putHeader("content-type", "application/json");
-                response.setStatusCode(SC_OK);
-                response.end(gson.toJson(res.result()));
+                response
+                    .putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                    .setStatusCode(SC_OK)
+                    .end(gson.toJson(res.result()));
             } else {
-                response.setStatusCode(SC_NOT_FOUND);
-                response.setStatusMessage(res.cause().getMessage());
-                response.end();
+                response
+                    .setStatusCode(SC_NOT_FOUND)
+                    .setStatusMessage(res.cause().getMessage())
+                    .end();
             }
         });
     }

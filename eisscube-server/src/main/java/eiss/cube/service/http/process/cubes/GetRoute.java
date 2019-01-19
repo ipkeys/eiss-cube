@@ -7,7 +7,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
@@ -15,10 +14,11 @@ import xyz.morphia.Datastore;
 import xyz.morphia.query.Query;
 
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static java.lang.Boolean.FALSE;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -67,7 +67,7 @@ public class GetRoute implements Handler<RoutingContext> {
         }, res -> {
             if (res.succeeded()) {
                 response
-                    .putHeader("content-type", "application/json")
+                    .putHeader(CONTENT_TYPE, APPLICATION_JSON)
                     .setStatusCode(SC_OK)
                     .end(gson.toJson(res.result()));
             } else {

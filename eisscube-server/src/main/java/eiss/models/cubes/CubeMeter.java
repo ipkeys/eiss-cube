@@ -4,7 +4,7 @@ import lombok.Data;
 import org.bson.types.ObjectId;
 import xyz.morphia.annotations.*;
 
-import java.util.Date;
+import java.time.Instant;
 
 @Data
 @Entity("cubemeters")
@@ -15,7 +15,7 @@ public class CubeMeter {
     @Property String reportID; // reference to EISScube.deviceID + _Meter_#
 
     @Indexed(options = @IndexOptions(name = "CubeMeterTimestampIndex", unique = false))
-    @Property Date timestamp;
+    @Property Instant timestamp;
     @Property Double value;
 
     @Property String type;

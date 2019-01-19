@@ -4,7 +4,7 @@ import lombok.Data;
 import org.bson.types.ObjectId;
 import xyz.morphia.annotations.*;
 
-import java.util.Date;
+import java.time.Instant;
 
 import static java.lang.Boolean.FALSE;
 
@@ -29,6 +29,7 @@ public class EISScube {
     @Property String subZone;
 
     @Property Boolean online = FALSE;
-    @Property Date lastPing;
+    @Property Instant lastPing;
+    @Property Instant timeStarted;
 
 }

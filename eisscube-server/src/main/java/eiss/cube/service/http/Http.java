@@ -6,6 +6,7 @@ import eiss.cube.config.EissCubeConfig;
 import eiss.jwt.ExpiredTokenException;
 import eiss.jwt.Jwt;
 import eiss.cube.service.http.process.api.ApiBuilder;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
@@ -24,6 +25,8 @@ import lombok.extern.slf4j.Slf4j;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 
+import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
+
 @Slf4j
 public class Http extends AbstractVerticle {
 
@@ -38,9 +41,6 @@ public class Http extends AbstractVerticle {
         this.router = Router.router(getVertx());
         this.builder = builder;
         this.jwt = jwt;
-
-        // build Routes based on annotations
-        setupRoutes();
     }
 
     @Override
@@ -52,6 +52,9 @@ public class Http extends AbstractVerticle {
             .setPort(port)
             .setLogActivity(true)
             .setCompressionSupported(true);
+
+        // build Routes based on annotations
+        setupRoutes();
 
         HttpServer server = getVertx().createHttpServer(options);
 
@@ -73,21 +76,22 @@ public class Http extends AbstractVerticle {
 
     private void setupRoutes() {
 
-        router.route().handler(CorsHandler.create("*")
-            .allowedMethod(HttpMethod.GET)
-            .allowedMethod(HttpMethod.POST)
-            .allowedMethod(HttpMethod.DELETE)
-            .allowedMethod(HttpMethod.PUT)
-            .allowedMethod(HttpMethod.OPTIONS)
-            .allowedHeader("Content-Type")
-            .allowedHeader("Authorization")
-            .exposedHeader("X-Total-Count"));
+        router.route()
+            .handler(CorsHandler.create("*")
+                .allowedMethod(HttpMethod.GET)
+                .allowedMethod(HttpMethod.POST)
+                .allowedMethod(HttpMethod.DELETE)
+                .allowedMethod(HttpMethod.PUT)
+                .allowedMethod(HttpMethod.OPTIONS)
+                .allowedHeader(HttpHeaderNames.CONTENT_TYPE.toString())
+                .allowedHeader(HttpHeaderNames.AUTHORIZATION.toString())
+                .exposedHeader("X-Total-Count")
+            );
 
         router.route().handler(BodyHandler.create());
         // We need a cookie handler first
         router.route().handler(CookieHandler.create());
-        SessionStore store = LocalSessionStore.create(vertx);
-        router.route().handler(SessionHandler.create(store));
+        router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
         router.route("/eisscubes").handler(context -> {
             HttpServerResponse res = context.response();
@@ -112,17 +116,29 @@ public class Http extends AbstractVerticle {
                         // Now call the next handler
                         context.next();
                     } else {
-                        res.setStatusCode(HttpServletResponse.SC_UNAUTHORIZED).setStatusMessage("Unauthorized").end();
+                        res
+                            .setStatusCode(SC_UNAUTHORIZED)
+                            .setStatusMessage("Unauthorized")
+                            .end();
                     }
 
                 } catch (ExpiredTokenException ex) {
-                    res.setStatusCode(HttpServletResponse.SC_UNAUTHORIZED).setStatusMessage("Token expired").end();
+                    res
+                        .setStatusCode(SC_UNAUTHORIZED)
+                        .setStatusMessage("Token expired")
+                        .end();
                 } catch (IllegalArgumentException ex) {
-                    res.setStatusCode(HttpServletResponse.SC_UNAUTHORIZED).setStatusMessage("Invalid token").end();
+                    res
+                        .setStatusCode(SC_UNAUTHORIZED)
+                        .setStatusMessage("Invalid token")
+                        .end();
                 }
 
             } else {
-                res.setStatusCode(HttpServletResponse.SC_UNAUTHORIZED).setStatusMessage("Unauthorized").end();
+                res
+                    .setStatusCode(SC_UNAUTHORIZED)
+                    .setStatusMessage("Unauthorized")
+                    .end();
             }
         });
 

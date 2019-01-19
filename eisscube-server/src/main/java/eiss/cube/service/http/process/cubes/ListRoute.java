@@ -19,7 +19,9 @@ import javax.ws.rs.Path;
 import java.util.List;
 
 import static eiss.utils.AdminOnRest.ParamName.*;
-import static java.lang.Boolean.FALSE;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
+import static java.lang.Boolean.TRUE;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
@@ -67,7 +69,10 @@ public class ListRoute implements Handler<RoutingContext> {
         }
 
         // projections
-        q.project("password", FALSE);
+        q.project("deviceID", TRUE)
+            .project("online", TRUE)
+            .project("lastPing", TRUE)
+            .project("timeStarted", TRUE);
 
         // skip/limit
         FindOptions o = new FindOptions();
@@ -77,6 +82,7 @@ public class ListRoute implements Handler<RoutingContext> {
             o.skip(Integer.valueOf(s)).limit(Integer.valueOf(e));
         }
 
+        // 2 request to DB
         vertx.executeBlocking(op -> {
             List<EISScube> result = q.asList(o);
             op.complete(result);
@@ -85,13 +91,11 @@ public class ListRoute implements Handler<RoutingContext> {
                 vertx.executeBlocking(c -> {
                     Long result = q.count();
                     c.complete(result);
-                }, c -> {
-                    response
-                        .putHeader("content-type", "application/json")
-                        .putHeader("X-Total-Count", String.valueOf(c.result()))
-                        .setStatusCode(SC_OK)
-                        .end(gson.toJson(res.result()));
-                });
+                }, c -> response
+                    .putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                    .putHeader("X-Total-Count", String.valueOf(c.result()))
+                    .setStatusCode(SC_OK)
+                    .end(gson.toJson(res.result())));
             } else {
                 response
                     .setStatusCode(SC_BAD_REQUEST)

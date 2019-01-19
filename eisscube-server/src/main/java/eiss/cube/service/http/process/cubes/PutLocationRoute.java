@@ -20,6 +20,8 @@ import javax.inject.Inject;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.*;
 
 @Slf4j
@@ -81,7 +83,7 @@ public class PutLocationRoute implements Handler<RoutingContext> {
             }, res -> {
                 if (res.succeeded()) {
                     response
-                        .putHeader("content-type", "application/json")
+                        .putHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .setStatusCode(SC_OK)
                         .end();
                 } else {

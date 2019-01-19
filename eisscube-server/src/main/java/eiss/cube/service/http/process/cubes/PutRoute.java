@@ -24,6 +24,8 @@ import javax.inject.Inject;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.*;
 
 @Slf4j
@@ -113,6 +115,7 @@ public class PutRoute implements Handler<RoutingContext> {
 
             vertx.executeBlocking(op -> {
                 try {
+/*
                     if (cube.getAddress() != null && cube.getCity() != null && cube.getZipCode() != null) {
                         String address = cube.getAddress() + ", " + cube.getCity() + " " + cube.getZipCode();
 
@@ -130,6 +133,7 @@ public class PutRoute implements Handler<RoutingContext> {
                     } else {
                         ops.unset("location");
                     }
+*/
 
                     UpdateResults result = datastore.update(query, ops);
                     if (result.getUpdatedCount() == 1) {
@@ -143,7 +147,7 @@ public class PutRoute implements Handler<RoutingContext> {
             }, res -> {
                 if (res.succeeded()) {
                     response
-                        .putHeader("content-type", "application/json")
+                        .putHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .setStatusCode(SC_OK)
                         .end(gson.toJson(res.result()));
                 } else {
