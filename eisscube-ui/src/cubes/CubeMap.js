@@ -10,7 +10,7 @@ import PropTypes from 'prop-types';
 import { showNotification, GET_ONE, CREATE, UPDATE } from 'react-admin';
 import DataProvider from '../rest/DataProvider';
 
-import { red500, green500 } from '@material-ui/core/colors';
+import { red, green } from '@material-ui/core/colors';
 
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.js';
@@ -26,12 +26,8 @@ const blueMarker = L.AwesomeMarkers.icon({
 class CubeMap extends Component {
   constructor(props) {
     super(props);
-    const { location } = this.props.record;
     this.state = {
-      marker: {
-        lat: location ? location.lat : 40.2769179,
-        lng: location ? location.lng : -74.0388226,
-      },
+      location: null,
       draggable: true,
       //geo: null,
       //layers: []
@@ -42,6 +38,17 @@ class CubeMap extends Component {
     //this.onEdited = this.onEdited.bind(this);
     //this.onDeleted = this.onDeleted.bind(this);
   }
+
+    componentDidUpdate(prevProps) {
+        if (this.props.record !== prevProps.record) {
+            let { location } = this.props.record;
+
+            this.setState({
+                location
+            });	
+        }
+    }
+
 
   // onMounted(drawControl) {
   //   restClient(GET_ONE, 'geometry', {
@@ -162,14 +169,14 @@ class CubeMap extends Component {
     DataProvider(UPDATE, 'cubes/location', {
       id: this.props.record.id,
       data: {
-        lat: lat,
-        lng: lng
+        lat,
+        lng
       }
     })
     .then(() => {
       this.props.dispatch(showNotification(`${this.props.record.deviceID} - Location updated`));
       this.setState({
-        marker: { lat, lng }
+        location: { lat, lng }
       });
     })
     .catch((e) => {
@@ -181,14 +188,13 @@ class CubeMap extends Component {
 
   render() {
     const { record } = this.props;
-    const { geo } = this.state;
-    const markerPosition = [this.state.marker.lat, this.state.marker.lng];
+    const { location, geo } = this.state;
 
-    const marker = (record.location ?
+    const marker = (location ?
       <Marker
         draggable={this.state.draggable}
         onDragend={this.updatePosition}
-        position={markerPosition}
+        position={[location.lat, location.lng]}
         icon={blueMarker}
         ref="marker"
       >
@@ -197,15 +203,15 @@ class CubeMap extends Component {
             {
               record.online
               ?
-              <div style={{color: green500, textAlign: 'center' }}>ONLINE</div>
+              <div style={{color: green[500], textAlign: 'center' }}>ONLINE</div>
               :
-              <div style={{color: red500, textAlign: 'center' }}>OFFLINE</div>
+              <div style={{color: red[500], textAlign: 'center' }}>OFFLINE</div>
             }
             Device: <b>{record.deviceID}</b>
             <br/>
             Customer: {record.customerID}
             <br/>
-            <a href={`#/commands?filter={"q":"${record.deviceID}"}&page=1&perPage=10&sort=created&order=DESC`}>Commands</a>
+            <a href={`#/commands?filter={"q":"${record.id}"}&page=1&perPage=10&sort=created&order=DESC`}>Commands</a>
             <br/>
             <a href={`#/reports?filter={"q":"${record.deviceID}"}&page=1&perPage=10&sort=reportID&order=ASC`}>Reports</a>
             <br/>
@@ -222,7 +228,7 @@ class CubeMap extends Component {
       <Map
         animate={true}
         length={4}
-        center={markerPosition}
+        center={location ? [location.lat, location.lng] : [40.2769179, -74.0388226]}
         minZoom={2}
         maxZoom={19}
         zoom={15}

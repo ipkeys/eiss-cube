@@ -19,7 +19,7 @@ public class CubeCommand {
     @Indexed(options = @IndexOptions(name = "CubeCommandsCreatedIndex", unique = true))
     @Property Instant created;
 
-    @Property String deviceID; // reference to EISScube.deviceID
+    @Property String cubeID; // reference to EISScube.deviceID
 
     @Property String command;
 

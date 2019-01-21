@@ -9,6 +9,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import xyz.morphia.Datastore;
 import xyz.morphia.query.FindOptions;
 import xyz.morphia.query.Query;
@@ -18,9 +19,13 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 
 import static eiss.utils.AdminOnRest.ParamName.*;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.*;
 
 @Slf4j
@@ -31,7 +36,7 @@ public class ListRoute implements Handler<RoutingContext> {
     private Vertx vertx;
     private Datastore datastore;
     private Gson gson;
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss"); //2017-07-25T04:00:00.000Z
+
     @Inject
     public ListRoute(Vertx vertx, Datastore datastore, Gson gson) {
         this.vertx = vertx;
@@ -47,25 +52,44 @@ public class ListRoute implements Handler<RoutingContext> {
 
         Query<CubeCommand> q = datastore.createQuery(CubeCommand.class);
 
+        // search
+        String search = request.getParam(FILTER);
+        if (search != null && !search.isEmpty()) {
+            q.field("cubeID").containsIgnoreCase(search);
+        }
+        // ~search
+
         // filters
-        String filter = request.getParam(FILTER);
-        if (filter != null && !filter.isEmpty()) {
-            q.field("deviceID").startsWithIgnoreCase(filter);
-        }
-
-        try {
-            String sinceTime = request.getParam("timestamp_gte");
-            if (sinceTime != null && !sinceTime.isEmpty()) {
-                q.field("created").greaterThanOrEq(dateFormat.parse(sinceTime));
+        String id_like = request.getParam("id_like");
+        if (id_like != null && !id_like.isEmpty()) {
+            if (id_like.contains("|")) { // multiple ids
+                String[] ids = id_like.split("|");
+                Arrays.stream(ids).forEach(item -> {
+                    if (ObjectId.isValid(item)) {
+                        ObjectId oid = new ObjectId(item);
+                        q.field("_id").equal(oid);
+                    } else {
+                        q.field("cubeID").equal(item);
+                    }
+                });
+            } else { // single
+                if (ObjectId.isValid(id_like)) {
+                    ObjectId oid = new ObjectId(id_like);
+                    q.field("_id").equal(oid);
+                } else {
+                    q.field("cubeID").equal(id_like);
+                }
             }
-
-            String beforeTime = request.getParam("timestamp_lte");
-            if (beforeTime != null && !beforeTime.isEmpty()) {
-                q.field("created").lessThanOrEq(dateFormat.parse(beforeTime));
-            }
-        } catch (ParseException e) {
-            log.error(e.getMessage());
         }
+        String sinceTime = request.getParam("timestamp_gte");
+        if (sinceTime != null && !sinceTime.isEmpty()) {
+            q.field("created").greaterThanOrEq(Instant.parse(sinceTime));
+        }
+        String beforeTime = request.getParam("timestamp_lte");
+        if (beforeTime != null && !beforeTime.isEmpty()) {
+            q.field("created").lessThanOrEq(Instant.parse(beforeTime));
+        }
+        // ~filters
 
         // sorts
         String sort = request.getParam(SORT);
@@ -96,7 +120,7 @@ public class ListRoute implements Handler<RoutingContext> {
                     c.complete(result);
                 }, c -> {
                     response
-                        .putHeader("content-type", "application/json")
+                        .putHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .putHeader("X-Total-Count", String.valueOf(c.result()))
                         .setStatusCode(SC_OK)
                         .end(gson.toJson(res.result()));

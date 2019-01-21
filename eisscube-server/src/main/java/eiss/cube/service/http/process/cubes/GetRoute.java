@@ -48,10 +48,10 @@ public class GetRoute implements Handler<RoutingContext> {
         Query<EISScube> q = datastore.createQuery(EISScube.class);
 
         String id = request.getParam("id");
-        if (!ObjectId.isValid(id)) {
-            q.criteria("deviceID").equal(id);
-        } else {
+        if (ObjectId.isValid(id)) {
             q.criteria("_id").equal(new ObjectId(id));
+        } else {
+            q.criteria("deviceID").equal(id);
         }
 
         // projections

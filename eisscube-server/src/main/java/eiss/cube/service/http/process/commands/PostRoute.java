@@ -22,6 +22,8 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import java.time.Instant;
 
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.*;
 
 @Slf4j
@@ -81,7 +83,7 @@ public class PostRoute implements Handler<RoutingContext> {
                     recordIt(cmd);
 
                     response
-                        .putHeader("content-type", "application/json")
+                        .putHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .setStatusCode(SC_CREATED)
                         .end(gson.toJson(cmd));
                 } else {
@@ -102,7 +104,7 @@ public class PostRoute implements Handler<RoutingContext> {
     private void sendIt(CubeCommand cmd) {
         vertx.eventBus().send("eisscube", new JsonObject()
             .put("id", cmd.getId().toString())
-            .put("to", cmd.getDeviceID())
+            .put("to", cmd.getCubeID()) // TODO: change to deviceID
             .put("cmd", cmd.toString()));
     }
 
@@ -110,11 +112,11 @@ public class PostRoute implements Handler<RoutingContext> {
 
         if (cmd.getCommand().startsWith("i")) {
             if (cmd.getTarget1() != null) {
-                saveReportRecord(cmd.getDeviceID(), "_Meter_1");
+                saveReportRecord(cmd.getCubeID(), "_Meter_1");
             }
 
             if (cmd.getTarget2() != null) {
-                saveReportRecord(cmd.getDeviceID(), "_Meter_2");
+                saveReportRecord(cmd.getCubeID(), "_Meter_2");
             }
         }
     }

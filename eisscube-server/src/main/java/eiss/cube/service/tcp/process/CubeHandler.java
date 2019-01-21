@@ -209,7 +209,7 @@ public class CubeHandler implements Handler<NetSocket> {
 
             list.forEach(cmd -> vertx.eventBus().send("eisscube", new JsonObject()
                 .put("id", cmd.getId().toString())
-                .put("to", cmd.getDeviceID())
+                .put("to", cmd.getCubeID()) // TODO: change to deviceID
                 .put("cmd", cmd.toString())));
 
             op.complete(list);

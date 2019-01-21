@@ -9,6 +9,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import xyz.morphia.Datastore;
 import xyz.morphia.query.FindOptions;
 import xyz.morphia.query.Query;
@@ -16,6 +17,7 @@ import xyz.morphia.query.Query;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import java.util.Arrays;
 import java.util.List;
 
 import static eiss.utils.AdminOnRest.ParamName.*;
@@ -49,15 +51,40 @@ public class ListRoute implements Handler<RoutingContext> {
 
         Query<EISScube> q = datastore.createQuery(EISScube.class);
 
+        // search
+        String search = request.getParam(FILTER);
+        if (search != null && !search.isEmpty()) {
+            q.field("deviceID").containsIgnoreCase(search);
+        }
+        // ~search
+
         // filters
-        String filter = context.request().getParam(FILTER);
-        if (filter != null && !filter.isEmpty()) {
-            q.field("deviceID").startsWithIgnoreCase(filter);
+        String id_like = request.getParam("id_like");
+        if (id_like != null && !id_like.isEmpty()) {
+            if (id_like.contains("|")) { // multiple ids
+                String[] ids = id_like.split("|");
+                Arrays.stream(ids).forEach(item -> {
+                    if (ObjectId.isValid(item)) {
+                        ObjectId oid = new ObjectId(item);
+                        q.field("_id").equal(oid);
+                    } else {
+                        q.field("deviceID").equal(item);
+                    }
+                });
+            } else { // single
+                if (ObjectId.isValid(id_like)) {
+                    ObjectId oid = new ObjectId(id_like);
+                    q.field("_id").equal(oid);
+                } else {
+                    q.field("deviceID").equal(id_like);
+                }
+            }
         }
         String online = context.request().getParam("online");
         if (online != null && !online.isEmpty()) {
             q.field("online").equal(Boolean.valueOf(online));
         }
+        // ~filters
 
         // sorts
         String sort = request.getParam(SORT);

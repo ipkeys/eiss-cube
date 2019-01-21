@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import { 
     downloadCSV,
     List,
@@ -10,17 +10,13 @@ import {
     SelectInput,
     ShowButton,
     Show,
-    TabbedShowLayout,
-    Tab,
     Create,
-    SimpleForm,
-    ReferenceInput,
     DateField,
     Edit,
+    EditButton,
     TabbedForm,
     FormTab,
     DisabledInput,
-    LongTextInput,
     
     required,
     minLength,
@@ -32,11 +28,11 @@ import Icon from '@material-ui/icons/Router';
 import { withStyles } from '@material-ui/core/styles';
 import { common, grey } from '@material-ui/core/colors';
 
+import { AppDateTimeFormat, DateTimeMomentFormat } from '../App';
 import StatusField from './StatusField';
-import { AppDateTimeFormat, DateTimeFormatForMoment } from '../App';
 import CubeMap from './CubeMap';
 import PasswordInput from './PasswordInput';
-
+import EissCubesShowActions from './ShowActions';
 export const EissCubesIcon = Icon;
 
 const eissCubesStyles = theme => ({
@@ -58,8 +54,8 @@ const eissCubesStyles = theme => ({
 const exporter = records => {
     const data = records.map(record => ({
         ...record,
-        lastPing: moment(record.status.lastPing).format(DateTimeFormatForMoment),
-        timeStarted: moment(record.status.timeStarted).format(DateTimeFormatForMoment)
+        lastPing: moment(record.lastPing).format(DateTimeMomentFormat),
+        timeStarted: moment(record.timeStarted).format(DateTimeMomentFormat)
     }));
 
     const csv = convertToCSV({
@@ -80,7 +76,7 @@ const EissCubesTitle = withStyles(eissCubesStyles)(
 
 const EissCubesListFilter = props => (
     <Filter {...props}>
-        <SearchInput source="search" alwaysOn />
+        <SearchInput source="q" alwaysOn />
         <SelectInput source="online" label="Status" choices={[
             { id: true, name: 'ONLINE' },
             { id: false, name: 'OFFLINE' }
@@ -103,7 +99,7 @@ export const EissCubesList = withStyles(eissCubesStyles)(
                 <StatusField source="online" label="Status" />
                 <DateField source="timeStarted" label="Started" showTime options={AppDateTimeFormat} />
                 <DateField source="lastPing" label="Last ping" showTime options={AppDateTimeFormat} />
-                <ShowButton label="Manage" />
+                <ShowButton />
             </Datagrid>
         </List>
     )
@@ -113,6 +109,7 @@ export const EissCubesShow = withStyles(eissCubesStyles)(
     ({ classes, ...props }) => (
         <Show  
             title={<EissCubesTitle title="Manage EISS™Cube -" />}
+            actions={<EissCubesShowActions />}
             {...props}
         >
             <CubeMap {...props}/>
@@ -139,11 +136,10 @@ export const EissCubesEdit = withStyles(eissCubesStyles)(
                </FormTab>
                 <FormTab label="address">
                     <TextInput label="Address" source="address" className={classes.longText} />
-                    <TextInput label="City, State" source="city" className={classes.inline} />
-                    <TextInput label="Zip Code" source="zipCode" className={classes.inline} />
+                    <TextInput label="City, State" source="city" />
+                    <TextInput label="Zip Code" source="zipCode" />
                 </FormTab>
             </TabbedForm>
-
         </Edit>
     )
 );
@@ -154,10 +150,10 @@ export const EissCubesCreate = withStyles(eissCubesStyles)(
             title={<EissCubesTitle title="Create new EISS™Cube" />} 
             {...props}
         >
-            <TabbedForm>
+            <TabbedForm redirect="show">
                 <FormTab label="identity">
                     <TextInput label="Device ID" source="deviceID" />
-                    <PasswordInput label="Password" source="password" className={classes.longText} />
+                    <PasswordInput label="Password" source="password" />
                     <TextInput label="SIM card" source="simCard" className={classes.longText} validate={[ maxLength(20) ]} />
                 </FormTab>
                 <FormTab label="customer">
@@ -167,8 +163,8 @@ export const EissCubesCreate = withStyles(eissCubesStyles)(
                </FormTab>
                 <FormTab label="address">
                     <TextInput label="Address" source="address" className={classes.longText} />
-                    <TextInput label="City, State" source="city" className={classes.inline} />
-                    <TextInput label="Zip Code" source="zipCode" className={classes.inline} />
+                    <TextInput label="City, State" source="city" />
+                    <TextInput label="Zip Code" source="zipCode" />
                 </FormTab>
             </TabbedForm>
         </Create>

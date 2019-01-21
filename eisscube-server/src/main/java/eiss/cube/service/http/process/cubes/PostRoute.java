@@ -61,7 +61,7 @@ public class PostRoute implements Handler<RoutingContext> {
             if (cube.getDeviceID().isEmpty()) {
                 response
                     .setStatusCode(SC_BAD_REQUEST)
-                    .setStatusMessage("Unable to add EISScube - device ID missed")
+                    .setStatusMessage("Unable to add EISScube - device ID is missed")
                     .end();
                 return;
             }
@@ -69,7 +69,7 @@ public class PostRoute implements Handler<RoutingContext> {
             if (cube.getPassword().isEmpty()) {
                 response
                     .setStatusCode(SC_BAD_REQUEST)
-                    .setStatusMessage("unable to add EISScube - password missed")
+                    .setStatusMessage("Unable to add EISScube - password is missed")
                     .end();
                 return;
             }

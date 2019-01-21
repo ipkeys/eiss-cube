@@ -8,7 +8,7 @@ import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 import { addField } from 'react-admin';
 
 const styles = theme => ({
-    testInput: {
+    textInput: {
         minWidth: theme.spacing.unit * 32
     }
 });
@@ -39,8 +39,8 @@ class PasswordInput extends Component {
                 helperText={touched && error}
                 {...input}
                 fullWidth={fullWidth}
-                className={classes.testInput}
-                margin={margin}
+                className={classes.textInput}
+                margin={margin ? margin : 'normal'}
                 InputProps={{
                     endAdornment: 
                     <InputAdornment position="end">
