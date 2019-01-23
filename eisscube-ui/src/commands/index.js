@@ -1,8 +1,6 @@
 import React, { Fragment } from 'react';
 import {
-    downloadCSV,
     List,
-    Show,
     Create,
     Filter,
     SimpleForm,
@@ -24,15 +22,12 @@ import {
 
     required
 } from 'react-admin';
-import { unparse as convertToCSV } from 'papaparse/papaparse.min';
-import moment from 'moment';
 import Icon from '@material-ui/icons/Message';
-import FormGroup from '@material-ui/core/FormGroup';
 
 import { withStyles } from '@material-ui/core/styles';
 import { common, grey } from '@material-ui/core/colors';
 
-import { AppDateTimeFormat, DateTimeFormat, DateTimeMomentFormat } from '../App';
+import { AppDateTimeFormat, DateTimeFormat } from '../App';
 import { DateTimeInput } from 'react-admin-date-inputs';
 
 import CycleAndDutyCycleInput from './CycleAndDutyCycleInput';
@@ -81,20 +76,6 @@ const edges = [
     { id: 'r', name: 'Raising edge' },
     { id: 'f', name: 'Falling edge' }
 ];
-
-const exporter = records => {
-    const data = records.map(record => ({
-        ...record,
-        created: moment(record.status.lastPing).format(DateTimeMomentFormat)
-    }));
-
-    const csv = convertToCSV({
-        data,
-        fields: ['created', 'command', 'status']
-    });
-
-    downloadCSV(csv, 'EISS™Cubes');
-};
 
 const CommandTitle = withStyles(commandStyles)(
     ({classes, title, record}) => (

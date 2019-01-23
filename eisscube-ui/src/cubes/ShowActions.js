@@ -1,9 +1,7 @@
 import React from 'react';
-import CardActions from '@material-ui/core/CardActions';
-
 import { EditButton } from 'react-admin';
+import CardActions from '@material-ui/core/CardActions';
 import SetupButton from './SetupButton';
-import { CardContent } from '@material-ui/core';
 
 const actionStyle = {
     zIndex: 2,
