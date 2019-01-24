@@ -32,7 +32,7 @@ class Relay1Form extends Component {
 
         this.handleSave = this.handleSave.bind(this);
     }
-
+    
     componentDidUpdate(prevProps) {
 		if (this.props.data !== prevProps.data) {
 			let data = this.props.data; 
@@ -49,7 +49,7 @@ class Relay1Form extends Component {
     };
 
     render() {
-        const { classes, onSubmit, isPristine, isSubmitting, step, onBack, onNext, isRelay1Connected } = this.props
+        const { classes, onSubmit, isPristine, isSubmitting, step, back, next, isRelay1Connected } = this.props
         const { data } = this.state;
 
         return (
@@ -71,7 +71,7 @@ class Relay1Form extends Component {
                         <TextInput label='Description' source='relay1.description' fullWidth margin='dense'/>
                     </Fragment>
                 }
-                <SetupFormButton step={step} onSave={this.handleSave} onNext={onNext} onBack={onBack} pristine={isPristine} submitting={isSubmitting}/>
+                <SetupFormButton step={step} onSave={this.handleSave} onNext={next} onBack={back} pristine={isPristine} submitting={isSubmitting}/>
             </SimpleForm>
         );
     }

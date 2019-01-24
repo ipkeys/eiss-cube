@@ -31,6 +31,9 @@ export const styles = theme => ({
     },
     btnPadding: {
         marginRight: theme.spacing.unit
+    },
+    stepContent: {
+        padding: 0
     }
 });
 
@@ -39,8 +42,7 @@ class SetupEissCube extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            stepIndex: 0,
-            data: {}
+            stepIndex: 0
         };
 
         this.handleNext = this.handleNext.bind(this);
@@ -102,13 +104,13 @@ class SetupEissCube extends Component {
                     <StepButton onClick={() => this.setState({stepIndex: 0})}>
                         RELAY 1
                     </StepButton>
-                    <StepContent>
+                    <StepContent className={classes.stepContent} >
                         <Relay1Form
                             data={data}
                             step={stepIndex}
                             onSubmit={this.handleSubmit}
-                            onNext={this.handleNext}
-                            onBack={this.handlePrev}
+                            next={this.handleNext}
+                            back={this.handlePrev}
                         />
                     </StepContent>
                 </Step>
@@ -117,13 +119,13 @@ class SetupEissCube extends Component {
                     <StepButton onClick={() => this.setState({stepIndex: 1})}>
                         RELAY 2
                     </StepButton>
-                    <StepContent>
+                    <StepContent className={classes.stepContent} >
                         <Relay2Form
                             data={data}
                             step={stepIndex}
                             onSubmit={this.handleSubmit}
-                            onNext={this.handleNext}
-                            onBack={this.handlePrev}
+                            next={this.handleNext}
+                            back={this.handlePrev}
                         />
                     </StepContent>
                 </Step>
@@ -132,13 +134,13 @@ class SetupEissCube extends Component {
                     <StepButton onClick={() => this.setState({stepIndex: 2})}>
                         INPUT 1
                     </StepButton>
-                    <StepContent>
+                    <StepContent className={classes.stepContent} >
                         <Input1Form
                             data={data}
                             step={stepIndex}
                             onSubmit={this.handleSubmit}
-                            onNext={this.handleNext}
-                            onBack={this.handlePrev}
+                            next={this.handleNext}
+                            back={this.handlePrev}
                         />
                     </StepContent>
                 </Step>
@@ -147,13 +149,13 @@ class SetupEissCube extends Component {
                     <StepButton onClick={() => this.setState({stepIndex: 3})}>
                         INPUT 2
                     </StepButton>
-                    <StepContent>
+                    <StepContent className={classes.stepContent} >
                         <Input2Form
                             data={data}
                             step={stepIndex}
                             onSubmit={this.handleSubmit}
-                            onNext={this.handleNext}
-                            onBack={this.handlePrev}
+                            next={this.handleNext}
+                            back={this.handlePrev}
                         />
                     </StepContent>
                 </Step>
@@ -174,8 +176,6 @@ export const SetupFormButton = withStyles(styles)(
             <Button
                 color="primary"
                 disabled={step === 0}
-                //disableRipple
-                //disableFocusRipple
                 onClick={onBack}
                 className={classes.btnPadding}
             >
@@ -186,8 +186,6 @@ export const SetupFormButton = withStyles(styles)(
                 variant="contained"
                 color="primary"
                 disabled={pristine || submitting}
-                //disableRipple
-                //disableFocusRipple
                 onClick={onSave}
                 className={classes.btnPadding}
             >
@@ -197,8 +195,6 @@ export const SetupFormButton = withStyles(styles)(
             <Button
                 color="primary"
                 disabled={step === 3}
-                //disableRipple
-                //disableFocusRipple
                 onClick={onNext}
             >
                 <NextIcon className={classes.btnPadding} />

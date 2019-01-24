@@ -49,7 +49,7 @@ class Input1Form extends Component {
     };
 
     render() {
-        const { classes, onSubmit, isPristine, isSubmitting, step, onBack, onNext, isInput1Connected, input1SignalType } = this.props
+        const { classes, onSubmit, isPristine, isSubmitting, step, back, next, isInput1Connected, input1SignalType } = this.props
         const { data } = this.state;
 
         return (
@@ -79,7 +79,7 @@ class Input1Form extends Component {
                         <TextInput label='Description' source='input1.description' fullWidth margin='dense'/>
                     </Fragment>
                 }
-                <SetupFormButton step={step} onSave={this.handleSave} onNext={onNext} onBack={onBack} pristine={isPristine} submitting={isSubmitting}/>
+                <SetupFormButton step={step} onSave={this.handleSave} onNext={next} onBack={back} pristine={isPristine} submitting={isSubmitting}/>
             </SimpleForm>
         );
     }

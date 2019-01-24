@@ -49,7 +49,7 @@ class Relay2Form extends Component {
     };
 
     render() {
-        const { classes, onSubmit, isPristine, isSubmitting, step, onBack, onNext, isRelay2Connected } = this.props
+        const { classes, onSubmit, isPristine, isSubmitting, step, back, next, isRelay2Connected } = this.props
         const { data } = this.state;
 
         return (
@@ -71,7 +71,7 @@ class Relay2Form extends Component {
                         <TextInput label='Description' source='relay2.description' fullWidth margin='dense'/>
                     </Fragment>
                 }
-                <SetupFormButton step={step} onSave={this.handleSave} onNext={onNext} onBack={onBack} pristine={isPristine} submitting={isSubmitting}/>
+                <SetupFormButton step={step} onSave={this.handleSave} onNext={next} onBack={back} pristine={isPristine} submitting={isSubmitting}/>
             </SimpleForm>
         );
     }

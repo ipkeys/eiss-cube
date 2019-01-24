@@ -34,8 +34,6 @@ import CubeMap from './CubeMap';
 import PasswordInput from './PasswordInput';
 import EissCubesShowActions from './ShowActions';
 
-import SetupButton from './SetupButton';
-
 export const EissCubesIcon = Icon;
 
 const eissCubesStyles = theme => ({
@@ -103,7 +101,6 @@ export const EissCubesList = withStyles(eissCubesStyles)(
                 <DateField source="timeStarted" label="Started" showTime options={AppDateTimeFormat} />
                 <DateField source="lastPing" label="Last ping" showTime options={AppDateTimeFormat} />
                 <ShowButton />
-                <SetupButton />
             </Datagrid>
         </List>
     )
