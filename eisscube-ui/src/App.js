@@ -6,6 +6,7 @@ import englishMessages from 'ra-language-english';
 import createRealtimeSaga from "./rest/createRealtimeSaga";
 import DataProvider from './rest/DataProvider';
 
+import { Dashboard } from './dashboard';
 import { EissCubesIcon, EissCubesList, EissCubesShow, EissCubesEdit, EissCubesCreate } from './cubes';
 import { CommandIcon, CommandList, CommandShow, CommandCreate } from './commands';
 
@@ -40,7 +41,7 @@ const realTimeSaga = createRealtimeSaga(DataProvider);
 const App = () => (
 	<Admin
 		theme={ theme }
-		title="EISS™Cube"
+        dashboard={ Dashboard }
         dataProvider={ DataProvider }
         customSagas={[realTimeSaga]}
         locale="en" 

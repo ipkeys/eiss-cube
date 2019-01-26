@@ -99,7 +99,9 @@ public class ListRoute implements Handler<RoutingContext> {
         q.project("deviceID", TRUE)
             .project("online", TRUE)
             .project("lastPing", TRUE)
-            .project("timeStarted", TRUE);
+            .project("timeStarted", TRUE)
+            .project("location", TRUE)
+            .project("customerID", TRUE);
 
         // skip/limit
         FindOptions o = new FindOptions();

@@ -1,17 +1,8 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
-
-import { GET_ONE, CREATE } from 'react-admin';
-import DataProvider from '../rest/DataProvider';
-
-import Typography from '@material-ui/core/Typography';
-import TextField from '@material-ui/core/TextField';
-import Checkbox from '@material-ui/core/Checkbox';
-import Select from '@material-ui/core/Select';
 import Stepper from '@material-ui/core/Stepper';
 import Step from '@material-ui/core/Step';
-import StepLabel from '@material-ui/core/StepLabel';
 import StepButton from '@material-ui/core/StepButton';
 import StepContent from '@material-ui/core/StepContent';
 import Button from '@material-ui/core/Button';
@@ -20,12 +11,15 @@ import BackIcon from '@material-ui/icons/ArrowUpward';
 import SaveIcon from '@material-ui/icons/Save';
 import NextIcon from '@material-ui/icons/ArrowDownward';
 
+import { GET_ONE, CREATE } from 'react-admin';
+import DataProvider from '../rest/DataProvider';
+
 import Relay1Form from './Relay1Form';
 import Relay2Form from './Relay2Form';
 import Input1Form from './Input1Form';
 import Input2Form from './Input2Form';
 
-export const styles = theme => ({
+const styles = theme => ({
     btnRoot: {
         marginTop: theme.spacing.unit
     },

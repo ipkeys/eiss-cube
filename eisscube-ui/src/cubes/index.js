@@ -13,13 +13,10 @@ import {
     Create,
     DateField,
     Edit,
-    EditButton,
     TabbedForm,
     FormTab,
     DisabledInput,
     
-    required,
-    minLength,
     maxLength
 } from 'react-admin';
 import { unparse as convertToCSV } from 'papaparse/papaparse.min';
