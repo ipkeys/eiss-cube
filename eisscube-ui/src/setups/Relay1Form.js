@@ -66,7 +66,7 @@ class Relay1Form extends Component {
                             { id: 'NO', name: 'Normal Open' },
                             { id: 'NC', name: 'Normal Close' }
                         ]} className={classes.inline} margin='dense' />
-                        <NumberInput label='Load value (W)' source='relay1.load' className={classes.inline} margin='dense'/>
+                        <NumberInput label='Load value (W)' source='relay1.load' className={classes.inline} margin='dense' />
                         <TextInput label='Label' source='relay1.label' fullWidth margin='dense'/>
                         <TextInput label='Description' source='relay1.description' fullWidth margin='dense'/>
                     </Fragment>

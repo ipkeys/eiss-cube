@@ -16,14 +16,15 @@ import {
     TabbedForm,
     FormTab,
     DisabledInput,
-    
+    Responsive, 
+    SimpleList,
     maxLength
 } from 'react-admin';
 import { unparse as convertToCSV } from 'papaparse/papaparse.min';
 import moment from 'moment';
 import Icon from '@material-ui/icons/Router';
 import { withStyles } from '@material-ui/core/styles';
-import { common, grey } from '@material-ui/core/colors';
+import { common, grey, green, red } from '@material-ui/core/colors';
 
 import { AppDateTimeFormat, DateTimeMomentFormat } from '../App';
 import StatusField from './StatusField';
@@ -74,8 +75,8 @@ const EissCubesTitle = withStyles(eissCubesStyles)(
 
 const EissCubesListFilter = props => (
     <Filter {...props}>
-        <SearchInput source="q" alwaysOn />
-        <SelectInput source="online" label="Status" choices={[
+        <SearchInput source='q' alwaysOn />
+        <SelectInput source='online' label='Status' choices={[
             { id: true, name: 'ONLINE' },
             { id: false, name: 'OFFLINE' }
         ]} />
@@ -85,20 +86,31 @@ const EissCubesListFilter = props => (
 export const EissCubesList = withStyles(eissCubesStyles)(
     ({ classes, ...props }) => (
         <List  
-            title={<EissCubesTitle title="EISS™Cubes" />}
+            title={<EissCubesTitle title='EISS™Cubes' />}
             filters={<EissCubesListFilter />}
             sort={{ field: 'deviceID', order: 'ASC' }}
             perPage={10}
             exporter={exporter}
             {...props}
         >
-            <Datagrid classes={{ rowEven: classes.rowEven }} >
-                <TextField source="deviceID" label="Name" />
-                <StatusField source="online" label="Status" />
-                <DateField source="timeStarted" label="Started" showTime options={AppDateTimeFormat} />
-                <DateField source="lastPing" label="Last ping" showTime options={AppDateTimeFormat} />
-                <ShowButton />
-            </Datagrid>
+            <Responsive
+                small={
+                    <SimpleList
+                        linkType="show"
+                        primaryText={record => record.deviceID}
+                        secondaryText={record => record.online === true ? <span style={{ color: green[500] }}>ONLINE</span> : <span style={{ color: red[500] }}>OFFLINE</span>}
+                    />
+                }
+                medium={
+                    <Datagrid classes={{ rowEven: classes.rowEven }} >
+                        <TextField source='deviceID' label='Name' />
+                        <StatusField source='online' label='Status' />
+                        <DateField source='timeStarted' label='Started' showTime options={AppDateTimeFormat} />
+                        <DateField source='lastPing' label='Last ping' showTime options={AppDateTimeFormat} />
+                        <ShowButton />
+                    </Datagrid>
+                }
+            />
         </List>
     )
 );
@@ -106,7 +118,7 @@ export const EissCubesList = withStyles(eissCubesStyles)(
 export const EissCubesShow = withStyles(eissCubesStyles)(
     ({ classes, ...props }) => (
         <Show  
-            title={<EissCubesTitle title="Manage EISS™Cube -" />}
+            title={<EissCubesTitle title='Manage EISS™Cube -' />}
             actions={<EissCubesShowActions />}
             {...props}
         >
@@ -118,24 +130,24 @@ export const EissCubesShow = withStyles(eissCubesStyles)(
 export const EissCubesEdit = withStyles(eissCubesStyles)(
     ({ classes, ...props }) => (
         <Edit  
-            title={<EissCubesTitle title="Edit EISS™Cube -" />}
+            title={<EissCubesTitle title='Edit EISS™Cube -' />}
             {...props}
         >
             <TabbedForm>
-                <FormTab label="identity">
-                    <DisabledInput label="Device ID" source="deviceID" />
-                    <DisabledInput label="Password" source="password" type="password" />
-                    <TextInput label="SIM card" source="simCard" className={classes.longText} validate={[ maxLength(20) ]} />
+                <FormTab label='identity'>
+                    <DisabledInput label='Device ID' source='deviceID' />
+                    <DisabledInput label='Password' source='password' type='password' />
+                    <TextInput label='SIM card' source='simCard' className={classes.longText} validate={[ maxLength(20) ]} />
                 </FormTab>
-                <FormTab label="customer">
-                    <TextInput label="Customer ID" source="customerID" className={classes.longText} />
-                    <TextInput label="Zone" source="zone" />
-                    <TextInput label="Subzone" source="subZone" />
+                <FormTab label='customer'>
+                    <TextInput label='Customer ID' source='customerID' className={classes.longText} />
+                    <TextInput label='Zone' source='zone' />
+                    <TextInput label='Subzone' source='subZone' />
                </FormTab>
-                <FormTab label="address">
-                    <TextInput label="Address" source="address" className={classes.longText} />
-                    <TextInput label="City, State" source="city" />
-                    <TextInput label="Zip Code" source="zipCode" />
+                <FormTab label='address'>
+                    <TextInput label='Address' source='address' className={classes.longText} />
+                    <TextInput label='City, State' source='city' />
+                    <TextInput label='Zip Code' source='zipCode' />
                 </FormTab>
             </TabbedForm>
         </Edit>
@@ -145,24 +157,24 @@ export const EissCubesEdit = withStyles(eissCubesStyles)(
 export const EissCubesCreate = withStyles(eissCubesStyles)(
     ({ classes, ...props }) => (
         <Create 
-            title={<EissCubesTitle title="Create new EISS™Cube" />} 
+            title={<EissCubesTitle title='Create new EISS™Cube' />} 
             {...props}
         >
-            <TabbedForm redirect="show">
-                <FormTab label="identity">
-                    <TextInput label="Device ID" source="deviceID" />
-                    <PasswordInput label="Password" source="password" />
-                    <TextInput label="SIM card" source="simCard" className={classes.longText} validate={[ maxLength(20) ]} />
+            <TabbedForm redirect='show'>
+                <FormTab label='identity'>
+                    <TextInput label='Device ID' source='deviceID' />
+                    <PasswordInput label='Password' source='password' />
+                    <TextInput label='SIM card' source='simCard' className={classes.longText} validate={[ maxLength(20) ]} />
                 </FormTab>
-                <FormTab label="customer">
-                    <TextInput label="Customer ID" source="customerID" className={classes.longText} />
-                    <TextInput label="Zone" source="zone" />
-                    <TextInput label="Subzone" source="subZone" />
+                <FormTab label='customer'>
+                    <TextInput label='Customer ID' source='customerID' className={classes.longText} />
+                    <TextInput label='Zone' source='zone' />
+                    <TextInput label='Subzone' source='subZone' />
                </FormTab>
-                <FormTab label="address">
-                    <TextInput label="Address" source="address" className={classes.longText} />
-                    <TextInput label="City, State" source="city" />
-                    <TextInput label="Zip Code" source="zipCode" />
+                <FormTab label='address'>
+                    <TextInput label='Address' source='address' className={classes.longText} />
+                    <TextInput label='City, State' source='city' />
+                    <TextInput label='Zip Code' source='zipCode' />
                 </FormTab>
             </TabbedForm>
         </Create>

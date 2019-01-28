@@ -3,10 +3,11 @@ import { withStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import Avatar from '@material-ui/core/Avatar';
-import Button from '@material-ui/core/Button';
 import OfflineIcon from '@material-ui/icons/ThumbDown';
 import ListIcon from '@material-ui/icons/List';
 import { common, red } from '@material-ui/core/colors';
+
+import { Button } from 'react-admin';
 
 const styles = theme => ({
     card: { 
@@ -32,9 +33,10 @@ export default withStyles(styles)(
                 title={`${value} EISS™Cube(s)`}
                 subheader={<span style={{ color: red[500] }}>OFFLINE</span>}
                 action={
-                    <Button href={'#/cubes?filter={"online":false}&page=1&perPage=10&sort=deviceID&order=DESC'} >
+                    <Button 
+                        label='List'
+                        href={'#/cubes?filter={"online":false}&page=1&perPage=10&sort=deviceID&order=DESC'} >
                         <ListIcon />
-                        List
                     </Button>
                 }
             />

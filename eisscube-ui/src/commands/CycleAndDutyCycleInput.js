@@ -50,7 +50,7 @@ class CycleAndDutyCycleInput extends Component {
     };
 
     render() {
-        const { classes, options, source, margin } = this.props;
+        const { classes, input, options, source, margin } = this.props;
         const { cycle, duty } = this.state;
 
         const on = isNaN(cycle) && isNaN(duty) ? 0 :  Math.round(cycle * duty / 100);
@@ -81,6 +81,7 @@ class CycleAndDutyCycleInput extends Component {
                 <input
                     type="hidden"
                     name={source}
+                    {...input}
                     value={`${cycle}/${duty}`}
                 />
             </FormGroup>

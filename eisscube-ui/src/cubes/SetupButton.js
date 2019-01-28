@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { withStyles } from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
+//import Button from '@material-ui/core/Button';
 import Icon from '@material-ui/icons/Settings';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
@@ -8,6 +8,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogActions from '@material-ui/core/DialogActions';
 import CancelIcon from '@material-ui/icons/Close';
 
+import { Button } from 'react-admin';
 import SetupCube from '../setups/SetupCube';
 
 export const SetupIcon = Icon;
@@ -49,9 +50,8 @@ class SetupButton extends Component {
             record
             ?
             <span>
-                <Button color="primary" onClick={this.handleOpen} >
-                    <SetupIcon className={classes.btnPadding} />
-                    Setup
+                <Button label='Setup' onClick={this.handleOpen} >
+                    <SetupIcon />
                 </Button>
 				<Dialog
 					fullWidth
@@ -74,9 +74,8 @@ class SetupButton extends Component {
 					</DialogContent>
 
 					<DialogActions>
-						<Button onClick={this.handleClose} color='primary'>
- 				           <CancelIcon className={classes.btnPadding} />
-				            Close
+						<Button label='Close' onClick={this.handleClose} >
+ 				           <CancelIcon />
         				</Button>
                     </DialogActions>
 				</Dialog>

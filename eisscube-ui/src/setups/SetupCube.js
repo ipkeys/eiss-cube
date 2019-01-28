@@ -5,13 +5,11 @@ import Stepper from '@material-ui/core/Stepper';
 import Step from '@material-ui/core/Step';
 import StepButton from '@material-ui/core/StepButton';
 import StepContent from '@material-ui/core/StepContent';
-import Button from '@material-ui/core/Button';
-
 import BackIcon from '@material-ui/icons/ArrowUpward';
 import SaveIcon from '@material-ui/icons/Save';
 import NextIcon from '@material-ui/icons/ArrowDownward';
 
-import { GET_ONE, CREATE } from 'react-admin';
+import { Button, GET_ONE, CREATE } from 'react-admin';
 import DataProvider from '../rest/DataProvider';
 
 import Relay1Form from './Relay1Form';
@@ -168,31 +166,29 @@ export const SetupFormButton = withStyles(styles)(
         ({ classes, step, onNext, onBack, onSave, pristine, submitting }) => (
         <div className={classes.btnRoot}>
             <Button
-                color="primary"
+                label='Back'
                 disabled={step === 0}
                 onClick={onBack}
                 className={classes.btnPadding}
             >
-                <BackIcon className={classes.btnPadding} />
-                Back
+                <BackIcon />
             </Button>
             <Button
+                label='Save'
                 variant="contained"
-                color="primary"
                 disabled={pristine || submitting}
                 onClick={onSave}
                 className={classes.btnPadding}
             >
-                <SaveIcon className={classes.btnPadding} />
-                Save
+                <SaveIcon />
             </Button>
             <Button
-                color="primary"
+                label='Next'
                 disabled={step === 3}
                 onClick={onNext}
+                className={classes.btnPadding}
             >
-                <NextIcon className={classes.btnPadding} />
-                Next
+                <NextIcon />
             </Button>
         </div>
     )
