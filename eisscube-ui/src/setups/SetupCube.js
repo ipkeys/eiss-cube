@@ -10,7 +10,7 @@ import SaveIcon from '@material-ui/icons/Save';
 import NextIcon from '@material-ui/icons/ArrowDownward';
 
 import { Button, GET_ONE, CREATE } from 'react-admin';
-import DataProvider from '../rest/DataProvider';
+import { dataProvider } from '../App';
 
 import Relay1Form from './Relay1Form';
 import Relay2Form from './Relay2Form';
@@ -43,7 +43,7 @@ class SetupEissCube extends Component {
     }
 
     componentWillMount() {
-        DataProvider(GET_ONE, `setup`, {
+        dataProvider(GET_ONE, `setup`, {
             id: this.props.deviceID
         })
         .then(response => response.data)
@@ -57,7 +57,7 @@ class SetupEissCube extends Component {
     }
 
     handleSubmit = (values) => {
-        DataProvider(CREATE, `setup`, {
+        dataProvider(CREATE, `setup`, {
             data: { ...values, deviceID: this.props.deviceID}
         })
         .then(response => response.data)
@@ -94,7 +94,7 @@ class SetupEissCube extends Component {
             <Stepper nonLinear activeStep={stepIndex} orientation="vertical">
                 <Step>
                     <StepButton onClick={() => this.setState({stepIndex: 0})}>
-                        RELAY 1
+                        RELAY
                     </StepButton>
                     <StepContent className={classes.stepContent} >
                         <Relay1Form
@@ -106,43 +106,12 @@ class SetupEissCube extends Component {
                         />
                     </StepContent>
                 </Step>
-
                 <Step>
                     <StepButton onClick={() => this.setState({stepIndex: 1})}>
-                        RELAY 2
-                    </StepButton>
-                    <StepContent className={classes.stepContent} >
-                        <Relay2Form
-                            data={data}
-                            step={stepIndex}
-                            onSubmit={this.handleSubmit}
-                            next={this.handleNext}
-                            back={this.handlePrev}
-                        />
-                    </StepContent>
-                </Step>
-
-                <Step>
-                    <StepButton onClick={() => this.setState({stepIndex: 2})}>
-                        INPUT 1
+                        INPUT
                     </StepButton>
                     <StepContent className={classes.stepContent} >
                         <Input1Form
-                            data={data}
-                            step={stepIndex}
-                            onSubmit={this.handleSubmit}
-                            next={this.handleNext}
-                            back={this.handlePrev}
-                        />
-                    </StepContent>
-                </Step>
-
-                <Step>
-                    <StepButton onClick={() => this.setState({stepIndex: 3})}>
-                        INPUT 2
-                    </StepButton>
-                    <StepContent className={classes.stepContent} >
-                        <Input2Form
                             data={data}
                             step={stepIndex}
                             onSubmit={this.handleSubmit}
@@ -184,7 +153,7 @@ export const SetupFormButton = withStyles(styles)(
             </Button>
             <Button
                 label='Next'
-                disabled={step === 3}
+                disabled={step === 1}
                 onClick={onNext}
                 className={classes.btnPadding}
             >

@@ -3,7 +3,7 @@ import _ from 'lodash';
 import L from 'leaflet';
 import { Map, LayersControl, TileLayer, Marker, Popup } from 'react-leaflet';
 import { GET_LIST } from 'react-admin';
-import DataProvider from '../rest/DataProvider';
+import { dataProvider } from '../App';
 import { red, green } from '@material-ui/core/colors';
 
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
@@ -38,7 +38,7 @@ class CubesMap extends Component {
     }
 
     componentWillMount() {
-        DataProvider(GET_LIST, 'cubes', {
+        dataProvider(GET_LIST, 'cubes', {
             sort: { field: 'deviceID', order: 'ASC' },
             pagination: { page: 1, perPage: 100 }
         })
@@ -54,15 +54,15 @@ class CubesMap extends Component {
         const position = [this.state.lat, this.state.lng]
         const { data } = this.state;
 
-        const markers = _.map(data, (cube) => {
+        const markers = _.map(data, (cube, index) => {
             const lat = cube.location ? cube.location.lat : this.state.lat;
             const lng = cube.location ? cube.location.lng : this.state.lng;
             const status = cube.online 
-                ? <div style={{color: green[500], textAlign: 'center'}}>ONLINE</div> 
-                : <div style={{color: red[500], textAlign: 'center'}}>OFFLINE</div>;
+                ? <div style={{color: green[500], textAlign: 'center'}}><b>ONLINE</b></div> 
+                : <div style={{color: red[500], textAlign: 'center'}}><b>OFFLINE</b></div>;
             const icon = cube.online ? greenMarker : redMarker;
             return (
-                <Marker 
+                <Marker key={index}
                     position={[lat, lng]}
                     icon={icon}
                 >

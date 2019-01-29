@@ -36,7 +36,6 @@ CycleField.propTypes = {
     suffix: PropTypes.string
 };
 
-// wat? TypeScript looses the displayName if we don't set it explicitly
 CycleField.displayName = 'CycleField';
 const PureCycleField = pure(CycleField);
 

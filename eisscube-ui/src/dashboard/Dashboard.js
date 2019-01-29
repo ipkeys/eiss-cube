@@ -4,8 +4,7 @@ import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 
 import { Title, GET_LIST } from 'react-admin';
-
-import DataProvider from '../rest/DataProvider';
+import { dataProvider } from '../App';
 
 import Welcome from './Welcome';
 import Online from './Online';
@@ -25,7 +24,7 @@ class Dashboard extends Component {
     state = {};
 
     componentWillMount() {
-        DataProvider(GET_LIST, 'cubes', {
+        dataProvider(GET_LIST, 'cubes', {
             sort: { field: 'deviceID', order: 'ASC' },
             pagination: { page: 1, perPage: 100 }
         })

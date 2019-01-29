@@ -12,6 +12,8 @@ import {
     DELETE_MANY,
 } from 'react-admin';
 
+let http;
+
 /**
  * Maps react-admin queries to a json-server powered REST API
  *
@@ -24,13 +26,16 @@ import {
  * CREATE       => POST http://my.api.url/posts/123
  * DELETE       => DELETE http://my.api.url/posts/123
  */
-export default (apiUrl, httpClient = fetchUtils.fetchJson) => {
+export default (apiUrl, httpService) => {
     /**
      * @param {String} type One of the constants appearing at the top if this file, e.g. 'UPDATE'
      * @param {String} resource Name of the resource to fetch, e.g. 'posts'
      * @param {Object} params The data request params, depending on the type
      * @returns {Object} { url, options } The HTTP request parameters
      */
+
+    http = httpService;
+
     const convertDataRequestToHTTP = (type, resource, params) => {
         let url = '';
         const options = {};
@@ -100,29 +105,21 @@ export default (apiUrl, httpClient = fetchUtils.fetchJson) => {
      * @returns {Object} Data response
      */
     const convertHTTPResponse = (response, type, resource, params) => {
-        const { headers, json } = response;
+        const { headers, data } = response;
         switch (type) {
             case GET_LIST:
             case GET_MANY_REFERENCE:
-                if (!headers.has('x-total-count')) {
-                    throw new Error(
-                        'The X-Total-Count header is missing in the HTTP Response. The jsonServer Data Provider expects responses for lists of resources to contain this header with the total number of results to build the pagination. If you are using CORS, did you declare X-Total-Count in the Access-Control-Expose-Headers header?'
-                    );
+                if (!headers['x-total-count']) {
+                    throw new Error('Did you declare "x-total-count" in the Access-Control-Expose-Headers header?');
                 }
                 return {
-                    data: json,
-                    total: parseInt(
-                        headers
-                            .get('x-total-count')
-                            .split('/')
-                            .pop(),
-                        10
-                    ),
+                    data: data,
+                    total: parseInt(headers['x-total-count'], 10)
                 };
             case CREATE:
-                return { data: { ...params.data, id: json.id } };
+                return { data: { ...params.data, id: data.id } };
             default:
-                return { data: json };
+                return { data: data };
         }
     };
 
@@ -168,3 +165,16 @@ export default (apiUrl, httpClient = fetchUtils.fetchJson) => {
         );
     };
 };
+
+const httpClient = (url, options = {}) => {
+    if (!options.headers) {
+        options.headers = new Headers({ Accept: 'application/json' });
+    }
+
+    let method = options.method || 'get';
+ 
+    return http[method](url, options).then(response => {
+        return response;
+    });
+};
+  

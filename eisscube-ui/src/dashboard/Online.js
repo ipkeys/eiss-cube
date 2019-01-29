@@ -5,7 +5,7 @@ import CardHeader from '@material-ui/core/CardHeader';
 import Avatar from '@material-ui/core/Avatar';
 import OnlineIcon from '@material-ui/icons/ThumbUp';
 import ListIcon from '@material-ui/icons/List';
-import { common, green } from '@material-ui/core/colors';
+import { green } from '@material-ui/core/colors';
 
 import { Button } from 'react-admin';
 
@@ -16,7 +16,7 @@ const styles = theme => ({
         marginBottom: theme.spacing.unit 
     },
     avatar: {
-        color: common.white,
+        color: theme.palette.common.white,
         backgroundColor: green[500]
     }
 });

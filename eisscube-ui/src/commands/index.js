@@ -8,7 +8,7 @@ import {
     Datagrid,
     DateField,
     TextField,
-    BooleanInput,
+    Labeled,
     NumberInput,
     SelectField,
     SelectInput,
@@ -23,6 +23,7 @@ import {
     required
 } from 'react-admin';
 import Icon from '@material-ui/icons/Message';
+import Divider from '@material-ui/core/Divider';
 
 import { withStyles } from '@material-ui/core/styles';
 import { common, grey } from '@material-ui/core/colors';
@@ -30,12 +31,12 @@ import { common, grey } from '@material-ui/core/colors';
 import { AppDateTimeFormat, DateTimeFormat } from '../App';
 import { DateTimeInput } from 'react-admin-date-inputs';
 
-import CycleAndDutyCycleInput from './CycleAndDutyCycleInput';
-import TargetField from './TargetField';
-
-//import TargetInput from './TargetInput';
+import { Field } from 'redux-form';
 import CycleField from './CycleField';
 import DutyCycleField from './DutyCycleField';
+import CycleAndDutyCycleInput from './CycleAndDutyCycleInput';
+
+import sanitizeRestProps from './sanitizeRestProps';
 
 export const CommandIcon = Icon;
 
@@ -98,7 +99,7 @@ const CommandFilter = props => (
 export const CommandList = withStyles(commandStyles)(
     ({ classes, ...props }) => (
         <List  
-            title={<CommandTitle title="EISS™Cubes Commands" />}
+            title={<CommandTitle title='Commands' />}
             filters={<CommandFilter />}
             sort={{ field: 'created', order: 'DESC' }}
             perPage={10}
@@ -106,12 +107,12 @@ export const CommandList = withStyles(commandStyles)(
             {...props}
         >
             <Datagrid classes={{ rowEven: classes.rowEven }} >
-                <DateField label="Created" source="created" showTime options={AppDateTimeFormat} />
-                <ReferenceField label="EISS™Cube" source="cubeID" reference="cubes" linkType="show">
-                    <TextField source="deviceID" />
+                <DateField label='Created' source='created' showTime options={AppDateTimeFormat} />
+                <ReferenceField label='EISS™Cube' source='cubeID' reference='cubes' linkType='show'>
+                    <TextField source='deviceID' />
                 </ReferenceField>
-                <SelectField label="Command" source="command" choices={cmds} />
-                <TextField label="Status" source="status" />
+                <SelectField label='Command' source='command' choices={cmds} />
+                <TextField label='Status' source='status' />
                 <ShowButton />
             </Datagrid>
         </List>
@@ -120,45 +121,54 @@ export const CommandList = withStyles(commandStyles)(
 
 export const CommandShow = withStyles(commandStyles)(
     ({ classes, ...props }) => (
-        <ShowController title={<CommandTitle title="EISS™Cubes Command for" />} {...props}>
+        <ShowController title={<CommandTitle title='Command' />} {...props}>
             {controllerProps => 
                 <ShowView {...props} {...controllerProps}>
                     <SimpleShowLayout>
-                        <SelectField label="Command" source="command" choices={cmds} />
+                        <SelectField className={classes.inlineField} label='Command' source='command' choices={cmds} />
 
-                        {controllerProps.record && checkCommandForRelay(controllerProps.record.command) && 
-                            <Fragment>
-                                <TargetField label="Relay 1" source="target1" {...controllerProps}/>
-                                <TargetField label="Relay 2" source="target2" {...controllerProps}/>
-                            </Fragment>
+                        <ReferenceField className={classes.inlineField} label='for EISS™Cube' source='cubeID' reference='cubes' linkType='show'>
+                            <TextField source='deviceID' />
+                        </ReferenceField>
+
+                        {controllerProps.record && controllerProps.record.startTime && 
+                            <DateField className={classes.inlineField} label='Start date, time' source='startTime' showTime options={AppDateTimeFormat} />
                         }
 
-                        {controllerProps.record && checkCommandForInput(controllerProps.record.command) && 
-                            <Fragment>
-                                <TargetField label="Input 1" source="target1" {...controllerProps}/>
-                                <TargetField label="Input 2" source="target2" {...controllerProps}/>
-                            </Fragment>
+                        {controllerProps.record && controllerProps.record.endTime && 
+                            <DateField className={classes.inlineField} label='End date, time' source='endTime' showTime options={AppDateTimeFormat} />
                         }
 
                         {controllerProps.record && checkCommandForRelayCycle(controllerProps.record.command) && 
                             <Fragment>
-                                <CycleField className={classes.inlineField} label="Cycle" source="completeCycle" suffix="sec" {...controllerProps}/>
-                                <DutyCycleField className={classes.inlineField} label="Duty Cycle" source="dutyCycle" {...controllerProps}/>
+                                <CycleField className={classes.inlineField} label='Cycle' source='completeCycle' suffix='sec' {...controllerProps}/>
+                                <DutyCycleField className={classes.inlineField} label='Duty Cycle' source='dutyCycle' {...controllerProps}/>
                             </Fragment>
                         }
 
-                        {controllerProps.record && controllerProps.record.startTime && 
-                            <DateField className={classes.inlineField} label="Start on" source="startTime" showTime options={AppDateTimeFormat} />
+                        {controllerProps.record && checkCommandForInputCount(controllerProps.record.command) && 
+                            <Fragment>
+                                <Labeled label='Transition'>
+                                    <SelectField className={classes.inlineField} source='transition' choices={edges} {...controllerProps}/>
+                                </Labeled>
+                                <CycleField className={classes.inlineField} label='Cycle' source='completeCycle' suffix='sec' {...controllerProps}/>
+                            </Fragment>
                         }
 
-                        {controllerProps.record && controllerProps.record.endTime && 
-                            <DateField className={classes.inlineField} label="End on" source="endTime" showTime options={AppDateTimeFormat} />
+                        {controllerProps.record && checkCommandForInputCycle(controllerProps.record.command) && 
+                            <Fragment>
+                                <Labeled label='Transition'>
+                                    <SelectField className={classes.inlineField} source='transition' choices={edges} {...controllerProps}/>
+                                </Labeled>
+                            </Fragment>
                         }
-
-                        <TextField label="Status" source="status" />
                         
-                        <DateField className={classes.inlineField} label="Created on" source="created" showTime options={AppDateTimeFormat} />
-                        <DateField className={classes.inlineField} label="Updated on" source="updated" showTime options={AppDateTimeFormat} />
+                        <Divider {...sanitizeRestProps(props)} />
+                        
+                        <TextField className={classes.inlineField} label='Status' source='status' />
+                        
+                        <DateField className={classes.inlineField} label='Created on' source='created' showTime options={AppDateTimeFormat} />
+                        <DateField className={classes.inlineField} label='Updated on' source='updated' showTime options={AppDateTimeFormat} />
 
                     </SimpleShowLayout>
                 </ShowView>
@@ -170,20 +180,6 @@ export const CommandShow = withStyles(commandStyles)(
 
 const validateCommandCreation = (values) => {
     const errors = {};
-    let target1 = (values.target1) ? values.target1 : false;
-    let target2 = (values.target2) ? values.target2 : false;
-
-    if (values.command && values.command.startsWith('r')) {
-        if (!(target1 || target2)) {
-            errors.command = ['One or more Relays required'];
-        }
-    }
-
-    if (values.command && values.command.startsWith('i')) {
-        if (!(target1 || target2)) {
-            errors.command = ['One or more Inputs required'];
-        }
-    }
 
     if (values.completeCycle < 1) {
         errors.completeCycle = ['Must be more then 1 seconds'];
@@ -203,14 +199,6 @@ const validateCommandCreation = (values) => {
     return errors
 };
 
-const checkCommandForRelay = (v) => {
-    return (v === 'ron' || v === 'roff' || v === 'rcyc') ? true : false ;
-};
-
-const checkCommandForInput = (v) => {
-    return (v === 'icp' || v === 'icc' || v === 'ioff') ? true : false;
-};
-
 const checkCommandForRelayCycle = (v) => {
     return (v === 'rcyc') ? true : false ;
 };
@@ -226,58 +214,40 @@ const checkCommandForInputCycle = (v) => {
 export const CommandCreate = withStyles(commandStyles)(
     ({ classes, ...props }) => (
         <Create 
-            title={<CommandTitle title="Create new Command" />} 
+            title={<CommandTitle title='Create new Command' />} 
             {...props}
         >
-            <SimpleForm validate={ validateCommandCreation } redirect="list">
+            <SimpleForm validate={ validateCommandCreation } redirect='list'>
 
-                <ReferenceInput label="for EISS™Cube" source="cubeID" reference="cubes" validate={[ required() ]} >
+                <ReferenceInput label='for EISS™Cube' source='cubeID' reference='cubes' validate={[ required() ]} >
                     <AutocompleteInput optionText='deviceID'/>
                 </ReferenceInput>
 
-                <SelectInput label="Command" source="command" choices={cmds} validate={[ required() ]} />
-
-                <FormDataConsumer>
-                {({ formData, ...rest }) => checkCommandForRelay(formData.command) &&
-                    <Fragment>
-                        <BooleanInput label="Relay 1" source="target1" {...rest} />
-                        <BooleanInput label="Relay 2" source="target2" {...rest} />
-                    </Fragment>
-                }
-                </FormDataConsumer>
-
-                <FormDataConsumer>
-                {({ formData, ...rest }) => checkCommandForInput(formData.command) &&
-                    <Fragment>
-                        <BooleanInput label="Input 1" source="target1" {...rest} />
-                        <BooleanInput label="Input 2" source="target2" {...rest} />
-                    </Fragment>
-                }
-                </FormDataConsumer>
+                <SelectInput label='Command' source='command' choices={cmds} validate={[ required() ]} />
 
                 <FormDataConsumer>
                 {({ formData, ...rest }) => checkCommandForRelayCycle(formData.command) &&
-                    <CycleAndDutyCycleInput source="cycleAndDutyCycle" {...rest} />
-                }
+                    <Field name='cycleAndDutyCycle' component={CycleAndDutyCycleInput} {...rest} />
+                 }
                 </FormDataConsumer>
 
                 <FormDataConsumer>
                 {({ formData, ...rest }) => checkCommandForInputCount(formData.command) &&
                     <Fragment>
-                        <SelectInput style={{ marginRight: 16 }} label="Transition" source="transition" choices={edges} {...rest} />
-                        <NumberInput style={{ marginRight: 16 }} label="Cycle (sec)" source="completeCycle" step={'1'} {...rest} />
+                        <SelectInput style={{ marginRight: 16 }} label='Transition' source='transition' choices={edges} {...rest} />
+                        <NumberInput style={{ marginRight: 16 }} label='Cycle (sec)' source='completeCycle' step={'1'} {...rest} />
                     </Fragment>
                 }
                 </FormDataConsumer>
 
                 <FormDataConsumer>
                 {({ formData, ...rest }) => checkCommandForInputCycle(formData.command) &&
-                    <SelectInput label="Transition" source="transition" choices={edges} {...rest} />
+                    <SelectInput label='Transition' source='transition' choices={edges} {...rest} />
                 }
                 </FormDataConsumer>
 
                 <DateTimeInput formClassName={classes.inline}
-                    label='Start date/time' source='startTime' options={{ 
+                    label='Start date, time' source='startTime' options={{ 
                         adornmentPosition: 'end',
                         format: DateTimeFormat, 
                         ampm: false, 
@@ -287,7 +257,7 @@ export const CommandCreate = withStyles(commandStyles)(
                 />
 
                 <DateTimeInput formClassName={classes.inline}
-                    label='End date/time' source='endTime' options={{ 
+                    label='End date, time' source='endTime' options={{ 
                         adornmentPosition: 'end',
                         format: DateTimeFormat, 
                         ampm: false, 

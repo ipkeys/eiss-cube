@@ -4,7 +4,7 @@ import L from 'leaflet';
 import { Map, LayersControl, TileLayer, Marker, Popup } from 'react-leaflet';
 
 import { showNotification, UPDATE } from 'react-admin';
-import DataProvider from '../rest/DataProvider';
+import { dataProvider } from '../App';
 
 import { red, green } from '@material-ui/core/colors';
 
@@ -47,7 +47,7 @@ class CubeMap extends Component {
   updatePosition = () => {
     const { lat, lng } = this.refs.marker.leafletElement.getLatLng();
 
-    DataProvider(UPDATE, 'cubes/location', {
+    dataProvider(UPDATE, 'cubes/location', {
       id: this.props.record.id,
       data: {
         lat,
@@ -84,11 +84,11 @@ class CubeMap extends Component {
             {
               record.online
               ?
-              <div style={{color: green[500], textAlign: 'center' }}>ONLINE</div>
+              <div style={{color: green[500], textAlign: 'center' }}><b>ONLINE</b></div>
               :
-              <div style={{color: red[500], textAlign: 'center' }}>OFFLINE</div>
+              <div style={{color: red[500], textAlign: 'center' }}><b>OFFLINE</b></div>
             }
-            Device: <b>{record.deviceID}</b>
+            Name: <b>{record.deviceID}</b>
             <br/>
             Customer: {record.customerID}
             <br/>

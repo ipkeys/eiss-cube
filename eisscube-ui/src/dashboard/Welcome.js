@@ -6,17 +6,16 @@ import CardContent from '@material-ui/core/CardContent';
 import Typography from '@material-ui/core/Typography';
 import Avatar from '@material-ui/core/Avatar';
 import LightBulbIcon from '@material-ui/icons/LightbulbOutline';
-import { common, blue } from '@material-ui/core/colors';
 
 const styles = theme => ({
     card: { 
-        borderLeft: `solid 4px ${blue[500]}`, 
+        borderLeft: `solid 4px ${theme.palette.primary.main}`, 
         flex: 1, 
         marginBottom: theme.spacing.unit 
     },
     avatar: {
-        color: common.white,
-        backgroundColor: blue[500]
+        color: theme.palette.common.white,
+        backgroundColor: theme.palette.primary.main
     }
 });
 

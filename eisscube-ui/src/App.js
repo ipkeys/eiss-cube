@@ -3,12 +3,27 @@ import { Admin, Resource } from 'react-admin';
 import { createMuiTheme } from '@material-ui/core/styles';
 import englishMessages from 'ra-language-english';
 
-import createRealtimeSaga from "./rest/createRealtimeSaga";
-import DataProvider from './rest/DataProvider';
-
+import Login from './auth/Login';
+import AppLayout from './AppLayout';
 import { Dashboard } from './dashboard';
 import { EissCubesIcon, EissCubesList, EissCubesShow, EissCubesEdit, EissCubesCreate } from './cubes';
 import { CommandIcon, CommandList, CommandShow, CommandCreate } from './commands';
+import createRealtimeSaga from "./rest/createRealtimeSaga";
+
+import HttpService from './rest/HttpService';
+import RestAdapter from './rest/restAdapter';
+import AuthProvider from './rest/AuthProvider';
+import addUploadFeature from './rest/addUploadFeature';
+//import DataProvider from './rest/DataProvider';
+
+const apiUrl = (process.env.NODE_ENV === 'development') ? 'http://localhost:10000' : '/cubeserver';
+const tokenUrl = (process.env.NODE_ENV === 'development') ? 'http://localhost:6886/auth/token' : '/auth/token';
+const refreshUrl = (process.env.NODE_ENV === 'development') ? 'http://localhost:6886/auth/refresh' :'/auth/refresh';
+
+const http = new HttpService({ tokenUrl, refreshUrl });
+const authProvider = new AuthProvider(http).authenticate;
+
+export const dataProvider = addUploadFeature(new RestAdapter(apiUrl, http));
 
 export const AppDateFormat = { year: 'numeric', month: '2-digit', day: '2-digit' };
 export const AppDateTimeFormat = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
@@ -36,14 +51,17 @@ const messages = {
 }
 
 const i18nProvider = locale => messages[locale];
-const realTimeSaga = createRealtimeSaga(DataProvider);
+const realTimeSaga = createRealtimeSaga(dataProvider);
 
 const App = () => (
 	<Admin
 		theme={ theme }
+        appLayout={ AppLayout }
         dashboard={ Dashboard }
-        dataProvider={ DataProvider }
-        customSagas={[realTimeSaga]}
+        loginPage={ Login }
+        authProvider={ authProvider }
+        dataProvider={ dataProvider }
+        customSagas={ [realTimeSaga] }
         locale="en" 
         i18nProvider={i18nProvider}
     >

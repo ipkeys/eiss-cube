@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 import FormGroup from '@material-ui/core/FormGroup';
@@ -21,10 +20,21 @@ const styles = theme => ({
     slider: {
         marginTop: 34 
     },
-    green: { color: green[500] },
-    red: { color: red[500] },
-    blue: { color: lightBlue[800] },
-    grey: { color: 'rgba(0, 0, 0, 0.54)' }
+    green: { 
+        color: green[500] 
+    },
+    red: { 
+        color: red[500] 
+    },
+    blue: { 
+        color: lightBlue[800] 
+    },
+    grey: { 
+        color: 'rgba(0, 0, 0, 0.54)' 
+    },
+    legend: {
+        fontSize: '0.7em'
+    }
 });
 
 class CycleAndDutyCycleInput extends Component {
@@ -35,7 +45,7 @@ class CycleAndDutyCycleInput extends Component {
             cycle: 0,
             duty: 0
         };
-
+        
         this.handleCycleChange = this.handleCycleChange.bind(this);
         this.handleDutyCycleChange = this.handleDutyCycleChange.bind(this);
     }
@@ -50,8 +60,10 @@ class CycleAndDutyCycleInput extends Component {
     };
 
     render() {
-        const { classes, input, options, source, margin } = this.props;
+        const { classes, input: { onChange }, options, margin } = this.props;
         const { cycle, duty } = this.state;
+
+        onChange(`${cycle}/${duty}`);
 
         const on = isNaN(cycle) && isNaN(duty) ? 0 :  Math.round(cycle * duty / 100);
         const off = isNaN(cycle) ? 0 : Math.round(cycle - on);
@@ -67,8 +79,8 @@ class CycleAndDutyCycleInput extends Component {
                     margin={margin ? margin : 'normal'}
                     {...options}
                 />
-                <FormControl component="fieldset" className={classes.sliderInput}>
-                    <FormLabel component="legend" style={{fontSize: '0.7em'}}>
+                <FormControl component="fieldset" className={classes.sliderInput} >
+                    <FormLabel component="legend" className={classes.legend} >
                         <span className={classes.grey}>Duty Cycle </span>{duty}% (<span className={classes.green}>{on} sec ON</span> / <span className={classes.red}>{off} sec OFF</span>)
                     </FormLabel>
                     <Slider
@@ -78,20 +90,9 @@ class CycleAndDutyCycleInput extends Component {
                             value={duty}
                         />
                 </FormControl>
-                <input
-                    type="hidden"
-                    name={source}
-                    {...input}
-                    value={`${cycle}/${duty}`}
-                />
             </FormGroup>
         );
     }
 }
-
-CycleAndDutyCycleInput.propTypes = {
-  options: PropTypes.object,
-  source: PropTypes.string.isRequired
-};
 
 export default withStyles(styles)(CycleAndDutyCycleInput);
