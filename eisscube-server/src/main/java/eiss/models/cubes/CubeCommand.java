@@ -23,8 +23,8 @@ public class CubeCommand {
 
     @Property String command;
 
-    @Property Boolean target1;
-    @Property Boolean target2;
+    //@Property Boolean target1;
+    //@Property Boolean target2;
 
     @Property Instant startTime;
     @Property Instant endTime;
@@ -45,6 +45,7 @@ public class CubeCommand {
             b.append("c=").append(command);
         }
 
+/*
         List<String> targets = new ArrayList<>();
         if (target1 != null && target1) {
             targets.add("1");
@@ -57,6 +58,7 @@ public class CubeCommand {
             String commaSeparatedNumbers = targets.stream().map(Object::toString).collect(Collectors.joining(","));
             b.append("&t=").append(commaSeparatedNumbers);
         }
+*/
 
         if (startTime != null) {
             long starttime = startTime.toEpochMilli() / 1000;

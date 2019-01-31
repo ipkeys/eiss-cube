@@ -14,10 +14,9 @@ public class EISScube {
 
     @Id ObjectId id;
 
-    @Indexed(options = @IndexOptions(name = "CubeDeviceIndex", unique = true))
-    @Property String deviceID;
-    @Property String password;
-    @Property String simCard;
+    @Indexed(options = @IndexOptions(name = "CubeDeviceIDIndex", unique = true))
+    @Property String deviceID; // SIM Card number provided by device
+    @Property String name;
 
     @Property String address;
     @Property String city;

@@ -18,6 +18,8 @@ import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.*;
 
 @Slf4j
@@ -46,43 +48,44 @@ public class PostRoute implements Handler<RoutingContext> {
         log.info("Create a new CubeSetup: {}", json);
 
         CubeSetup setup = gson.fromJson(json, CubeSetup.class);
-        if (setup != null) {
-            vertx.executeBlocking(op -> {
-                try {
-                    // 1. remove old setup
-                    datastore.delete(setup);
-
-                    // 2. save the new setup
-                    Key<CubeSetup> key = datastore.save(setup);
-                    setup.setId((ObjectId)key.getId());
-
-                    op.complete(setup);
-                } catch (DuplicateKeyException dup) {
-                    log.error(dup.getMessage());
-                    op.fail("DeviceID already exists");
-                } catch (Exception e) {
-                    log.error(e.getMessage());
-                    op.fail("Unable to add EISScube");
-                }
-            }, res -> {
-                if (res.succeeded()) {
-                    response
-                        .putHeader("content-type", "application/json")
-                        .setStatusCode(SC_CREATED)
-                        .end(gson.toJson(setup));
-                } else {
-                    response
-                        .setStatusCode(SC_BAD_REQUEST)
-                        .setStatusMessage(res.cause().getMessage())
-                        .end();
-                }
-            });
-        } else {
+        if (setup == null) {
             response
                 .setStatusCode(SC_BAD_REQUEST)
                 .setStatusMessage("Unable to save CubeSetup")
                 .end();
+            return;
         }
+
+        vertx.executeBlocking(op -> {
+            try {
+                // 1. remove old setup
+                datastore.delete(setup);
+
+                // 2. save the new setup
+                Key<CubeSetup> key = datastore.save(setup);
+                setup.setId((ObjectId)key.getId());
+
+                op.complete(setup);
+            } catch (DuplicateKeyException dup) {
+                log.error(dup.getMessage());
+                op.fail("CubeSetup already exists");
+            } catch (Exception e) {
+                log.error(e.getMessage());
+                op.fail("Unable to save CubeSetup");
+            }
+        }, res -> {
+            if (res.succeeded()) {
+                response
+                    .putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                    .setStatusCode(SC_CREATED)
+                    .end(gson.toJson(setup));
+            } else {
+                response
+                    .setStatusCode(SC_BAD_REQUEST)
+                    .setStatusMessage(res.cause().getMessage())
+                    .end();
+            }
+        });
     }
 
 }

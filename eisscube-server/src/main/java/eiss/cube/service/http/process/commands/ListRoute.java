@@ -100,8 +100,6 @@ public class ListRoute implements Handler<RoutingContext> {
             q.order("created");
         }
 
-        // projections
-
         // skip/limit
         FindOptions o = new FindOptions();
         String s = request.getParam(START);

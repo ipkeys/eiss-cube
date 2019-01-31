@@ -3,6 +3,11 @@ import Promise from 'bluebird';
 //------------------------------------------------------------------------------
 // token management and processing functions
 //------------------------------------------------------------------------------
+let http, tokenUrl, refreshUrl; // required props
+let tokenStorageKey; // optional prop
+
+let tokenData = null;
+let storage, win; // set in constructor after checking opts
 
 // from: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
 function guid() {
@@ -12,19 +17,11 @@ function guid() {
     return s4()+s4()+'-'+s4()+'-'+s4()+'-'+s4()+'-'+s4()+s4()+s4();
 }
 
-let http, tokenUrl, refreshUrl; // required props
-let tokenStorageKey; // optional prop
-
-let tokenData = null;
-let storage, win, doc; // set in constructor after checking opts
-
-// exported for testing
-export function saveTokenData(data) {
+function saveTokenData(data) {
     storage.setItem(tokenStorageKey, JSON.stringify(data));
 }
 
-// exported for testing
-export function readTokenData() {
+function readTokenData() {
     const data = storage.getItem(tokenStorageKey);
     if (!data) {
         return null;
@@ -32,8 +29,12 @@ export function readTokenData() {
 
     try {
         tokenData = JSON.parse(data);
-        if (typeof tokenData.tokenExpires === 'string') tokenData.tokenExpires = new Date(tokenData.tokenExpires);
-        if (typeof tokenData.refreshExpires === 'string') tokenData.refreshExpires = new Date(tokenData.refreshExpires);
+        if (typeof tokenData.tokenExpires === 'string') {
+            tokenData.tokenExpires = new Date(tokenData.tokenExpires);
+        }
+        if (typeof tokenData.refreshExpires === 'string') {
+            tokenData.refreshExpires = new Date(tokenData.refreshExpires);
+        }
         return tokenData;
     } catch (error) {
         tokenData = null;
@@ -63,7 +64,7 @@ function getNewTokenExpiration(atoken) {
     }
 }
 
-export function processToken(tokenResponse, device) {
+function processToken(tokenResponse, device) {
     if (!(tokenResponse && tokenResponse.access_token)) {
         return null;
     }
@@ -104,7 +105,9 @@ export function processToken(tokenResponse, device) {
 // storage - simulate session storage
 //------------------------------------------------------------------------------
 export default function TokenManager(opts) {
-    if (!opts) throw new Error('TokenManager missing required option');    
+    if (!opts) {
+        throw new Error('TokenManager missing required option');
+    }    
   
     // babel does not allow object destructuring on variables already declared
     http = opts.http;
@@ -128,13 +131,6 @@ export default function TokenManager(opts) {
     if (!win) {
         if (typeof window !== 'undefined') {
             win = window;
-        }
-    }
-
-    doc = opts.doc;
-    if (!doc) {
-        if (typeof document !== 'undefined') {
-            doc = document;
         }
     }
 
@@ -212,24 +208,24 @@ export default function TokenManager(opts) {
         });
     };
 
-    this.login = ({ username: user, password }) => {
-        return new Promise(function (resolve, reject) {
+    this.login = (username, password) => {
+        return new Promise((resolve, reject) => {
             let device = guid();
-            http.post(tokenUrl, {user, password, refresh: true, device})
-            .then(function (resp) {
-            if (resp.data) {
-                if (!processToken(resp.data, device)) {
-                    return reject("error processing token");
+            http.post(tokenUrl, {username, password, device})
+            .then((response) => {
+                if (response.data) {
+                    if (!processToken(response.data, device)) {
+                        return reject("error processing token");
+                    }
+                    resolve(username);
                 }
-                resolve(user);
-            }
             })
-            .catch(function (error) {
+            .catch((error) => {
                 if (error.response) {
-                    const resp = error.response;
-                    if (resp.status === 401) {
+                    const response = error.response;
+                    if (response.status === 401) {
                         return reject(new Error('Invalid credentials'));
-                    } else if (resp && resp.data) {
+                    } else if (response && response.data) {
                         reject(new Error('Unable to login at this time'));
                     } else {
                         reject(new Error('Login failed'));
@@ -243,37 +239,6 @@ export default function TokenManager(opts) {
 
     this.logout = () => {
         removeToken();    
-    }
-
-    //----------------------------------------------------------------------------
-    // this is used for change password--just see if a valid token
-    // is received but not using it.
-    //----------------------------------------------------------------------------
-    this.validatePassword = (pass) => {
-        return new Promise(function (resolve, reject) {
-            if (!tokenData) {
-                return reject(new Error('Not logged in'));
-            }
-            
-            http.post(tokenUrl, {user: tokenData.user, password: pass, refresh: false})
-            .then(function () {
-                resolve(tokenData.user);
-            })
-            .catch(function (error) {
-                if (error && error.response) {
-                    const resp = error.response;
-                    if (resp.status === 401) {
-                        reject(new Error('Invalid credentials'));
-                    } else if (resp.data) {
-                        reject(new Error(resp.data));
-                    } else {
-                        reject(new Error('Login failed'));
-                    }
-                } else {
-                    reject(new Error('No response from server'));
-                }
-            });
-        });
     };
 
 }

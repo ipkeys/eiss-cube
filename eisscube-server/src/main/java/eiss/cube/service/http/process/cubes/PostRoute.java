@@ -66,6 +66,7 @@ public class PostRoute implements Handler<RoutingContext> {
                 return;
             }
 
+/*
             if (cube.getPassword().isEmpty()) {
                 response
                     .setStatusCode(SC_BAD_REQUEST)
@@ -73,6 +74,7 @@ public class PostRoute implements Handler<RoutingContext> {
                     .end();
                 return;
             }
+*/
 
             vertx.executeBlocking(op -> {
                 try {

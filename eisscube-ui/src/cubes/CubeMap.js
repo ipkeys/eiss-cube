@@ -88,7 +88,9 @@ class CubeMap extends Component {
               :
               <div style={{color: red[500], textAlign: 'center' }}><b>OFFLINE</b></div>
             }
-            Name: <b>{record.deviceID}</b>
+            ICCID: <b>{record.deviceID}</b>
+            <br/>
+            Name: {record.name}
             <br/>
             Customer: {record.customerID}
             <br/>

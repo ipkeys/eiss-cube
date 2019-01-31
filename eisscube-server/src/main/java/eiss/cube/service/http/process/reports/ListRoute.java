@@ -19,6 +19,8 @@ import javax.ws.rs.Path;
 import java.util.List;
 
 import static eiss.utils.AdminOnRest.ParamName.*;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.*;
 
 @Slf4j
@@ -48,8 +50,9 @@ public class ListRoute implements Handler<RoutingContext> {
         // filters
         String filter = request.getParam(FILTER);
         if (filter != null && !filter.isEmpty()) {
-            q.field("deviceID").startsWithIgnoreCase(filter);
+            q.field("cubeID").startsWithIgnoreCase(filter);
         }
+        // ~filters
 
         // sorts
         String sort = context.request().getParam(SORT);
@@ -57,10 +60,9 @@ public class ListRoute implements Handler<RoutingContext> {
         if (sort != null && order != null && !sort.isEmpty() && !order.isEmpty()) {
             q.order(order.equalsIgnoreCase(ASC) ? sort : "-" + sort);
         } else {
-            q.order("deviceID");
+            q.order("cubeID");
         }
-
-        // projections
+        // ~sorts
 
         // skip/limit
         FindOptions o = new FindOptions();
@@ -80,7 +82,7 @@ public class ListRoute implements Handler<RoutingContext> {
                     c.complete(result);
                 }, c -> {
                     response
-                        .putHeader("content-type", "application/json")
+                        .putHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .putHeader("X-Total-Count", String.valueOf(c.result()))
                         .setStatusCode(SC_OK)
                         .end(gson.toJson(res.result()));

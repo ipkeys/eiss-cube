@@ -72,17 +72,17 @@ export default (apiUrl, httpService) => {
             }
             case UPDATE:
                 url = `${apiUrl}/${resource}/${params.id}`;
-                options.method = 'PUT';
-                options.body = JSON.stringify(params.data);
+                options.method = 'put';
+                options.body = params.data;
                 break;
             case CREATE:
                 url = `${apiUrl}/${resource}`;
-                options.method = 'POST';
-                options.body = JSON.stringify(params.data);
+                options.method = 'post';
+                options.body = params.data;
                 break;
             case DELETE:
                 url = `${apiUrl}/${resource}/${params.id}`;
-                options.method = 'DELETE';
+                options.method = 'delete';
                 break;
             case GET_MANY: {
                 const query = {
@@ -135,7 +135,7 @@ export default (apiUrl, httpService) => {
             return Promise.all(
                 params.ids.map(id =>
                     httpClient(`${apiUrl}/${resource}/${id}`, {
-                        method: 'PATCH',
+                        method: 'put',
                         body: JSON.stringify(params.data),
                     })
                 )
@@ -148,18 +148,15 @@ export default (apiUrl, httpService) => {
             return Promise.all(
                 params.ids.map(id =>
                     httpClient(`${apiUrl}/${resource}/${id}`, {
-                        method: 'DELETE',
+                        method: 'delete',
                     })
                 )
             ).then(responses => ({
                 data: responses.map(response => response.json),
             }));
         }
-        const { url, options } = convertDataRequestToHTTP(
-            type,
-            resource,
-            params
-        );
+
+        const { url, options } = convertDataRequestToHTTP(type, resource, params);
         return httpClient(url, options).then(response =>
             convertHTTPResponse(response, type, resource, params)
         );

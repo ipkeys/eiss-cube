@@ -55,50 +55,45 @@ public class PutLocationRoute implements Handler<RoutingContext> {
             return;
         }
 
-        ObjectId oid = new ObjectId(id);
-
         String json = context.getBodyAsString();
         log.info("Update existing EISScube: id={} by: {}", id, json);
 
         CubePoint location = gson.fromJson(json, CubePoint.class);
-        if (location != null) {
-            Query<EISScube> query = datastore.createQuery(EISScube.class).field("_id").equal(oid);
-            UpdateOperations<EISScube> ops = datastore.createUpdateOperations(EISScube.class);
-
-            ops.set("location", location);
-
-            vertx.executeBlocking(op -> {
-                try {
-
-                    UpdateResults result = datastore.update(query, ops);
-
-                    if (result.getUpdatedCount() == 1) {
-                        op.complete();
-                    } else {
-                        op.fail(String.format("Unable to update location of EISScube with id: %s", id));
-                    }
-                } catch (Exception e) {
-                    op.fail(String.format("Unable to update location of  EISScube: %s", e.getMessage()));
-                }
-            }, res -> {
-                if (res.succeeded()) {
-                    response
-                        .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                        .setStatusCode(SC_OK)
-                        .end();
-                } else {
-                    response
-                        .setStatusCode(SC_BAD_REQUEST)
-                        .setStatusMessage(res.cause().getMessage())
-                        .end();
-                }
-            });
-        } else {
+        if (location == null) {
             response
                 .setStatusCode(SC_BAD_REQUEST)
-                .setStatusMessage(String.format("Unable to update location of EISScube with id: %s", id))
+                .setStatusMessage("Location is not valid")
                 .end();
+            return;
         }
+
+        vertx.executeBlocking(op -> {
+            Query<EISScube> q = datastore.createQuery(EISScube.class);
+            q.criteria("_id").equal(new ObjectId(id));
+
+            UpdateOperations<EISScube> ops = datastore.createUpdateOperations(EISScube.class);
+            ops.set("location", location);
+
+            UpdateResults result = datastore.update(q, ops);
+
+            if (result.getUpdatedCount() == 1) {
+                op.complete();
+            } else {
+                op.fail(String.format("Unable to update location of EISScube with id: %s", id));
+            }
+        }, res -> {
+            if (res.succeeded()) {
+                response
+                    .putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                    .setStatusCode(SC_OK)
+                    .end();
+            } else {
+                response
+                    .setStatusCode(SC_BAD_REQUEST)
+                    .setStatusMessage(res.cause().getMessage())
+                    .end();
+            }
+        });
     }
 
 }

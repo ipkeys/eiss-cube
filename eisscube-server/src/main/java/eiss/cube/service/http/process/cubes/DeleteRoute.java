@@ -51,10 +51,8 @@ public class DeleteRoute implements Handler<RoutingContext> {
             return;
         }
 
-        ObjectId oid = new ObjectId(id);
-
         Query<EISScube> q = datastore.createQuery(EISScube.class);
-        q.criteria("_id").equal(oid);
+        q.criteria("_id").equal(new ObjectId(id));
 
         vertx.executeBlocking(op -> {
             // react-admin expect previous data

@@ -20,8 +20,7 @@ import javax.ws.rs.Path;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static java.lang.Boolean.FALSE;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static javax.servlet.http.HttpServletResponse.*;
 
 @Slf4j
 @Api
@@ -45,17 +44,16 @@ public class GetRoute implements Handler<RoutingContext> {
         HttpServerRequest request = context.request();
         HttpServerResponse response = context.response();
 
-        Query<EISScube> q = datastore.createQuery(EISScube.class);
-
         String id = request.getParam("id");
-        if (ObjectId.isValid(id)) {
-            q.criteria("_id").equal(new ObjectId(id));
-        } else {
-            q.criteria("deviceID").equal(id);
+        if (!ObjectId.isValid(id)) {
+            response.setStatusCode(SC_BAD_REQUEST)
+                .setStatusMessage(String.format("id: %s is not valid", id))
+                .end();
+            return;
         }
 
-        // projections
-        q.project("password", FALSE);
+        Query<EISScube> q = datastore.createQuery(EISScube.class);
+        q.criteria("_id").equal(new ObjectId(id));
 
         vertx.executeBlocking(op -> {
             EISScube result = q.get();

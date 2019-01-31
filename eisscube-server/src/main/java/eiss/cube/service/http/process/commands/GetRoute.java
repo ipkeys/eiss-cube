@@ -55,8 +55,6 @@ public class GetRoute implements Handler<RoutingContext> {
         Query<CubeCommand> q = datastore.createQuery(CubeCommand.class);
         q.criteria("_id").equal(new ObjectId(id));
 
-        // projections
-
         vertx.executeBlocking(op -> {
             CubeCommand result = q.get();
             if (result != null) {

@@ -60,7 +60,7 @@ class CycleAndDutyCycleInput extends Component {
     };
 
     render() {
-        const { classes, input: { onChange }, options, margin } = this.props;
+        const { classes, input: { onChange }, meta: { touched, error }, options, margin } = this.props;
         const { cycle, duty } = this.state;
 
         onChange(`${cycle}/${duty}`);
@@ -74,6 +74,8 @@ class CycleAndDutyCycleInput extends Component {
                     className={classes.textInput}
                     type="number"
                     step={1}
+                    error={!!(touched && error)}
+                    helperText={touched && error}    
                     onChange={this.handleCycleChange}
                     label={<FieldTitle label="Cycle (sec)" />}
                     margin={margin ? margin : 'normal'}

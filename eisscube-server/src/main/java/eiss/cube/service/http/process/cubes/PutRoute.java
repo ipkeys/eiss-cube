@@ -71,10 +71,10 @@ public class PutRoute implements Handler<RoutingContext> {
             Query<EISScube> query = datastore.createQuery(EISScube.class).field("_id").equal(oid);
             UpdateOperations<EISScube> ops = datastore.createUpdateOperations(EISScube.class);
 
-            if (cube.getSimCard() == null) {
-                ops.unset("simCard");
+            if (cube.getName() == null) {
+                ops.unset("name");
             } else {
-                ops.set("simCard", cube.getSimCard());
+                ops.set("name", cube.getName());
             }
 
             if (cube.getAddress() == null) {

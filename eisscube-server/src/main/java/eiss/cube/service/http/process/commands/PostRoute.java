@@ -52,53 +52,53 @@ public class PostRoute implements Handler<RoutingContext> {
         log.info("Create new CubeCommand: {}", json);
 
         CubeCommand cmd = gson.fromJson(json, CubeCommand.class);
-        if (cmd != null) {
-
-            CycleAndDutyCycleExtractor cdc = gson.fromJson(json, CycleAndDutyCycleExtractor.class);
-
-            if (cdc.getCycleAndDutyCycle() != null && !cdc.getCycleAndDutyCycle().isEmpty()) {
-                String[] a = cdc.getCycleAndDutyCycle().split("/");
-                if (a.length == 2) {
-                    cmd.setCompleteCycle(Integer.valueOf(a[0]));
-                    cmd.setDutyCycle(Integer.valueOf(a[1]));
-                }
-            }
-
-            vertx.executeBlocking(op -> {
-                cmd.setCreated(Instant.now());
-
-                try {
-                    Key<CubeCommand> key = datastore.save(cmd);
-                    cmd.setId((ObjectId)key.getId());
-                    op.complete(cmd);
-                } catch (Exception e) {
-                    log.error(e.getMessage());
-                    op.fail("Unable to add cube command");
-                }
-            }, res -> {
-                if (res.succeeded()) {
-                    // send cmd to EISScube device
-                    sendIt(cmd);
-                    // prepare report record
-                    recordIt(cmd);
-
-                    response
-                        .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                        .setStatusCode(SC_CREATED)
-                        .end(gson.toJson(cmd));
-                } else {
-                    response
-                        .setStatusCode(SC_BAD_REQUEST)
-                        .setStatusMessage(res.cause().getMessage())
-                        .end();
-                }
-            });
-        } else {
+        if (cmd == null) {
             response
                 .setStatusCode(SC_BAD_REQUEST)
-                .setStatusMessage("Unable to add cube command")
+                .setStatusMessage("Unable to create a cube command")
                 .end();
+            return;
         }
+
+        CycleAndDutyCycleExtractor cdc = gson.fromJson(json, CycleAndDutyCycleExtractor.class);
+
+        if (cdc.getCycleAndDutyCycle() != null && !cdc.getCycleAndDutyCycle().isEmpty()) {
+            String[] a = cdc.getCycleAndDutyCycle().split("/");
+            if (a.length == 2) {
+                cmd.setCompleteCycle(Integer.valueOf(a[0]));
+                cmd.setDutyCycle(Integer.valueOf(a[1]));
+            }
+        }
+
+        vertx.executeBlocking(op -> {
+            cmd.setCreated(Instant.now());
+
+            try {
+                Key<CubeCommand> key = datastore.save(cmd);
+                cmd.setId((ObjectId)key.getId());
+                op.complete(cmd);
+            } catch (Exception e) {
+                log.error(e.getMessage());
+                op.fail("Unable to create a cube command");
+            }
+        }, res -> {
+            if (res.succeeded()) {
+                // send cmd to EISScube device
+                sendIt(cmd);
+                // prepare report record
+                recordIt(cmd);
+
+                response
+                    .putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                    .setStatusCode(SC_CREATED)
+                    .end(gson.toJson(cmd));
+            } else {
+                response
+                    .setStatusCode(SC_BAD_REQUEST)
+                    .setStatusMessage(res.cause().getMessage())
+                    .end();
+            }
+        });
     }
 
     private void sendIt(CubeCommand cmd) {
@@ -111,20 +111,14 @@ public class PostRoute implements Handler<RoutingContext> {
     private void recordIt(CubeCommand cmd) {
 
         if (cmd.getCommand().startsWith("i")) {
-            if (cmd.getTarget1() != null) {
-                saveReportRecord(cmd.getCubeID(), "_Meter_1");
-            }
-
-            if (cmd.getTarget2() != null) {
-                saveReportRecord(cmd.getCubeID(), "_Meter_2");
-            }
+            saveReportRecord(cmd.getCubeID(), "_Meter");
         }
     }
 
-    private void saveReportRecord(String deviceID, String reportID) {
+    private void saveReportRecord(String cubeID, String reportID) {
         CubeReport report = new CubeReport();
-        report.setDeviceID(deviceID);
-        report.setReportID(deviceID + reportID);
+        report.setCubeID(cubeID);
+        report.setReportID(cubeID + reportID);
 
         vertx.executeBlocking(op -> {
             try {
@@ -137,7 +131,7 @@ public class PostRoute implements Handler<RoutingContext> {
                 log.error(e.getMessage());
                 op.fail("Unable to add ReportID");
             }
-        }, res -> log.info("Prepare report record for: {}", deviceID + reportID));
+        }, res -> log.info("Prepare report record for: {}", cubeID + reportID));
     }
 
 }

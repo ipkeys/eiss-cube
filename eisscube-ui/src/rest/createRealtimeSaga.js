@@ -2,7 +2,9 @@ import realtimeSaga from 'ra-realtime';
 
 const observeRequest = dataProvider => (type, resource, params) => {
     // Filtering so that only posts are updated in real time
-    if (resource !== 'eissboxes') return;
+    if (resource !== 'cubes' || resource !== 'commands') {
+        return;
+    }
 
     // Use your apollo client methods here or sockets or whatever else including the following very naive polling mechanism
     return {

@@ -54,7 +54,7 @@ public class ListRoute implements Handler<RoutingContext> {
         // search
         String search = request.getParam(FILTER);
         if (search != null && !search.isEmpty()) {
-            q.field("deviceID").containsIgnoreCase(search);
+            q.field("name").containsIgnoreCase(search);
         }
         // ~search
 
@@ -68,7 +68,7 @@ public class ListRoute implements Handler<RoutingContext> {
                         ObjectId oid = new ObjectId(item);
                         q.field("_id").equal(oid);
                     } else {
-                        q.field("deviceID").equal(item);
+                        q.field("name").equal(item);
                     }
                 });
             } else { // single
@@ -76,7 +76,7 @@ public class ListRoute implements Handler<RoutingContext> {
                     ObjectId oid = new ObjectId(id_like);
                     q.field("_id").equal(oid);
                 } else {
-                    q.field("deviceID").equal(id_like);
+                    q.field("name").equal(id_like);
                 }
             }
         }
@@ -92,11 +92,12 @@ public class ListRoute implements Handler<RoutingContext> {
         if (sort != null && order != null && !sort.isEmpty() && !order.isEmpty()) {
             q.order(order.equalsIgnoreCase(ASC) ? sort : "-" + sort);
         } else {
-            q.order("deviceID");
+            q.order("name");
         }
 
         // projections
         q.project("deviceID", TRUE)
+            .project("name", TRUE)
             .project("online", TRUE)
             .project("lastPing", TRUE)
             .project("timeStarted", TRUE)

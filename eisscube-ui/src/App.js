@@ -6,7 +6,7 @@ import englishMessages from 'ra-language-english';
 import Login from './auth/Login';
 import AppLayout from './AppLayout';
 import { Dashboard } from './dashboard';
-import { EissCubesIcon, EissCubesList, EissCubesShow, EissCubesEdit, EissCubesCreate } from './cubes';
+import { EissCubesIcon, EissCubesList, EissCubesShow, EissCubesEdit } from './cubes';
 import { CommandIcon, CommandList, CommandShow, CommandCreate } from './commands';
 import createRealtimeSaga from "./rest/createRealtimeSaga";
 
@@ -14,7 +14,6 @@ import HttpService from './rest/HttpService';
 import RestAdapter from './rest/restAdapter';
 import AuthProvider from './rest/AuthProvider';
 import addUploadFeature from './rest/addUploadFeature';
-//import DataProvider from './rest/DataProvider';
 
 const apiUrl = (process.env.NODE_ENV === 'development') ? 'http://localhost:10000' : '/cubeserver';
 const tokenUrl = (process.env.NODE_ENV === 'development') ? 'http://localhost:6886/auth/token' : '/auth/token';
@@ -71,7 +70,6 @@ const App = () => (
             list={ EissCubesList }
             show={ EissCubesShow }
             edit={ EissCubesEdit }
-            create={ EissCubesCreate }
 		/>
 		<Resource options={{ label: 'Commands' }}
 			name="commands"

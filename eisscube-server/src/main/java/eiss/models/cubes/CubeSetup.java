@@ -10,13 +10,10 @@ public class CubeSetup {
 
     @Id ObjectId id;
 
-    @Indexed(options = @IndexOptions(name = "CubeDeviceIDIndex", unique = true))
-    @Property String deviceID; // reference to EISScube.deviceID
+    @Indexed(options = @IndexOptions(name = "CubeIDIndex", unique = true))
+    @Property String cubeID; // reference to EISScube.deviceID
 
-    @Embedded CubeRelay relay1;
-    @Embedded CubeRelay relay2;
-
-    @Embedded CubeInput input1;
-    @Embedded CubeInput input2;
+    @Embedded CubeRelay relay;
+    @Embedded CubeInput input;
 
 }

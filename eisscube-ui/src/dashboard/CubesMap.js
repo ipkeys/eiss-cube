@@ -69,7 +69,9 @@ class CubesMap extends Component {
                     <Popup minWidth={200}>
                         {status}
                         <span>
-                            Name: <b>{cube.deviceID}</b>
+                            ICCID: <b>{cube.deviceID}</b>
+                            <br/>
+                            Name: {cube.name}
                             <br/>
                             Customer: {cube.customerID}
                             <br/>

@@ -51,10 +51,8 @@ public class DeleteRoute implements Handler<RoutingContext> {
             return;
         }
 
-        ObjectId oid = new ObjectId(id);
-
         Query<CubeCommand> q = datastore.createQuery(CubeCommand.class);
-        q.criteria("_id").equal(oid);
+        q.criteria("_id").equal(new ObjectId(id));
 
         vertx.executeBlocking(op -> {
             // react-admin expect previous data

@@ -22,7 +22,7 @@ import static javax.servlet.http.HttpServletResponse.*;
 
 @Slf4j
 @Api
-@Path("/setup/{deviceID}")
+@Path("/setup/{cubeID}")
 public class GetRoute implements Handler<RoutingContext> {
 
     private Vertx vertx;
@@ -42,12 +42,10 @@ public class GetRoute implements Handler<RoutingContext> {
         HttpServerRequest request = context.request();
         HttpServerResponse response = context.response();
 
-        String deviceID = context.request().getParam("deviceID");
+        String cubeID = request.getParam("cubeID");
 
         Query<CubeSetup> q = datastore.createQuery(CubeSetup.class);
-        q.criteria("deviceID").equal(deviceID);
-
-        // projections
+        q.criteria("cubeID").equal(cubeID);
 
         vertx.executeBlocking(op -> {
             CubeSetup result = q.get();

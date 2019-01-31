@@ -19,7 +19,7 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 @Slf4j
 @Api
-@Path("/test/{deviceID}")
+@Path("/test/{cubeID}")
 public class PutRoute implements Handler<RoutingContext> {
 
     private Vertx vertx;
@@ -39,24 +39,16 @@ public class PutRoute implements Handler<RoutingContext> {
         HttpServerRequest request = context.request();
         HttpServerResponse response = context.response();
 
-        String deviceID = request.getParam("deviceID");
-        if (deviceID != null) {
+        String cubeID = request.getParam("cubeID");
+        if (cubeID != null) {
             String json = context.getBodyAsString();
             if (json != null) {
                 JsonObject body = new JsonObject(json);
-                Boolean relay1 = body.getBoolean("relay1");
-                if (relay1 != null) {
+                Boolean relay = body.getBoolean("relay");
+                if (relay != null) {
                     vertx.eventBus().send("eisscubetest", new JsonObject()
-                        .put("to", deviceID)
-                        .put("cmd", (relay1 ? "c=ron&t=1" : "c=roff&t=1"))
-                    );
-                }
-
-                Boolean relay2 = body.getBoolean("relay2");
-                if (relay2 != null) {
-                    vertx.eventBus().send("eisscubetest", new JsonObject()
-                        .put("to", deviceID)
-                        .put("cmd", (relay2 ? "c=ron&t=2" : "c=roff&t=2"))
+                        .put("to", cubeID)
+                        .put("cmd", (relay ? "c=ron" : "c=roff"))
                     );
                 }
             }

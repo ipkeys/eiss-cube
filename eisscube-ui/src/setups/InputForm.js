@@ -22,7 +22,7 @@ const styles = theme => ({
     }
 });
 
-class Relay1Form extends Component {
+class InputForm extends Component {
 
     constructor(props) {
         super(props);
@@ -32,7 +32,7 @@ class Relay1Form extends Component {
 
         this.handleSave = this.handleSave.bind(this);
     }
-    
+
     componentDidUpdate(prevProps) {
 		if (this.props.data !== prevProps.data) {
 			let data = this.props.data; 
@@ -49,7 +49,7 @@ class Relay1Form extends Component {
     };
 
     render() {
-        const { classes, onSubmit, isPristine, isSubmitting, step, back, next, isRelay1Connected } = this.props
+        const { classes, onSubmit, isPristine, isSubmitting, step, back, next, isInputConnected, inputSignalType } = this.props
         const { data } = this.state;
 
         return (
@@ -59,16 +59,24 @@ class Relay1Form extends Component {
                 onSubmit={onSubmit}
                 toolbar={null}
             >
-                <BooleanInput label='Connected' source='relay1.connected' className={classes.inline} margin='dense'/>
-                {isRelay1Connected &&
+                <BooleanInput label='Connected' source='input.connected' className={classes.inline} margin='dense'/>
+                {isInputConnected &&
                     <Fragment>
-                        <SelectInput label='To contacts' source="relay1.contacts" choices={[
-                            { id: 'NO', name: 'Normal Open' },
-                            { id: 'NC', name: 'Normal Close' }
+                        <SelectInput label='Signal type' source="input.signal" choices={[
+                            { id: 'P', name: 'Pulses' },
+                            { id: 'C', name: 'Cycles' }
                         ]} className={classes.inline} margin='dense' />
-                        <NumberInput label='Load value (W)' source='relay1.load' className={classes.inline} margin='dense' />
-                        <TextInput label='Label' source='relay1.label' fullWidth margin='dense'/>
-                        <TextInput label='Description' source='relay1.description' fullWidth margin='dense'/>
+                        {inputSignalType && inputSignalType === "P" &&
+                            <NumberInput label='Pulse factor (pulses per kWh)' source='input.factor' className={classes.inline} margin='dense'/>
+                        }
+                        {inputSignalType && inputSignalType === "C" &&
+                            <SelectInput label='Watch' source="input.watch" choices={[
+                                { id: 1, name: 'Relay 1' },
+                                { id: 2, name: 'Relay 2' }
+                            ]} className={classes.inline} margin='dense' />
+                        }
+                        <TextInput label='Label' source='input.label' fullWidth margin='dense'/>
+                        <TextInput label='Description' source='input.description' fullWidth margin='dense'/>
                     </Fragment>
                 }
                 <SetupFormButton step={step} onSave={this.handleSave} onNext={next} onBack={back} pristine={isPristine} submitting={isSubmitting}/>
@@ -78,14 +86,15 @@ class Relay1Form extends Component {
 
 }
 
-Relay1Form.propTypes = {
+InputForm.propTypes = {
     data: PropTypes.object
 };
 
 const selector = formValueSelector('SetupCubeWizard');
 
 const mapStateToProps = state => ({
-	isRelay1Connected: selector(state, 'relay1.connected'),
+	isInputConnected: selector(state, 'input.connected'),
+	inputSignalType: selector(state, 'input.signal'),
     isSubmitting: isSubmitting('SetupCubeWizard')(state),
     isPristine: isPristine('SetupCubeWizard')(state)
 });
@@ -101,6 +110,6 @@ const enhance = compose(
 
 export default enhance(
 	connect(mapStateToProps, mapDispatchToProps)(
-    	Relay1Form
+    	InputForm
 	)
 );

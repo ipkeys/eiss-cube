@@ -17,12 +17,14 @@ import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static java.lang.Boolean.FALSE;
 import static javax.servlet.http.HttpServletResponse.*;
 
 @Slf4j
 @Api
-@Path("/test/{deviceID}")
+@Path("/test/{cubeID}")
 public class GetRoute implements Handler<RoutingContext> {
 
     private Vertx vertx;
@@ -42,32 +44,32 @@ public class GetRoute implements Handler<RoutingContext> {
         HttpServerRequest request = context.request();
         HttpServerResponse response = context.response();
 
-        String deviceID = request.getParam("deviceID");
-        if (deviceID != null) {
+        String cubeID = request.getParam("cubeID");
+        if (cubeID != null) {
             vertx.eventBus().send("eisscubetest", new JsonObject()
-                .put("to", deviceID)
+                .put("to", cubeID)
                 .put("cmd", "c=status")
             );
         }
 
         Query<CubeTest> q = datastore.createQuery(CubeTest.class);
-        q.criteria("deviceID").equal(deviceID);
+        q.criteria("cubeID").equal(cubeID);
 
         // projections
         q.project("_id", FALSE);
-        q.project("deviceID", FALSE);
+        q.project("cubeID", FALSE);
 
         vertx.executeBlocking(op -> {
             CubeTest result = q.get();
             if (result != null) {
                 op.complete(result);
             } else {
-                op.fail(String.format("No Test results for: %s", deviceID));
+                op.fail(String.format("No Test results for: %s", cubeID));
             }
         }, res -> {
             if (res.succeeded()) {
                 response
-                    .putHeader("content-type", "application/json")
+                    .putHeader(CONTENT_TYPE, APPLICATION_JSON)
                     .setStatusCode(SC_OK)
                     .end(gson.toJson(res.result()));
             } else {

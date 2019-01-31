@@ -5,9 +5,7 @@ import pure from 'recompose/pure';
 import { Labeled } from 'react-admin';
 import Typography from '@material-ui/core/Typography';
 
-import sanitizeRestProps from './sanitizeRestProps';
-
-const CycleField = ({ className, label, source, record = {}, suffix, ...rest }) => {
+const CycleField = ({ className, label, source, record = {}, suffix }) => {
     const value = get(record, source);
     return (
         <Labeled label={label}>
@@ -15,7 +13,6 @@ const CycleField = ({ className, label, source, record = {}, suffix, ...rest }) 
                 component="span"
                 body1="body1"
                 className={className}
-                {...sanitizeRestProps(rest)}
             >
                 {value && typeof value !== 'string' ? JSON.stringify(value) : value} {suffix}
             </Typography>
@@ -25,15 +22,11 @@ const CycleField = ({ className, label, source, record = {}, suffix, ...rest }) 
 
 CycleField.propTypes = {
     addLabel: PropTypes.bool,
-    basePath: PropTypes.string,
-    className: PropTypes.string,
-    cellClassName: PropTypes.string,
-    headerClassName: PropTypes.string,
     label: PropTypes.string,
-    record: PropTypes.object,
-    sortBy: PropTypes.string,
     source: PropTypes.string.isRequired,
-    suffix: PropTypes.string
+    record: PropTypes.object,
+    suffix: PropTypes.string,
+    className: PropTypes.string
 };
 
 CycleField.displayName = 'CycleField';

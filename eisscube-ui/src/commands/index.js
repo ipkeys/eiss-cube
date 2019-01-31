@@ -1,4 +1,5 @@
 import React, { Fragment } from 'react';
+import { Field } from 'redux-form';
 import {
     List,
     Create,
@@ -23,29 +24,22 @@ import {
     required
 } from 'react-admin';
 import Icon from '@material-ui/icons/Message';
-import Divider from '@material-ui/core/Divider';
-
 import { withStyles } from '@material-ui/core/styles';
-import { common, grey } from '@material-ui/core/colors';
-
 import { AppDateTimeFormat, DateTimeFormat } from '../App';
 import { DateTimeInput } from 'react-admin-date-inputs';
-
-import { Field } from 'redux-form';
 import CycleField from './CycleField';
 import DutyCycleField from './DutyCycleField';
+import DividerField from './DividerField';
 import CycleAndDutyCycleInput from './CycleAndDutyCycleInput';
-
-import sanitizeRestProps from './sanitizeRestProps';
 
 export const CommandIcon = Icon;
 
-const commandStyles = theme => ({
+const styles = theme => ({
     title: {
-        color: common.white
+        color: theme.palette.common.white
     },
     rowEven: {
-        backgroundColor: grey[100]
+        backgroundColor: theme.palette.grey[100]
     },
     inlineField: { 
         display: 'inline-block',
@@ -78,7 +72,7 @@ const edges = [
     { id: 'f', name: 'Falling edge' }
 ];
 
-const CommandTitle = withStyles(commandStyles)(
+const CommandTitle = withStyles(styles)(
     ({classes, title, record}) => (
         <div className={classes.title}>
             {title} {record && record.deviceID && `${record.deviceID}`}
@@ -89,14 +83,14 @@ const CommandTitle = withStyles(commandStyles)(
 const CommandFilter = props => (
     <Filter {...props}>
         <ReferenceInput label='for EISS™Cube' source='q' reference='cubes'>
-            <AutocompleteInput optionText='deviceID'/>
+            <AutocompleteInput optionText='name'/>
         </ReferenceInput>
         <DateTimeInput label='Created Before' source='timestamp_lte' options={{ format: DateTimeFormat, ampm: false }} />
         <DateTimeInput label='Created Since' source='timestamp_gte' options={{ format: DateTimeFormat, ampm: false }} />
     </Filter>
 );
 
-export const CommandList = withStyles(commandStyles)(
+export const CommandList = withStyles(styles)(
     ({ classes, ...props }) => (
         <List  
             title={<CommandTitle title='Commands' />}
@@ -109,7 +103,7 @@ export const CommandList = withStyles(commandStyles)(
             <Datagrid classes={{ rowEven: classes.rowEven }} >
                 <DateField label='Created' source='created' showTime options={AppDateTimeFormat} />
                 <ReferenceField label='EISS™Cube' source='cubeID' reference='cubes' linkType='show'>
-                    <TextField source='deviceID' />
+                    <TextField source='name' />
                 </ReferenceField>
                 <SelectField label='Command' source='command' choices={cmds} />
                 <TextField label='Status' source='status' />
@@ -119,7 +113,7 @@ export const CommandList = withStyles(commandStyles)(
     )
 );
 
-export const CommandShow = withStyles(commandStyles)(
+export const CommandShow = withStyles(styles)(
     ({ classes, ...props }) => (
         <ShowController title={<CommandTitle title='Command' />} {...props}>
             {controllerProps => 
@@ -128,7 +122,7 @@ export const CommandShow = withStyles(commandStyles)(
                         <SelectField className={classes.inlineField} label='Command' source='command' choices={cmds} />
 
                         <ReferenceField className={classes.inlineField} label='for EISS™Cube' source='cubeID' reference='cubes' linkType='show'>
-                            <TextField source='deviceID' />
+                            <TextField source='name' />
                         </ReferenceField>
 
                         {controllerProps.record && controllerProps.record.startTime && 
@@ -163,10 +157,9 @@ export const CommandShow = withStyles(commandStyles)(
                             </Fragment>
                         }
                         
-                        <Divider {...sanitizeRestProps(props)} />
+                        <DividerField />
                         
                         <TextField className={classes.inlineField} label='Status' source='status' />
-                        
                         <DateField className={classes.inlineField} label='Created on' source='created' showTime options={AppDateTimeFormat} />
                         <DateField className={classes.inlineField} label='Updated on' source='updated' showTime options={AppDateTimeFormat} />
 
@@ -181,8 +174,15 @@ export const CommandShow = withStyles(commandStyles)(
 const validateCommandCreation = (values) => {
     const errors = {};
 
+    if (values.cycleAndDutyCycle) {
+        const parts = values.cycleAndDutyCycle.split('/');
+        if (parts[0] === '' || parseInt(parts[0], 10) < 1) {
+            errors.cycleAndDutyCycle = ['Must be positive and more then 1 seconds'];
+        }
+    }
+
     if (values.completeCycle < 1) {
-        errors.completeCycle = ['Must be more then 1 seconds'];
+        errors.completeCycle = ['Must be positive more then 1 seconds'];
     }
 
     let s = (values.startTime) ? values.startTime : null;
@@ -211,7 +211,7 @@ const checkCommandForInputCycle = (v) => {
     return (v === 'icc') ? true : false ;
 };
             
-export const CommandCreate = withStyles(commandStyles)(
+export const CommandCreate = withStyles(styles)(
     ({ classes, ...props }) => (
         <Create 
             title={<CommandTitle title='Create new Command' />} 
@@ -220,7 +220,7 @@ export const CommandCreate = withStyles(commandStyles)(
             <SimpleForm validate={ validateCommandCreation } redirect='list'>
 
                 <ReferenceInput label='for EISS™Cube' source='cubeID' reference='cubes' validate={[ required() ]} >
-                    <AutocompleteInput optionText='deviceID'/>
+                    <AutocompleteInput optionText='name'/>
                 </ReferenceInput>
 
                 <SelectInput label='Command' source='command' choices={cmds} validate={[ required() ]} />
@@ -234,15 +234,15 @@ export const CommandCreate = withStyles(commandStyles)(
                 <FormDataConsumer>
                 {({ formData, ...rest }) => checkCommandForInputCount(formData.command) &&
                     <Fragment>
-                        <SelectInput style={{ marginRight: 16 }} label='Transition' source='transition' choices={edges} {...rest} />
-                        <NumberInput style={{ marginRight: 16 }} label='Cycle (sec)' source='completeCycle' step={'1'} {...rest} />
+                        <SelectInput style={{ marginRight: 16 }} formClassName={classes.inline} label='Transition' source='transition' choices={edges} {...rest} validate={[ required() ]} />
+                        <NumberInput formClassName={classes.inline} label='Cycle (sec)' source='completeCycle' step={'1'} {...rest} />
                     </Fragment>
                 }
                 </FormDataConsumer>
 
                 <FormDataConsumer>
                 {({ formData, ...rest }) => checkCommandForInputCycle(formData.command) &&
-                    <SelectInput label='Transition' source='transition' choices={edges} {...rest} />
+                    <SelectInput label='Transition' source='transition' choices={edges} {...rest} validate={[ required() ]} />
                 }
                 </FormDataConsumer>
 

@@ -12,10 +12,8 @@ import NextIcon from '@material-ui/icons/ArrowDownward';
 import { Button, GET_ONE, CREATE } from 'react-admin';
 import { dataProvider } from '../App';
 
-import Relay1Form from './Relay1Form';
-import Relay2Form from './Relay2Form';
-import Input1Form from './Input1Form';
-import Input2Form from './Input2Form';
+import RelayForm from './RelayForm';
+import InputForm from './InputForm';
 
 const styles = theme => ({
     btnRoot: {
@@ -97,7 +95,7 @@ class SetupEissCube extends Component {
                         RELAY
                     </StepButton>
                     <StepContent className={classes.stepContent} >
-                        <Relay1Form
+                        <RelayForm
                             data={data}
                             step={stepIndex}
                             onSubmit={this.handleSubmit}
@@ -111,7 +109,7 @@ class SetupEissCube extends Component {
                         INPUT
                     </StepButton>
                     <StepContent className={classes.stepContent} >
-                        <Input1Form
+                        <InputForm
                             data={data}
                             step={stepIndex}
                             onSubmit={this.handleSubmit}

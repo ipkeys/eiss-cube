@@ -142,30 +142,29 @@ public class CubeHandler implements Handler<NetSocket> {
 
     private void doAuth(NetSocket socket, String message) {
         String[] parts = message.split(" ");
-        if (parts.length == 3) {
-            String auth_username = parts[1];
-            String auth_password = parts[2];
-            if (auth_username != null && auth_password != null) {
-                log.info("Client: {} is authenticated as {}", socket.writeHandlerID(), auth_username);
+        if (parts.length == 2) {
+            String deviceID = parts[1]; // SIM card number
+            if (deviceID != null) {
+                log.info("Client: {} with deviceID {}", socket.writeHandlerID(), deviceID);
 
                 // TODO: check auth!!
-                clientMap.put(auth_username, socket.writeHandlerID());
+                clientMap.put(deviceID, socket.writeHandlerID());
 
                 SimpleDateFormat dateFormat = new SimpleDateFormat("z MM/dd/yyyy HH:mm:ss");
                 dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
                 // Send greeting for a new connection.
-                String welcome = auth_username +
-                    "! Welcome to EISScube Server!\n" +
+                String welcome =
+                    "Welcome to EISScube Server!\n" +
                     "Server time is " + dateFormat.format(new Date()) + "\n\0";
                 socket.write(welcome);
 
-                updateUser(auth_username, auth_password);
-                getPendingCommands(auth_username);
+                updateUser(deviceID);
+                getPendingCommands(deviceID);
             }
         }
     }
 
-    private void updateUser(String deviceID, String password) {
+    private void updateUser(String deviceID) {
         Query<EISScube> q = datastore.createQuery(EISScube.class);
         q.criteria("deviceID").equal(deviceID);
 
@@ -177,7 +176,6 @@ public class CubeHandler implements Handler<NetSocket> {
             if (cube == null) {
                 cube = new EISScube();
                 cube.setDeviceID(deviceID);
-                cube.setPassword(password);
                 cube.setOnline(Boolean.TRUE);
                 cube.setLastPing(Instant.now());
             } else {
@@ -283,8 +281,8 @@ public class CubeHandler implements Handler<NetSocket> {
             saveReport(deviceID, message);
         }
 
-        // status contains 'r1', 'r2', 'i1', 'i2', 'ss'
-        if (message.contains("r1") && message.contains("r2") && message.contains("i1") && message.contains("i2") && message.contains("ss")) {
+        // status contains 'r', 'i', 'ss'
+        if (message.contains("r") &&  message.contains("i") && message.contains("ss")) {
             saveStatus(deviceID, message);
         }
 
@@ -366,43 +364,33 @@ public class CubeHandler implements Handler<NetSocket> {
         });
     }
 
-    // r1=on&r2=off&i1=high&i2=low&ss=3
+    // r=on&i=high&ss=3
 
     private void saveStatus(String deviceID, String message) {
         vertx.executeBlocking(future -> {
-            String r1 = null;
-            String r2 = null;
-            String i1 = null;
-            String i2 = null;
+            String r = null;
+            String i = null;
             String ss = null;
 
             for (String part : message.split("&")) {
-                if (part.startsWith("r1=")) {
-                    r1 = part.replace("r1=", "");
+                if (part.startsWith("r=")) {
+                    r = part.replace("r=", "");
                 }
-                if (part.startsWith("r2=")) {
-                    r2 = part.replace("r2=", "");
-                }
-                if (part.startsWith("i1=")) {
-                    i1 = part.replace("i1=", "");
-                }
-                if (part.startsWith("i2=")) {
-                    i2 = part.replace("i2=", "");
+                if (part.startsWith("i=")) {
+                    i = part.replace("i=", "");
                 }
                 if (part.startsWith("ss=")) {
                     ss = part.replace("ss=", "");
                 }
             }
 
-            if (r1 != null && r2 != null && i1 != null && i2 != null && ss != null) {
+            if (r != null && i != null && ss != null) {
                 Query<CubeTest> q = datastore.createQuery(CubeTest.class);
                 q.criteria("deviceID").equal(deviceID);
 
                 UpdateOperations<CubeTest> ops = datastore.createUpdateOperations(CubeTest.class)
-                    .set("r1", Integer.valueOf(r1))
-                    .set("r2", Integer.valueOf(r2))
-                    .set("i1", Integer.valueOf(i1))
-                    .set("i2", Integer.valueOf(i2))
+                    .set("r", Integer.valueOf(r))
+                    .set("i", Integer.valueOf(i))
                     .set("ss", Integer.valueOf(ss));
 
                 datastore.update(q, ops, true);
