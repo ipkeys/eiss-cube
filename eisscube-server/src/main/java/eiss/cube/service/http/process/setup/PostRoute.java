@@ -1,7 +1,6 @@
 package eiss.cube.service.http.process.setup;
 
 import com.google.gson.Gson;
-import com.mongodb.DuplicateKeyException;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeSetup;
 import io.vertx.core.Handler;
@@ -10,9 +9,10 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
-import org.bson.types.ObjectId;
 import xyz.morphia.Datastore;
-import xyz.morphia.Key;
+import xyz.morphia.query.Query;
+import xyz.morphia.query.UpdateOperations;
+import xyz.morphia.query.UpdateResults;
 
 import javax.inject.Inject;
 import javax.ws.rs.POST;
@@ -20,6 +20,7 @@ import javax.ws.rs.Path;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
+import static java.lang.Boolean.TRUE;
 import static javax.servlet.http.HttpServletResponse.*;
 
 @Slf4j
@@ -56,22 +57,20 @@ public class PostRoute implements Handler<RoutingContext> {
             return;
         }
 
+        Query<CubeSetup> q = datastore.createQuery(CubeSetup.class);
+        q.criteria("cubeID").equal(setup.getCubeID());
+
+        UpdateOperations<CubeSetup> ops = datastore.createUpdateOperations(CubeSetup.class);
+
+        ops.set("relay", setup.getRelay());
+        ops.set("input", setup.getInput());
+
         vertx.executeBlocking(op -> {
-            try {
-                // 1. remove old setup
-                datastore.delete(setup);
-
-                // 2. save the new setup
-                Key<CubeSetup> key = datastore.save(setup);
-                setup.setId((ObjectId)key.getId());
-
+            UpdateResults result = datastore.update(q, ops, TRUE); // createIfMissing
+            if (result.getUpdatedCount() == 1 || result.getInsertedCount() == 1) {
                 op.complete(setup);
-            } catch (DuplicateKeyException dup) {
-                log.error(dup.getMessage());
-                op.fail("CubeSetup already exists");
-            } catch (Exception e) {
-                log.error(e.getMessage());
-                op.fail("Unable to save CubeSetup");
+            } else {
+                op.fail(String.format("Unable to create/update setup for EISScube: %s", setup.getCubeID()));
             }
         }, res -> {
             if (res.succeeded()) {

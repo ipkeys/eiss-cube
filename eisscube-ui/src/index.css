@@ -1,9 +1,9 @@
 body {
-  margin: 0;
-  padding: 0;
-  font-family: "Roboto", sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    padding: 0;
+    font-family: "Roboto", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .leaflet-container {
@@ -12,4 +12,14 @@ body {
     margin: 0 auto;
     font: 14px Roboto;
     touch-action: none;
+}
+
+#footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background-color: #f5f5f5;
+    /* Set the fixed height of the footer here */
+    height: 40px;
+    padding: 10px;
 }

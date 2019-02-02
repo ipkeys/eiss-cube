@@ -14,11 +14,13 @@ const styles = theme => ({
     }
 });
 
-const ShowActions = ({ classes, basePath, data }) => (
-    <CardActions className={classes.cardActions} >
-        <SetupButton basePath={basePath} record={data} />
-        <EditButton basePath={basePath} record={data} />
-    </CardActions>
+const ShowActions = withStyles(styles)(
+    ({ classes, basePath, data }) => (
+        <CardActions className={classes.cardActions} >
+            <SetupButton basePath={basePath} record={data} />
+            <EditButton basePath={basePath} record={data} />
+        </CardActions>
+    )
 );
 
-export default withStyles(styles)(ShowActions);
+export default ShowActions;

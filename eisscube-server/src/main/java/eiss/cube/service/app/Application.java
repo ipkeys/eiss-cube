@@ -3,9 +3,11 @@ package eiss.cube.service.app;
 import eiss.cube.service.http.Http;
 import eiss.cube.service.tcp.Tcp;
 import io.vertx.core.Vertx;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
 
+@Slf4j
 public class Application {
 
     private Vertx vertx;

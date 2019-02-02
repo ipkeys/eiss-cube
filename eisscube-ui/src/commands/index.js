@@ -214,7 +214,7 @@ const checkCommandForInputCycle = (v) => {
 export const CommandCreate = withStyles(styles)(
     ({ classes, ...props }) => (
         <Create 
-            title={<CommandTitle title='Create new Command' />} 
+            title={<CommandTitle title='Create a new Command' />} 
             {...props}
         >
             <SimpleForm validate={ validateCommandCreation } redirect='list'>

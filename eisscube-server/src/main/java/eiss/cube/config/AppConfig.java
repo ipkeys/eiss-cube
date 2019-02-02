@@ -19,4 +19,8 @@ public class AppConfig {
     @Getter
     private String googleApiKey;
 
+    @InjectConfig(value = "randNameConfig")
+    @Getter
+    private RandNameConfig randNameConfig;
+
 }

@@ -2,8 +2,6 @@ import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
-import CardContent from '@material-ui/core/CardContent';
-import Typography from '@material-ui/core/Typography';
 import Avatar from '@material-ui/core/Avatar';
 import LightBulbIcon from '@material-ui/icons/LightbulbOutline';
 
@@ -31,11 +29,6 @@ export default withStyles(styles)(
                 title='Welcome to the EISS™Cube Server'
                 subheader='Handling EISS™Cubes, sending commands, collecting reports...'
             />
-            <CardContent>
-                <Typography>
-                    Take a look around...
-                </Typography>
-            </CardContent>
         </Card>
     )
 );

@@ -121,7 +121,7 @@ export const EissCubesList = withStyles(styles)(
 
 export const EissCubesShow = withStyles(styles)(
     ({ classes, ...props }) => (
-        <Show  
+        <Show 
             title={<EissCubesTitle title='Manage EISS™Cube -' />}
             actions={<EissCubesShowActions />}
             {...props}

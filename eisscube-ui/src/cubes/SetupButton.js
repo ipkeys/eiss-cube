@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { withStyles } from '@material-ui/core/styles';
-//import Button from '@material-ui/core/Button';
 import Icon from '@material-ui/icons/Settings';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
@@ -65,12 +64,12 @@ class SetupButton extends Component {
 					<DialogTitle id='setup-dialog-title'>
 						<span className={classes.title}>
                             <SetupIcon className={classes.btnPadding} />
-                            {record && `${record.deviceID}`} - Setup Connections
+                            {record && `${record.name}`} - Setup Connections
 						</span>
 					</DialogTitle>
 					
 					<DialogContent className={classes.content}>
-                        <SetupCube deviceID={record.deviceID} />
+                        <SetupCube cubeID={record.id} />
 					</DialogContent>
 
 					<DialogActions>

@@ -1,4 +1,4 @@
-package eiss.utils.AdminOnRest;
+package eiss.utils.reactadmin;
 
 public class ParamName {
 

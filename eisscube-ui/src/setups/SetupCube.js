@@ -42,7 +42,7 @@ class SetupEissCube extends Component {
 
     componentWillMount() {
         dataProvider(GET_ONE, `setup`, {
-            id: this.props.deviceID
+            id: this.props.cubeID
         })
         .then(response => response.data)
         .then(data => {
@@ -56,7 +56,7 @@ class SetupEissCube extends Component {
 
     handleSubmit = (values) => {
         dataProvider(CREATE, `setup`, {
-            data: { ...values, deviceID: this.props.deviceID}
+            data: { ...values, cubeID: this.props.cubeID}
         })
         .then(response => response.data)
         .then(data => {

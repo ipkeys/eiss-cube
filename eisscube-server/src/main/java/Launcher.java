@@ -3,6 +3,7 @@ import com.google.inject.Injector;
 import eiss.cube.config.ConfigModule;
 import eiss.cube.db.DatastoreModule;
 import eiss.cube.json.GsonModule;
+import eiss.cube.randname.RandnameModule;
 import eiss.cube.service.app.Application;
 import eiss.cube.service.http.HttpModule;
 import eiss.cube.service.tcp.TcpModule;
@@ -23,7 +24,8 @@ public class Launcher {
             new HttpModule(),
             new TcpModule(),
             new DatastoreModule(),
-            new GsonModule()
+            new GsonModule(),
+            new RandnameModule()
         );
 
         final Application app = injector.getInstance(Application.class);

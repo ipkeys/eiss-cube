@@ -1,5 +1,6 @@
 package eiss.cube.service.tcp.process;
 
+import eiss.cube.randname.Randname;
 import eiss.models.cubes.CubeCommand;
 import eiss.models.cubes.CubeMeter;
 import eiss.models.cubes.CubeTest;
@@ -31,11 +32,13 @@ public class CubeHandler implements Handler<NetSocket> {
     private Vertx vertx;
     private EventBus eventBus;
     private Datastore datastore;
+    private Randname randname;
 
     @Inject
-    public CubeHandler(Vertx vertx, Datastore datastore) {
+    public CubeHandler(Vertx vertx, Datastore datastore, Randname randname) {
         this.vertx = vertx;
         this.datastore = datastore;
+        this.randname = randname;
 
         eventBus = vertx.eventBus();
         eventBus.<JsonObject>consumer("eisscube", message -> {
@@ -176,6 +179,7 @@ public class CubeHandler implements Handler<NetSocket> {
             if (cube == null) {
                 cube = new EISScube();
                 cube.setDeviceID(deviceID);
+                cube.setName(randname.next()); // random name from dictionary
                 cube.setOnline(Boolean.TRUE);
                 cube.setLastPing(Instant.now());
             } else {

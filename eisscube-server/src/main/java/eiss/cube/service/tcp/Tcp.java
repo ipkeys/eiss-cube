@@ -1,6 +1,7 @@
 package eiss.cube.service.tcp;
 
 import eiss.cube.config.AppConfig;
+import eiss.cube.config.EissCubeConfig;
 import eiss.cube.service.tcp.process.CubeHandler;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.net.NetServer;
@@ -12,19 +13,19 @@ import javax.inject.Inject;
 @Slf4j
 public class Tcp extends AbstractVerticle {
 
-    private AppConfig cfg;
+    private EissCubeConfig cfg;
     private CubeHandler handler;
 
     @Inject
     public Tcp(AppConfig cfg, CubeHandler handler) {
-        this.cfg = cfg;
+        this.cfg = cfg.getEissCubeConfig();
         this.handler = handler;
     }
 
     @Override
     public void start() throws Exception {
 
-        int port = cfg.getEissCubeConfig().getTcpPort();
+        int port = cfg.getTcpPort();
 
         NetServerOptions options = new NetServerOptions()
             .setPort(port)
@@ -34,7 +35,7 @@ public class Tcp extends AbstractVerticle {
         NetServer server = getVertx().createNetServer(options);
 
         server
-            .connectHandler(handler::handle)
+            .connectHandler(handler)
             .listen(h -> {
                 if (h.succeeded()) {
                     log.info("Start TCP server to listen on port: {}", port);

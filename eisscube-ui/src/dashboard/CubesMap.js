@@ -5,6 +5,7 @@ import { Map, LayersControl, TileLayer, Marker, Popup } from 'react-leaflet';
 import { GET_LIST } from 'react-admin';
 import { dataProvider } from '../App';
 import { red, green } from '@material-ui/core/colors';
+import Paper from '@material-ui/core/Paper';
 
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.js';
@@ -85,25 +86,27 @@ class CubesMap extends Component {
         });
 
         return (
-            <Map center={position} zoom={this.state.zoom} maxZoom={this.state.maxZoom}>
-                <LayersControl position="topright">
-                    <BaseLayer checked name="Color">
-                        <TileLayer
-                            attribution="&amp;copy <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        />
-                    </BaseLayer>
-                    <BaseLayer name="Black And White">
-                        <TileLayer
-                            attribution="&amp;copy <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
-                            url="http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png"
-                        />
-                    </BaseLayer>
-                    <MarkerClusterGroup>
-                        {markers}
-                    </MarkerClusterGroup>
-                </LayersControl>
-             </Map>
+            <Paper elevation={1} >
+                <Map center={position} zoom={this.state.zoom} maxZoom={this.state.maxZoom}>
+                    <LayersControl position="topright">
+                        <BaseLayer checked name="Color">
+                            <TileLayer
+                                attribution="&amp;copy <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            />
+                        </BaseLayer>
+                        <BaseLayer name="Black And White">
+                            <TileLayer
+                                attribution="&amp;copy <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
+                                url="http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png"
+                            />
+                        </BaseLayer>
+                        <MarkerClusterGroup>
+                            {markers}
+                        </MarkerClusterGroup>
+                    </LayersControl>
+                </Map>
+             </Paper>
         );
     }
 }

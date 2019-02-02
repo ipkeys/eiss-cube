@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
 
 import { Title, GET_LIST } from 'react-admin';
 import { dataProvider } from '../App';
@@ -14,9 +13,6 @@ import CubesMap from './CubesMap';
 const styles = {
     root: {
         flexGrow: 1,
-    },
-    paperMap: { 
-        height: '100%' 
     }
 };
 
@@ -44,7 +40,7 @@ class Dashboard extends Component {
         const { online, offline } = this.state;
 
         return (
-            <div className={classes.root}>
+            <div className={classes.root} >
                 <Title title = "EISS™Cube Server" />
                 <Grid container spacing={16}>
                     <Grid item xs={12}>
@@ -57,9 +53,7 @@ class Dashboard extends Component {
                         <Offline value = { offline } />
                     </Grid>
                     <Grid item xs={12}>
-                        <Paper elevation={1}>
-                            <CubesMap />
-                        </Paper>
+                        <CubesMap />
                     </Grid>
                 </Grid>
             </div>

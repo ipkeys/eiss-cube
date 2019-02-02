@@ -61,108 +61,108 @@ public class PutRoute implements Handler<RoutingContext> {
             return;
         }
 
-        ObjectId oid = new ObjectId(id);
-
         String json = context.getBodyAsString();
-        log.info("Update existing EISScube: id={} by: {}", id, json);
-
+        log.info("Update existing EISScube: {} by: {}", id, json);
         EISScube cube = gson.fromJson(json, EISScube.class);
-        if (cube != null) {
-            Query<EISScube> query = datastore.createQuery(EISScube.class).field("_id").equal(oid);
-            UpdateOperations<EISScube> ops = datastore.createUpdateOperations(EISScube.class);
-
-            if (cube.getName() == null) {
-                ops.unset("name");
-            } else {
-                ops.set("name", cube.getName());
-            }
-
-            if (cube.getAddress() == null) {
-                ops.unset("address");
-            } else {
-                ops.set("address", cube.getAddress());
-            }
-
-            if (cube.getCity() == null) {
-                ops.unset("city");
-            } else {
-                ops.set("city", cube.getCity());
-            }
-
-            if (cube.getZipCode() == null) {
-                ops.unset("zipCode");
-            } else {
-                ops.set("zipCode", cube.getZipCode());
-            }
-
-            if (cube.getCustomerID() == null) {
-                ops.unset("customerID");
-            } else {
-                ops.set("customerID", cube.getCustomerID());
-            }
-
-            if (cube.getZone() == null) {
-                ops.unset("zone");
-            } else {
-                ops.set("zone", cube.getZone());
-            }
-
-            if (cube.getSubZone() == null) {
-                ops.unset("subZone");
-            } else {
-                ops.set("subZone", cube.getSubZone());
-            }
-
-            vertx.executeBlocking(op -> {
-                try {
-/*
-                    if (cube.getAddress() != null && cube.getCity() != null && cube.getZipCode() != null) {
-                        String address = cube.getAddress() + ", " + cube.getCity() + " " + cube.getZipCode();
-
-                        // use geocoding to get location by address
-                        GeoApiContext geoContext = new GeoApiContext().setApiKey(cfg.getGoogleApiKey());
-
-                        GeocodingResult[] results = GeocodingApi
-                            .geocode(geoContext, address)
-                            .await();
-
-                        CubePoint location = new CubePoint();
-                        location.setLat(results[0].geometry.location.lat);
-                        location.setLng(results[0].geometry.location.lng);
-                        ops.set("location", location);
-                    } else {
-                        ops.unset("location");
-                    }
-*/
-
-                    UpdateResults result = datastore.update(query, ops);
-                    if (result.getUpdatedCount() == 1) {
-                        op.complete(cube);
-                    } else {
-                        op.fail(String.format("Unable to update EISScube with id: %s", id));
-                    }
-                } catch (Exception e) {
-                    op.fail(String.format("Unable to update EISScube: %s", e.getMessage()));
-                }
-            }, res -> {
-                if (res.succeeded()) {
-                    response
-                        .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                        .setStatusCode(SC_OK)
-                        .end(gson.toJson(res.result()));
-                } else {
-                    response
-                        .setStatusCode(SC_BAD_REQUEST)
-                        .setStatusMessage(res.cause().getMessage())
-                        .end();
-                }
-            });
-        } else {
+        if (cube == null) {
             response
                 .setStatusCode(SC_BAD_REQUEST)
                 .setStatusMessage(String.format("Unable to update EISScube with id: %s", id))
                 .end();
+            return;
         }
+
+        Query<EISScube> q = datastore.createQuery(EISScube.class);
+        q.criteria("_id").equal(new ObjectId(id));
+
+        UpdateOperations<EISScube> ops = datastore.createUpdateOperations(EISScube.class);
+
+        if (cube.getName() == null) {
+            ops.unset("name");
+        } else {
+            ops.set("name", cube.getName());
+        }
+
+        if (cube.getAddress() == null) {
+            ops.unset("address");
+        } else {
+            ops.set("address", cube.getAddress());
+        }
+
+        if (cube.getCity() == null) {
+            ops.unset("city");
+        } else {
+            ops.set("city", cube.getCity());
+        }
+
+        if (cube.getZipCode() == null) {
+            ops.unset("zipCode");
+        } else {
+            ops.set("zipCode", cube.getZipCode());
+        }
+
+        if (cube.getCustomerID() == null) {
+            ops.unset("customerID");
+        } else {
+            ops.set("customerID", cube.getCustomerID());
+        }
+
+        if (cube.getZone() == null) {
+            ops.unset("zone");
+        } else {
+            ops.set("zone", cube.getZone());
+        }
+
+        if (cube.getSubZone() == null) {
+            ops.unset("subZone");
+        } else {
+            ops.set("subZone", cube.getSubZone());
+        }
+
+        vertx.executeBlocking(op -> {
+            /*
+            try {
+               if (cube.getAddress() != null && cube.getCity() != null && cube.getZipCode() != null) {
+                    String address = cube.getAddress() + ", " + cube.getCity() + " " + cube.getZipCode();
+
+                    // use geocoding to get location by address
+                    GeoApiContext geoContext = new GeoApiContext().setApiKey(cfg.getGoogleApiKey());
+
+                    GeocodingResult[] results = GeocodingApi
+                        .geocode(geoContext, address)
+                        .await();
+
+                    CubePoint location = new CubePoint();
+                    location.setLat(results[0].geometry.location.lat);
+                    location.setLng(results[0].geometry.location.lng);
+                    ops.set("location", location);
+                } else {
+                    ops.unset("location");
+                }
+            } catch (Exception e) {
+                op.fail(String.format("Unable to update EISScube: %s", e.getMessage()));
+            }
+            */
+
+            UpdateResults result = datastore.update(q, ops);
+            if (result.getUpdatedCount() == 1) {
+                op.complete(cube);
+            } else {
+                op.fail(String.format("Unable to update EISScube with id: %s", id));
+            }
+        }, res -> {
+            if (res.succeeded()) {
+                response
+                    .putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                    .setStatusCode(SC_OK)
+                    .end(gson.toJson(res.result()));
+            } else {
+                response
+                    .setStatusCode(SC_BAD_REQUEST)
+                    .setStatusMessage(res.cause().getMessage())
+                    .end();
+            }
+        });
     }
 
 }

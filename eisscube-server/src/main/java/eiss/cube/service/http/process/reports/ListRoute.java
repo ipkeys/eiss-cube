@@ -18,7 +18,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import java.util.List;
 
-import static eiss.utils.AdminOnRest.ParamName.*;
+import static eiss.utils.reactadmin.ParamName.*;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.*;
