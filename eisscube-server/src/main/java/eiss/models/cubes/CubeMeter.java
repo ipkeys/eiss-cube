@@ -12,9 +12,9 @@ public class CubeMeter {
 
     @Id ObjectId id;
 
-    @Property String reportID; // reference to EISScube.deviceID + _Meter_#
+    @Property String cubeID; // reference to EISScube.id
 
-    @Indexed(options = @IndexOptions(name = "CubeMeterTimestampIndex", unique = false))
+    @Indexed(options = @IndexOptions(name = "CubeMeterTimestampIndex"))
     @Property Instant timestamp;
     @Property Double value;
 

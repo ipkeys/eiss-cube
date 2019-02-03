@@ -11,7 +11,7 @@ public class CubeTest {
     @Id ObjectId id;
 
     @Indexed(options = @IndexOptions(name = "CubeIDIndex", unique = true))
-    @Property String cubeID; // reference to EISScube.deviceID
+    @Property String cubeID; // reference to EISScube.id
 
     @Property Integer ss;
     @Property Integer r;

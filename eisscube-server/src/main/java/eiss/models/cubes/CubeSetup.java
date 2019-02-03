@@ -11,7 +11,7 @@ public class CubeSetup {
     @Id ObjectId id;
 
     @Indexed(options = @IndexOptions(name = "CubeIDIndex", unique = true))
-    @Property String cubeID; // reference to EISScube.deviceID
+    @Property String cubeID; // reference to EISScube.id
 
     @Embedded CubeRelay relay;
     @Embedded CubeInput input;

@@ -6,6 +6,7 @@ import eiss.cube.service.http.process.api.Api;
 import eiss.helpers.CycleAndDutyCycleExtractor;
 import eiss.models.cubes.CubeCommand;
 import eiss.models.cubes.CubeReport;
+import eiss.models.cubes.EISScube;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
@@ -16,11 +17,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import xyz.morphia.Datastore;
 import xyz.morphia.Key;
+import xyz.morphia.query.Query;
 
 import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import java.time.Instant;
+import java.util.List;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
@@ -86,7 +89,7 @@ public class PostRoute implements Handler<RoutingContext> {
                 // send cmd to EISScube device
                 sendIt(cmd);
                 // prepare report record
-                recordIt(cmd);
+                //recordIt(cmd);
 
                 response
                     .putHeader(CONTENT_TYPE, APPLICATION_JSON)
@@ -102,14 +105,25 @@ public class PostRoute implements Handler<RoutingContext> {
     }
 
     private void sendIt(CubeCommand cmd) {
-        vertx.eventBus().send("eisscube", new JsonObject()
-            .put("id", cmd.getId().toString())
-            .put("to", cmd.getCubeID()) // TODO: change to deviceID
-            .put("cmd", cmd.toString()));
+        Query<EISScube> q = datastore.createQuery(EISScube.class);
+        q.criteria("id").equal(new ObjectId(cmd.getCubeID()));
+
+        vertx.executeBlocking(future -> {
+            EISScube cube = q.get();
+            future.complete(cube);
+        }, res_future -> {
+            EISScube cube = (EISScube)res_future.result();
+            if (cube != null) {
+                vertx.eventBus().send("eisscube", new JsonObject()
+                    .put("id", cmd.getId().toString())
+                    .put("to", cube.getDeviceID())
+                    .put("cmd", cmd.toString()));
+            }
+        });
     }
 
+/*
     private void recordIt(CubeCommand cmd) {
-
         if (cmd.getCommand().startsWith("i")) {
             saveReportRecord(cmd.getCubeID(), "_Meter");
         }
@@ -133,5 +147,6 @@ public class PostRoute implements Handler<RoutingContext> {
             }
         }, res -> log.info("Prepare report record for: {}", cubeID + reportID));
     }
+*/
 
 }

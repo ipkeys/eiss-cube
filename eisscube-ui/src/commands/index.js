@@ -195,6 +195,13 @@ const validateCommandCreation = (values) => {
             errors.endTime = ['Must be after Start Time'];
         }
     }
+    if (s === null && e !== null) {
+        let sDate = new Date();
+        let eDate = e instanceof Date ? e : new Date(e);
+        if (sDate.getTime() >= eDate.getTime()) {
+            errors.endTime = ['Must be after of current moment'];
+        }
+    }
 
     return errors
 };

@@ -187,7 +187,6 @@ public class CubeHandler implements Handler<NetSocket> {
                 cube.setOnline(Boolean.TRUE);
                 cube.setTimeStarted(timestamp);
             }
-
             saveEissCube(cube);
         });
     }
@@ -200,23 +199,34 @@ public class CubeHandler implements Handler<NetSocket> {
     }
 
     private void getPendingCommands(String deviceID) {
-        Query<CubeCommand> q = datastore.createQuery(CubeCommand.class);
-        q.and(
-            q.criteria("deviceID").equal(deviceID),
-            q.criteria("status").equal("pending")
-        );
-        q.order("-created");
+        Query<EISScube> q = datastore.createQuery(EISScube.class);
+        q.criteria("deviceID").equal(deviceID);
 
-        vertx.executeBlocking(op -> {
-            List<CubeCommand> list = q.asList();
+        vertx.executeBlocking(future -> {
+            EISScube cube = q.get();
+            future.complete(cube);
+        }, res_future -> {
+            EISScube cube = (EISScube)res_future.result();
+            if (cube != null) {
+                Query<CubeCommand> qc = datastore.createQuery(CubeCommand.class);
+                qc.and(
+                    qc.criteria("cubeID").equal(cube.getId()),
+                    qc.criteria("status").equal("pending")
+                );
+                qc.order("-created");
 
-            list.forEach(cmd -> vertx.eventBus().send("eisscube", new JsonObject()
-                .put("id", cmd.getId().toString())
-                .put("to", cmd.getCubeID()) // TODO: change to deviceID
-                .put("cmd", cmd.toString())));
+                vertx.executeBlocking(op -> {
+                    List<CubeCommand> list = qc.asList();
 
-            op.complete(list);
-        }, res -> log.debug("Got all pending commands for Client: {} ", deviceID));
+                    list.forEach(cmd -> vertx.eventBus().send("eisscube", new JsonObject()
+                        .put("id", cmd.getId().toString())
+                        .put("to", deviceID)
+                        .put("cmd", cmd.toString())));
+
+                    op.complete();
+                }, res_op -> log.debug("Got all pending commands for Client: {} ", deviceID));
+            }
+        });
     }
 
     private void doPing(final NetSocket socket) {
@@ -297,13 +307,13 @@ public class CubeHandler implements Handler<NetSocket> {
     private String parseTimestampAndValue(String message) {
         StringBuilder buf = new StringBuilder();
 
-        Date date = null;
+        Instant date = null;
         String value = null;
 
         for (String part : message.split("&")) {
             if (part.startsWith("ts=")) {
                 String timestamp = part.replace("ts=", "");
-                date = new Date(Long.valueOf(timestamp) * 1000);
+                date = Instant.ofEpochMilli(Long.valueOf(timestamp) * 1000);
             }
             if (part.startsWith("v=")) {
                 value = part.replace("v=", "");
@@ -325,46 +335,58 @@ public class CubeHandler implements Handler<NetSocket> {
     }
 
     private void saveReport(String deviceID, String message) {
+        Query<EISScube> q = datastore.createQuery(EISScube.class);
+        q.criteria("deviceID").equal(deviceID);
+
         vertx.executeBlocking(future -> {
-            String rid = null;
-            Instant ts = null;
-            String v = null;
-            String type = "pulse"; // default
+            EISScube cube = q.get();
+            future.complete(cube);
+        }, res_future -> {
+            EISScube cube = (EISScube)res_future.result();
+            if (cube != null) {
+                vertx.executeBlocking(future -> {
+                    Instant ts = null;
+                    String v = null;
+                    String type = "pulse"; // default
 
-            for (String part : message.split("&")) {
-                if (part.startsWith("i=")) {
-                    rid = deviceID + "_Meter_" + part.replace("i=", "");
-                }
-                if (part.startsWith("ts=")) {
-                    String timestamp = part.replace("ts=", "");
-                    ts = Instant.ofEpochMilli(Long.valueOf(timestamp) * 1000);
-                }
-                if (part.startsWith("v=")) {
-                    v = part.replace("v=", "");
-                }
-                if (part.startsWith("dur=")) {
-                    type = "cycle";
-                    v = part.replace("dur=", "");
-                }
-            }
+                    for (String part : message.split("&")) {
+/*
+                        if (part.startsWith("i=")) {
+                            rid = deviceID + "_Meter_" + part.replace("i=", "");
+                        }
+*/
+                        if (part.startsWith("ts=")) {
+                            String timestamp = part.replace("ts=", "");
+                            ts = Instant.ofEpochMilli(Long.valueOf(timestamp) * 1000);
+                        }
+                        if (part.startsWith("v=")) {
+                            v = part.replace("v=", "");
+                        }
+                        if (part.startsWith("dur=")) {
+                            type = "cycle";
+                            v = part.replace("dur=", "");
+                        }
+                    }
 
-            if (rid != null && ts != null && v != null) {
-                CubeMeter cubeMeter = new CubeMeter();
-                cubeMeter.setReportID(rid);
-                cubeMeter.setTimestamp(ts);
-                cubeMeter.setValue(Double.valueOf(v));
-                cubeMeter.setType(type);
+                    if (ts != null && v != null) {
+                        CubeMeter cubeMeter = new CubeMeter();
+                        cubeMeter.setCubeID(cube.getId().toString());
+                        cubeMeter.setTimestamp(ts);
+                        cubeMeter.setValue(Double.valueOf(v));
+                        cubeMeter.setType(type);
 
-                Key result = datastore.save(cubeMeter);
-                future.complete(result);
-            } else {
-                future.fail(String.format("Cannot parse report from: %s", deviceID));
-            }
-        }, res -> {
-            if (res.succeeded()) {
-                log.debug("Report from: {} saved in DB: {}", deviceID, res.result().toString());
-            } else {
-                log.debug("Report failed from: {} saved in DB: {}", deviceID, res.cause());
+                        Key result = datastore.save(cubeMeter);
+                        future.complete(result);
+                    } else {
+                        future.fail(String.format("Cannot parse report from: %s", deviceID));
+                    }
+                }, res -> {
+                    if (res.succeeded()) {
+                        log.debug("Report from: {} saved in DB: {}", deviceID, res.result().toString());
+                    } else {
+                        log.debug("Report failed from: {} saved in DB: {}", deviceID, res.cause());
+                    }
+                });
             }
         });
     }
@@ -372,42 +394,53 @@ public class CubeHandler implements Handler<NetSocket> {
     // r=on&i=high&ss=3
 
     private void saveStatus(String deviceID, String message) {
+        Query<EISScube> q = datastore.createQuery(EISScube.class);
+        q.criteria("deviceID").equal(deviceID);
+
         vertx.executeBlocking(future -> {
-            String r = null;
-            String i = null;
-            String ss = null;
+            EISScube cube = q.get();
+            future.complete(cube);
+        }, res_future -> {
+            EISScube cube = (EISScube)res_future.result();
+            if (cube != null) {
+                vertx.executeBlocking(future -> {
+                    String r = null;
+                    String i = null;
+                    String ss = null;
 
-            for (String part : message.split("&")) {
-                if (part.startsWith("r=")) {
-                    r = part.replace("r=", "");
-                }
-                if (part.startsWith("i=")) {
-                    i = part.replace("i=", "");
-                }
-                if (part.startsWith("ss=")) {
-                    ss = part.replace("ss=", "");
-                }
-            }
+                    for (String part : message.split("&")) {
+                        if (part.startsWith("r=")) {
+                            r = part.replace("r=", "");
+                        }
+                        if (part.startsWith("i=")) {
+                            i = part.replace("i=", "");
+                        }
+                        if (part.startsWith("ss=")) {
+                            ss = part.replace("ss=", "");
+                        }
+                    }
 
-            if (r != null && i != null && ss != null) {
-                Query<CubeTest> q = datastore.createQuery(CubeTest.class);
-                q.criteria("deviceID").equal(deviceID);
+                    if (r != null && i != null && ss != null) {
+                        Query<CubeTest> qs = datastore.createQuery(CubeTest.class);
+                        qs.criteria("cubeID").equal(cube.getId().toString());
 
-                UpdateOperations<CubeTest> ops = datastore.createUpdateOperations(CubeTest.class)
-                    .set("r", Integer.valueOf(r))
-                    .set("i", Integer.valueOf(i))
-                    .set("ss", Integer.valueOf(ss));
+                        UpdateOperations<CubeTest> ops = datastore.createUpdateOperations(CubeTest.class)
+                            .set("r", Integer.valueOf(r))
+                            .set("i", Integer.valueOf(i))
+                            .set("ss", Integer.valueOf(ss));
 
-                datastore.update(q, ops, true);
-                future.complete();
-            } else {
-                future.fail(String.format("Cannot update status of EISScube: %s", deviceID));
-            }
-        }, res -> {
-            if (res.succeeded()) {
-                log.debug("Update status of EISScube: {}", deviceID);
-            } else {
-                log.debug("{}", res.cause());
+                        datastore.update(qs, ops, true);
+                        future.complete();
+                    } else {
+                        future.fail(String.format("Cannot update status of EISScube: %s", deviceID));
+                    }
+                }, res -> {
+                    if (res.succeeded()) {
+                        log.debug("Update status of EISScube: {}", deviceID);
+                    } else {
+                        log.debug("{}", res.cause());
+                    }
+                });
             }
         });
     }
