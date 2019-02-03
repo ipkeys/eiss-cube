@@ -40,30 +40,15 @@ const styles = theme => ({
 class CycleAndDutyCycleInput extends Component {
     constructor(props) {
         super(props);
-
         this.state = {
             cycle: 0,
             duty: 0
         };
-        
-        this.handleCycleChange = this.handleCycleChange.bind(this);
-        this.handleDutyCycleChange = this.handleDutyCycleChange.bind(this);
     }
-
-    handleCycleChange = (event) => {
-        const value = parseInt(event.target.value);
-        this.setState({cycle: value});
-    }
-
-    handleDutyCycleChange = (event, value) => {
-        this.setState({ duty: value });
-    };
 
     render() {
         const { classes, input: { onChange }, meta: { touched, error }, options, margin } = this.props;
         const { cycle, duty } = this.state;
-
-        onChange(`${cycle}/${duty}`);
 
         const on = isNaN(cycle) && isNaN(duty) ? 0 :  Math.round(cycle * duty / 100);
         const off = isNaN(cycle) ? 0 : Math.round(cycle - on);
@@ -76,7 +61,10 @@ class CycleAndDutyCycleInput extends Component {
                     step={1}
                     error={!!(touched && error)}
                     helperText={touched && error}    
-                    onChange={this.handleCycleChange}
+                    onChange={(event) => {
+                        this.setState({cycle: parseInt(event.target.value)});
+                        onChange(`${cycle}/${duty}`);
+                    }}
                     label={<FieldTitle label="Cycle (sec)" />}
                     margin={margin ? margin : 'normal'}
                     {...options}
@@ -88,7 +76,10 @@ class CycleAndDutyCycleInput extends Component {
                     <Slider
                             className={classes.slider}
                             step={1}
-                            onChange={this.handleDutyCycleChange}
+                            onChange={(event, value) => {
+                                this.setState({ duty: value });
+                                onChange(`${cycle}/${duty}`);
+                            }}
                             value={duty}
                         />
                 </FormControl>

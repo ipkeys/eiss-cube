@@ -2,7 +2,7 @@ package eiss.cube.config;
 
 public interface EissCubeConfig {
 
-    Integer getTcpPort();
-    Integer getHttpPort();
+    String getTcpPort();
+    String getHttpPort();
 
 }

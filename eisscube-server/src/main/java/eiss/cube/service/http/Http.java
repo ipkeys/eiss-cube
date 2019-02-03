@@ -46,7 +46,7 @@ public class Http extends AbstractVerticle {
     @Override
     public void start() throws Exception {
 
-        int port = cfg.getHttpPort();
+        int port = Integer.valueOf(cfg.getHttpPort());
 
         HttpServerOptions options = new HttpServerOptions()
             .setPort(port)

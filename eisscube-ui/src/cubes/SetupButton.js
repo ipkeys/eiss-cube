@@ -54,7 +54,7 @@ class SetupButton extends Component {
                 </Button>
 				<Dialog
 					fullWidth
-					maxWidth='md'								
+					maxWidth='sm'								
                     open={showDialog}
                     scroll={'paper'}
 					onClose={this.handleClose}

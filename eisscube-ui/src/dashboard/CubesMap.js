@@ -70,11 +70,11 @@ class CubesMap extends Component {
                     <Popup minWidth={200}>
                         {status}
                         <span>
-                            ICCID: <b>{cube.deviceID}</b>
+                            <i>ICCID:</i> <b>{cube.deviceID}</b>
                             <br/>
-                            Name: {cube.name}
+                            <i>Name:</i> <a href={`#/cubes/${cube.id}/show`}>{cube.name}</a>
                             <br/>
-                            Customer: {cube.customerID}
+                            <i>Customer:</i> {cube.customerID}
                             <br/>
                             <a href={`#/commands?filter={"q":"${cube.id}"}&page=1&perPage=10&sort=created&order=DESC`}>Commands</a>
                             <br/>

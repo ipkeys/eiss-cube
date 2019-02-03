@@ -15,11 +15,6 @@ import {
 import { SetupFormButton } from './SetupCube';
 
 const styles = theme => ({
-    inline: { 
-        display: 'inline-block',
-        marginRight: theme.spacing.unit * 2, 
-        minWidth: theme.spacing.unit * 32   
-    }
 });
 
 class InputForm extends Component {
@@ -49,7 +44,7 @@ class InputForm extends Component {
     };
 
     render() {
-        const { classes, onSubmit, isPristine, isSubmitting, step, back, next, isInputConnected, inputSignalType } = this.props
+        const { onSubmit, isPristine, isSubmitting, step, back, next, isInputConnected, inputSignalType } = this.props
         const { data } = this.state;
 
         return (
@@ -59,24 +54,24 @@ class InputForm extends Component {
                 onSubmit={onSubmit}
                 toolbar={null}
             >
-                <BooleanInput label='Connected' source='input.connected' className={classes.inline} margin='dense'/>
+                <BooleanInput label='Connected' source='input.connected' margin='dense'/>
                 {isInputConnected &&
                     <Fragment>
                         <SelectInput label='Signal type' source="input.signal" choices={[
                             { id: 'P', name: 'Pulses' },
                             { id: 'C', name: 'Cycles' }
-                        ]} className={classes.inline} margin='dense' />
+                        ]} margin='dense' fullWidth />
                         {inputSignalType && inputSignalType === "P" &&
-                            <NumberInput label='Pulse factor (pulses per kWh)' source='input.factor' className={classes.inline} margin='dense'/>
+                            <NumberInput label='Pulse factor (pulses per kWh)' source='input.factor' margin='dense' fullWidth />
                         }
                         {inputSignalType && inputSignalType === "C" &&
                             <SelectInput label='Watch' source="input.watch" choices={[
-                                { id: 1, name: 'Relay 1' },
-                                { id: 2, name: 'Relay 2' }
-                            ]} className={classes.inline} margin='dense' />
+                                { id: 'r', name: 'Raising edge' },
+                                { id: 'f', name: 'Falling edge' }
+                            ]} margin='dense' fullWidth />
                         }
-                        <TextInput label='Label' source='input.label' fullWidth margin='dense'/>
-                        <TextInput label='Description' source='input.description' fullWidth margin='dense'/>
+                        <TextInput label='Label' source='input.label' margin='dense' fullWidth />
+                        <TextInput label='Description' source='input.description' margin='dense' fullWidth/>
                     </Fragment>
                 }
                 <SetupFormButton step={step} onSave={this.handleSave} onNext={next} onBack={back} pristine={isPristine} submitting={isSubmitting}/>

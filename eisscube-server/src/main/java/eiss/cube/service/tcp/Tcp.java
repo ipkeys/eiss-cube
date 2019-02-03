@@ -25,7 +25,7 @@ public class Tcp extends AbstractVerticle {
     @Override
     public void start() throws Exception {
 
-        int port = cfg.getTcpPort();
+        int port = Integer.valueOf(cfg.getTcpPort());
 
         NetServerOptions options = new NetServerOptions()
             .setPort(port)

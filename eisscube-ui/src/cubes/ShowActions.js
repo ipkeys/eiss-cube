@@ -1,26 +1,55 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import { EditButton } from 'react-admin';
 import { withStyles } from '@material-ui/core/styles';
-import CardActions from '@material-ui/core/CardActions';
+import CardHeader from '@material-ui/core/CardHeader';
+import Avatar from '@material-ui/core/Avatar';
+import OnlineIcon from '@material-ui/icons/ThumbUp';
+import OfflineIcon from '@material-ui/icons/ThumbDown';
+import { red, green } from '@material-ui/core/colors';
 import SetupButton from './SetupButton';
+import StatusField from './StatusField';
+import StartedAndLastPingField from './StartedAndLastPingField';
 
 const styles = theme => ({
-	cardActions: {
+    cardHeader: { 
         zIndex: 2,
-        display: 'inline-block',
-        float: 'right',
-        paddingTop: 0,
-        paddingRight: 0
+        padding: 0,
+        marginBottom: theme.spacing.unit 
+    },
+    onlineAvatar: {
+        color: theme.palette.common.white,
+        backgroundColor: green[500]
+    },
+    offlineAvatar: {
+        color: theme.palette.common.white,
+        backgroundColor: red[500]
     }
 });
 
 const ShowActions = withStyles(styles)(
-    ({ classes, basePath, data }) => (
-        <CardActions className={classes.cardActions} >
-            <SetupButton basePath={basePath} record={data} />
-            <EditButton basePath={basePath} record={data} />
-        </CardActions>
-    )
+    ({ classes, basePath, data }) => {
+        let avatar;
+        if (data && data.online) {
+            avatar = <Avatar className={classes.onlineAvatar}><OnlineIcon /></Avatar>;
+        } else {
+            avatar = <Avatar className={classes.offlineAvatar}><OfflineIcon /></Avatar>;
+        }
+        
+        return (
+            <CardHeader
+                className={classes.cardHeader}
+                avatar={avatar}
+                title={ <StatusField record={data} /> }
+                subheader={ <StartedAndLastPingField record={data} /> }
+                action={
+                    <Fragment>
+                        <SetupButton basePath={basePath} record={data} />
+                        <EditButton basePath={basePath} record={data} />
+                    </Fragment>
+                }
+            />
+        );
+    }
 );
 
 export default ShowActions;

@@ -161,13 +161,13 @@ public class CubeHandler implements Handler<NetSocket> {
                     "Server time is " + dateFormat.format(new Date()) + "\n\0";
                 socket.write(welcome);
 
-                updateUser(deviceID);
+                updateCube(deviceID);
                 getPendingCommands(deviceID);
             }
         }
     }
 
-    private void updateUser(String deviceID) {
+    private void updateCube(String deviceID) {
         Query<EISScube> q = datastore.createQuery(EISScube.class);
         q.criteria("deviceID").equal(deviceID);
 
@@ -175,16 +175,17 @@ public class CubeHandler implements Handler<NetSocket> {
             EISScube cube = q.get();
             future.complete(cube);
         }, res -> {
+            Instant timestamp = Instant.now();
             EISScube cube = (EISScube)res.result();
             if (cube == null) {
                 cube = new EISScube();
                 cube.setDeviceID(deviceID);
                 cube.setName(randname.next()); // random name from dictionary
                 cube.setOnline(Boolean.TRUE);
-                cube.setLastPing(Instant.now());
+                cube.setTimeStarted(timestamp);
             } else {
                 cube.setOnline(Boolean.TRUE);
-                cube.setLastPing(Instant.now());
+                cube.setTimeStarted(timestamp);
             }
 
             saveEissCube(cube);
@@ -215,26 +216,26 @@ public class CubeHandler implements Handler<NetSocket> {
                 .put("cmd", cmd.toString())));
 
             op.complete(list);
-        }, res -> log.info("Got all pending commands for Client: {} ", deviceID));
+        }, res -> log.debug("Got all pending commands for Client: {} ", deviceID));
     }
 
     private void doPing(final NetSocket socket) {
         socket.write("O\0");
 
         String deviceID = getDeviceID(socket.writeHandlerID());
-        Date lastPing = new Date();
+        Instant timestamp = Instant.now();
 
         Query<EISScube> q = datastore.createQuery(EISScube.class);
         q.criteria("deviceID").equal(deviceID);
 
         UpdateOperations<EISScube> ops = datastore.createUpdateOperations(EISScube.class)
             .set("online", Boolean.TRUE)
-            .set("lastPing", lastPing);
+            .set("lastPing", timestamp);
 
         vertx.executeBlocking(future -> {
             UpdateResults result = datastore.update(q, ops);
             future.complete(result);
-        }, res -> log.info("Ping from Client: {} on: {}", deviceID, lastPing));
+        }, res -> log.info("Ping from Client: {} on: {}", deviceID, timestamp));
     }
 
     private void goOffline(final NetSocket socket) {

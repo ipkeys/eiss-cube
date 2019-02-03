@@ -28,7 +28,6 @@ const StatusField = ({ record = {} }) => {
 };
 
 StatusField.propTypes = {
-    label: PropTypes.string,
     record: PropTypes.object
 };
 

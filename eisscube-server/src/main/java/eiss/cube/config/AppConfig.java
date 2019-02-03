@@ -4,7 +4,7 @@ import lombok.Getter;
 import net.jmob.guice.conf.core.BindConfig;
 import net.jmob.guice.conf.core.InjectConfig;
 
-@BindConfig(value = "app")
+@BindConfig(value = "app", resolve = true)
 public class AppConfig {
 
     @InjectConfig(value = "eissCubeConfig")

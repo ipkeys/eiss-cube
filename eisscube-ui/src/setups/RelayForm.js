@@ -15,11 +15,6 @@ import {
 import { SetupFormButton } from './SetupCube';
 
 const styles = theme => ({
-    inline: { 
-        display: 'inline-block',
-        marginRight: theme.spacing.unit * 2, 
-        minWidth: theme.spacing.unit * 32   
-    }
 });
 
 class RelayForm extends Component {
@@ -49,7 +44,7 @@ class RelayForm extends Component {
     };
 
     render() {
-        const { classes, onSubmit, isPristine, isSubmitting, step, back, next, isRelayConnected } = this.props
+        const { onSubmit, isPristine, isSubmitting, step, back, next, isRelayConnected } = this.props
         const { data } = this.state;
 
         return (
@@ -59,16 +54,16 @@ class RelayForm extends Component {
                 onSubmit={onSubmit}
                 toolbar={null}
             >
-                <BooleanInput label='Connected' source='relay.connected' className={classes.inline} margin='dense'/>
+                <BooleanInput label='Connected' source='relay.connected' margin='dense'/>
                 {isRelayConnected &&
                     <Fragment>
                         <SelectInput label='To contacts' source="relay.contacts" choices={[
                             { id: 'NO', name: 'Normal Open' },
                             { id: 'NC', name: 'Normal Close' }
-                        ]} className={classes.inline} margin='dense' />
-                        <NumberInput label='Load value (W)' source='relay.load' className={classes.inline} margin='dense' />
-                        <TextInput label='Label' source='relay.label' fullWidth margin='dense'/>
-                        <TextInput label='Description' source='relay.description' fullWidth margin='dense'/>
+                        ]} margin='dense' fullWidth />
+                        <NumberInput label='Load value (W)' source='relay.load' margin='dense' fullWidth />
+                        <TextInput label='Label' source='relay.label' margin='dense' fullWidth />
+                        <TextInput label='Description' source='relay.description' margin='dense' fullWidth />
                     </Fragment>
                 }
                 <SetupFormButton step={step} onSave={this.handleSave} onNext={next} onBack={back} pristine={isPristine} submitting={isSubmitting}/>
