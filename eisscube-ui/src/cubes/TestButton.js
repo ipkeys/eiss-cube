@@ -4,11 +4,11 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogActions from '@material-ui/core/DialogActions';
-import SetupIcon from '@material-ui/icons/Settings';
+import TestIcon from '@material-ui/icons/NetworkCheck';
 import CancelIcon from '@material-ui/icons/Close';
 
 import { Button } from 'react-admin';
-import SetupCube from '../setup/SetupCube';
+import TestCube from '../test/TestCube';
 
 const styles = theme => ({
 	btnPadding: {
@@ -23,7 +23,7 @@ const styles = theme => ({
 	}
 });
 
-class SetupButton extends Component {
+class TestButton extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -47,27 +47,27 @@ class SetupButton extends Component {
             record
             ?
             <span>
-                <Button label='Setup' onClick={this.handleOpen} >
-                    <SetupIcon />
+                <Button label='Test' onClick={this.handleOpen} >
+                    <TestIcon />
                 </Button>
 				<Dialog
 					fullWidth
-					maxWidth='sm'								
+					maxWidth='md'								
                     open={showDialog}
                     scroll={'paper'}
 					onClose={this.handleClose}
 					disableBackdropClick={true}
-					aria-labelledby='setup-dialog-title'
+					aria-labelledby='test-dialog-title'
 				>
-					<DialogTitle id='setup-dialog-title'>
+					<DialogTitle id='test-dialog-title'>
 						<span className={classes.title}>
-                            <SetupIcon className={classes.btnPadding} />
-                            {record && `${record.name}`} - Setup Connections
+                            <TestIcon className={classes.btnPadding} />
+                            {record && `${record.name}`} - Live test
 						</span>
 					</DialogTitle>
 					
 					<DialogContent className={classes.content}>
-                        <SetupCube cubeID={record.id} />
+                        <TestCube cubeID={record.id} startTime={new Date()}/>
 					</DialogContent>
 
 					<DialogActions>
@@ -83,4 +83,4 @@ class SetupButton extends Component {
     }
 }
 
-export default withStyles(styles)(SetupButton);
+export default withStyles(styles)(TestButton);

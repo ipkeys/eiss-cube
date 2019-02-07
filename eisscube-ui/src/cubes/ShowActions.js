@@ -6,6 +6,7 @@ import Avatar from '@material-ui/core/Avatar';
 import OnlineIcon from '@material-ui/icons/ThumbUp';
 import OfflineIcon from '@material-ui/icons/ThumbDown';
 import { red, green } from '@material-ui/core/colors';
+import TestButton from './TestButton';
 import SetupButton from './SetupButton';
 import StatusField from './StatusField';
 import StartedAndLastPingField from './StartedAndLastPingField';
@@ -43,6 +44,7 @@ const ShowActions = withStyles(styles)(
                 subheader={ <StartedAndLastPingField record={data} /> }
                 action={
                     <Fragment>
+                        <TestButton basePath={basePath} record={data} />
                         <SetupButton basePath={basePath} record={data} />
                         <EditButton basePath={basePath} record={data} />
                     </Fragment>

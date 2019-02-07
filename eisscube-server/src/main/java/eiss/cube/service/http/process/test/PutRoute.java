@@ -2,6 +2,8 @@ package eiss.cube.service.http.process.test;
 
 import com.google.gson.Gson;
 import eiss.cube.service.http.process.api.Api;
+import eiss.models.cubes.CubeCommand;
+import eiss.models.cubes.EISScube;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
@@ -9,12 +11,16 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import xyz.morphia.Datastore;
+import xyz.morphia.query.Query;
 
 import javax.inject.Inject;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 @Slf4j
@@ -40,22 +46,33 @@ public class PutRoute implements Handler<RoutingContext> {
         HttpServerResponse response = context.response();
 
         String cubeID = request.getParam("cubeID");
-        if (cubeID != null) {
+        if (cubeID != null && ObjectId.isValid(cubeID)) {
             String json = context.getBodyAsString();
             if (json != null) {
                 JsonObject body = new JsonObject(json);
                 Boolean relay = body.getBoolean("relay");
+
                 if (relay != null) {
-                    vertx.eventBus().send("eisscubetest", new JsonObject()
-                        .put("to", cubeID)
-                        .put("cmd", (relay ? "c=ron" : "c=roff"))
-                    );
+                    Query<EISScube> q = datastore.createQuery(EISScube.class);
+                    q.criteria("id").equal(new ObjectId(cubeID));
+
+                    vertx.executeBlocking(future -> {
+                        EISScube cube = q.get();
+                        future.complete(cube);
+                    }, res_future -> {
+                        EISScube cube = (EISScube) res_future.result();
+                        if (cube != null) {
+                            vertx.eventBus().send("eisscubetest", new JsonObject()
+                                .put("to", cube.getDeviceID())
+                                .put("cmd", (relay ? "c=ron" : "c=roff"))
+                            );
+                        }
+                    });
                 }
             }
         }
-
         response
-            .putHeader("content-type", "application/json")
+            .putHeader(CONTENT_TYPE, APPLICATION_JSON)
             .setStatusCode(SC_OK)
             .end();
     }

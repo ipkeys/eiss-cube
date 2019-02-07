@@ -3,6 +3,7 @@ package eiss.jwt;
 import io.jsonwebtoken.*;
 
 import javax.crypto.spec.SecretKeySpec;
+import javax.xml.bind.DatatypeConverter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.Key;
@@ -96,7 +97,8 @@ public class Jwt {
         }
 
         try {
-            byte[] keyBytes = Base64.getDecoder().decode(key);
+            //byte[] keyBytes = Base64.getDecoder().decode(key);
+            byte[] keyBytes = DatatypeConverter.parseBase64Binary(key);
 
             Claims tokenClaims = Jwts.parser()
                     .setSigningKey(keyBytes)
@@ -149,7 +151,9 @@ public class Jwt {
         Date exp = new Date(now.getTime() + expireMsec * 1000);
         String id = java.util.UUID.randomUUID().toString();
 
-        byte[] keyBytes = Base64.getDecoder().decode(key);
+        //byte[] keyBytes = Base64.getDecoder().decode(key);
+        byte[] keyBytes = DatatypeConverter.parseBase64Binary(key);
+
 
         Key signingKey = new SecretKeySpec(keyBytes, alg.getJcaName());
 

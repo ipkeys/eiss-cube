@@ -3,6 +3,7 @@ package eiss.cube.service.http.process.test;
 import com.google.gson.Gson;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeTest;
+import eiss.models.cubes.EISScube;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
@@ -10,6 +11,7 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import xyz.morphia.Datastore;
 import xyz.morphia.query.Query;
 
@@ -45,11 +47,22 @@ public class GetRoute implements Handler<RoutingContext> {
         HttpServerResponse response = context.response();
 
         String cubeID = request.getParam("cubeID");
-        if (cubeID != null) {
-            vertx.eventBus().send("eisscubetest", new JsonObject()
-                .put("to", cubeID)
-                .put("cmd", "c=status")
-            );
+        if (cubeID != null && ObjectId.isValid(cubeID)) {
+            Query<EISScube> q = datastore.createQuery(EISScube.class);
+            q.criteria("id").equal(new ObjectId(cubeID));
+
+            vertx.executeBlocking(future -> {
+                EISScube cube = q.get();
+                future.complete(cube);
+            }, res_future -> {
+                EISScube cube = (EISScube) res_future.result();
+                if (cube != null) {
+                    vertx.eventBus().send("eisscubetest", new JsonObject()
+                        .put("to", cube.getDeviceID())
+                        .put("cmd", "c=status")
+                    );
+                }
+            });
         }
 
         Query<CubeTest> q = datastore.createQuery(CubeTest.class);

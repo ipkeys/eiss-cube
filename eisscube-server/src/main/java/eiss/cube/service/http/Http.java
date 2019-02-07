@@ -93,7 +93,7 @@ public class Http extends AbstractVerticle {
         router.route().handler(CookieHandler.create());
         router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
-        router.route("/eisscubes").handler(context -> {
+        router.route("/cubes").handler(context -> {
             HttpServerResponse res = context.response();
             String auth = context.request().getHeader("Authorization");
             if (auth != null) {

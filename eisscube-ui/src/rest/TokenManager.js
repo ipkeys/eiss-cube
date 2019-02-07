@@ -175,7 +175,7 @@ export default function TokenManager(opts) {
         }
 
         if (!tokenData) {
-            return Promise.resolve(null);
+            return Promise.reject(new Error('Your session is expired. Please login!'));
         }
 
         if (tokenData.tokenExpires.getTime() > new Date().getTime()) {
@@ -184,7 +184,7 @@ export default function TokenManager(opts) {
 
         if (tokenData.refreshExpires.getTime() < new Date().getTime()) {
             removeToken();
-            return Promise.resolve(null);
+            return Promise.reject(new Error('Your session is expired. Please login!'));
         }
 
         return http.post(refreshUrl, {refresh_token: tokenData.refreshToken, device: tokenData.device})
@@ -199,12 +199,12 @@ export default function TokenManager(opts) {
                 return tokenData.accessToken;
             } else {
                 removeToken();
-                return Promise.resolve(null);
+                return Promise.reject(new Error('Your session is expired. Please login!'));
             }
         })
         .catch((error) => {
             removeToken();
-            return Promise.resolve(null);
+            return Promise.reject(new Error('Your session is expired. Please login!'));
         });
     };
 

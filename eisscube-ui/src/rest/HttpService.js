@@ -1,6 +1,7 @@
-import Promise from 'bluebird';
+//import Promise from 'bluebird';
 import axios from 'axios';
 import TokenManager from './TokenManager';
+import { push as pushAction } from 'react-router-redux';
 
 let tokenManager = null;
 
@@ -41,6 +42,10 @@ export default function HttpService(opts) {
     // All errors are processed and checked for authorization issues.
     //----------------------------------------------------------------------------
     const processError = (error) => {
+        if (error.message) {
+            return Promise.reject(error.message);
+        }
+
         if (error.response) {
             if (error.response.data) {
                 return Promise.reject(new Error(error.response.data));
@@ -66,7 +71,7 @@ export default function HttpService(opts) {
             return axios.get(url, getConfig(token, options));
         })
         .catch(function (err) {
-            return processError(err);
+            return processError(err).then(() => push('login'));
         });
     };
 
@@ -80,7 +85,7 @@ export default function HttpService(opts) {
             return response;
         })
         .catch(function (err) {
-            return processError(err);
+            return processError(err).then(() => push('login'));
         });
     };
 
@@ -94,7 +99,7 @@ export default function HttpService(opts) {
             return response;
         })
         .catch(function (err) {
-            return processError(err);
+            return processError(err).then(() => push('login'));
         });
     };
 
@@ -107,7 +112,7 @@ export default function HttpService(opts) {
             return response;
         })
         .catch(function (err) {
-            return processError(err);
+            return processError(err).then(() => push('login'));
         });
     };
 }
