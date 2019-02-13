@@ -238,7 +238,7 @@ export default function TokenManager(opts) {
     };
 
     this.logout = () => {
-        removeToken();    
+        removeToken();
     };
 
 }
