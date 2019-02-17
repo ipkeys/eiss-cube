@@ -19,7 +19,9 @@ const styles = theme => ({
         alignItems: 'center',
     },
     content: {
-		padding: 0
+        paddingLeft: theme.spacing.unit * 3,
+        paddingRight: theme.spacing.unit * 3,
+        paddingBottom: 0
 	}
 });
 
