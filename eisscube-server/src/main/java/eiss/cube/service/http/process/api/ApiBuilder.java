@@ -39,28 +39,28 @@ public class ApiBuilder {
                 POST post = method.getAnnotation(POST.class);
                 if (post != null) {
                     router.post(friendlyRoute).handler(handler);
-                    log.info("Route created for path '{}' and method POST", friendlyRoute);
+                    log.debug("Route created for '{}' and method POST", friendlyRoute);
                     break;
                 }
 
                 GET get = method.getAnnotation(GET.class);
                 if (get != null) {
                     router.get(friendlyRoute).handler(handler);
-                    log.info("Route created for path '{}' and method GET", friendlyRoute);
+                    log.debug("Route created for '{}' and method GET", friendlyRoute);
                     break;
                 }
 
                 DELETE delete = method.getAnnotation(DELETE.class);
                 if (delete != null) {
                     router.delete(friendlyRoute).handler(handler);
-                    log.info("Route created for path '{}' and method DELETE", friendlyRoute);
+                    log.debug("Route created for '{}' and method DELETE", friendlyRoute);
                     break;
                 }
 
                 PUT put = method.getAnnotation(PUT.class);
                 if (put != null) {
                     router.put(friendlyRoute).handler(handler);
-                    log.info("Route created for path '{}' and method PUT", friendlyRoute);
+                    log.debug("Route created for '{}' and method PUT", friendlyRoute);
                     break;
                 }
             }

@@ -160,8 +160,9 @@ export const CommandShow = withStyles(styles)(
                         <DividerField />
                         
                         <TextField className={classes.inlineField} label='Status' source='status' />
-                        <DateField className={classes.inlineField} label='Created on' source='created' showTime options={AppDateTimeFormat} />
-                        <DateField className={classes.inlineField} label='Updated on' source='updated' showTime options={AppDateTimeFormat} />
+                        <DateField className={classes.inlineField} label='Created' source='created' showTime options={AppDateTimeFormat} />
+                        <DateField className={classes.inlineField} label='Sent' source='sent' showTime options={AppDateTimeFormat} />
+                        <DateField className={classes.inlineField} label='Received' source='received' showTime options={AppDateTimeFormat} />
 
                     </SimpleShowLayout>
                 </ShowView>

@@ -5,10 +5,6 @@ import org.bson.types.ObjectId;
 import xyz.morphia.annotations.*;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Data
 @Entity("cubecommands")
@@ -16,15 +12,17 @@ public class CubeCommand {
 
     @Id ObjectId id;
 
+    @Property String status;
+
     @Indexed(options = @IndexOptions(name = "CubeCommandsCreatedIndex", unique = true))
     @Property Instant created;
 
-    @Property String cubeID; // reference to EISScube.id
+    @Property Instant sent;
+    @Property Instant received;
+
+    @Property ObjectId cubeID; // reference to EISScube.id
 
     @Property String command;
-
-    //@Property Boolean target1;
-    //@Property Boolean target2;
 
     @Property Instant startTime;
     @Property Instant endTime;
@@ -34,8 +32,6 @@ public class CubeCommand {
 
     @Property String transition;
 
-    @Property String status = "pending";
-    @Property Instant updated;
 
     @Override
     public String toString() {
@@ -45,36 +41,22 @@ public class CubeCommand {
             b.append("c=").append(command);
         }
 
-/*
-        List<String> targets = new ArrayList<>();
-        if (target1 != null && target1) {
-            targets.add("1");
-        }
-        if (target2 != null && target2) {
-            targets.add("2");
-        }
-
-        if (targets.size() > 0) {
-            String commaSeparatedNumbers = targets.stream().map(Object::toString).collect(Collectors.joining(","));
-            b.append("&t=").append(commaSeparatedNumbers);
-        }
-*/
-
         if (startTime != null) {
-            long starttime = startTime.toEpochMilli() / 1000;
-            b.append("&st=").append(String.format("%d", starttime));
+            long start = startTime.getEpochSecond();
+            b.append("&st=").append(String.format("%d", start));
         }
 
         if (endTime != null) {
-            long starttime;
-            long endtime = endTime.toEpochMilli() / 1000;
+            long end = endTime.getEpochSecond();
+
+            long start;
             if (startTime != null) {
-                starttime = startTime.toEpochMilli() / 1000;
+                start = startTime.getEpochSecond();
             } else {
-                starttime = new Date().getTime() / 1000;
+                start = Instant.now().getEpochSecond();
             }
 
-            b.append("&dur=").append(String.format("%d", endtime - starttime));
+            b.append("&dur=").append(String.format("%d", end - start));
         }
 
         if (completeCycle != null && completeCycle != 0) {
@@ -87,6 +69,10 @@ public class CubeCommand {
 
         if (transition != null && !transition.isEmpty()) {
             b.append("&edge=").append(transition);
+        }
+
+        if (id != null) {
+            b.append("&id=").append(id.toString());
         }
 
         return b.toString();

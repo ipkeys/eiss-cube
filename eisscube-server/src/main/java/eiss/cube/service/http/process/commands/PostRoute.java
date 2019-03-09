@@ -74,6 +74,7 @@ public class PostRoute implements Handler<RoutingContext> {
         }
 
         vertx.executeBlocking(op -> {
+            cmd.setStatus("Created");
             cmd.setCreated(Instant.now());
 
             try {
@@ -106,7 +107,7 @@ public class PostRoute implements Handler<RoutingContext> {
 
     private void sendIt(CubeCommand cmd) {
         Query<EISScube> q = datastore.createQuery(EISScube.class);
-        q.criteria("id").equal(new ObjectId(cmd.getCubeID()));
+        q.criteria("id").equal(cmd.getCubeID());
 
         vertx.executeBlocking(future -> {
             EISScube cube = q.get();
