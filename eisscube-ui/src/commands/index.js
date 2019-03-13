@@ -31,6 +31,7 @@ import CycleField from './CycleField';
 import DutyCycleField from './DutyCycleField';
 import DividerField from './DividerField';
 import CycleAndDutyCycleInput from './CycleAndDutyCycleInput';
+import CommandStatusField from './CommandStatusField';
 
 export const CommandIcon = Icon;
 
@@ -106,7 +107,7 @@ export const CommandList = withStyles(styles)(
                     <TextField source='name' />
                 </ReferenceField>
                 <SelectField label='Command' source='command' choices={cmds} />
-                <TextField label='Status' source='status' />
+                <CommandStatusField source='status' />
                 <ShowButton />
             </Datagrid>
         </List>
@@ -159,7 +160,7 @@ export const CommandShow = withStyles(styles)(
                         
                         <DividerField />
                         
-                        <TextField className={classes.inlineField} label='Status' source='status' />
+                        <CommandStatusField className={classes.inlineField} source='status' />
                         <DateField className={classes.inlineField} label='Created' source='created' showTime options={AppDateTimeFormat} />
                         <DateField className={classes.inlineField} label='Sent' source='sent' showTime options={AppDateTimeFormat} />
                         <DateField className={classes.inlineField} label='Received' source='received' showTime options={AppDateTimeFormat} />

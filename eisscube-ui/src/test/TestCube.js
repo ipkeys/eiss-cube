@@ -1,9 +1,15 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import PropTypes from 'prop-types';
-import { Button, GET_ONE, UPDATE } from 'react-admin';
+import { withStyles } from '@material-ui/core/styles';
+import moment from 'moment';
+import { Button, CREATE, GET_ONE, UPDATE } from 'react-admin';
 import { dataProvider } from '../App';
 import Ring from "ringjs";
-import { TimeSeries, TimeRange, TimeEvent } from "pondjs";
+import { 
+    TimeSeries, 
+    TimeRange, 
+    TimeEvent
+} from "pondjs";
 
 import {
   ChartContainer,
@@ -15,11 +21,12 @@ import {
   Resizable
 } from "react-timeseries-charts";
 
-import { red100, red500, green100, green500, blueA700, greenA700, amberA700, redA700 } from '@material-ui/core/colors';
+import { red100, red500, green100, green500, blueA700, amberA700 } from '@material-ui/core/colors';
 
+import LinearProgress from '@material-ui/core/LinearProgress';
 import Divider from '@material-ui/core/Divider';
-import Switch from '@material-ui/core/Switch';
 
+import StartTestIcon from '@material-ui/icons/PlayCircleOutline';
 import CellIcon from '@material-ui/icons/NetworkCell';
 import CellSignal0Icon from '@material-ui/icons/SignalCellular0Bar';
 import CellSignal1Icon from '@material-ui/icons/SignalCellular1Bar';
@@ -29,18 +36,20 @@ import CellSignal4Icon from '@material-ui/icons/SignalCellular4Bar';
 import { green600, blue600, orange600, red600, grey600 } from '@material-ui/core/colors';
 
 const second = 1000;
-const minute = 60 * second;
+const minute = 60000;
 
 const relaystyle = {
     value: { normal: {stroke: blueA700, fill: "none", strokeWidth: 2} },
     labels: { labelColor: blueA700 },
     axis: { axisColor: blueA700 }
 };
+
 const inputstyle = {
     value: { normal: {stroke: amberA700, fill: "none", strokeWidth: 2} },
     labels: { labelColor: amberA700 },
     axis: { axisColor: amberA700 }
 };
+
 const baselineOnStyle = {
     line: {
         stroke: green500,
@@ -53,71 +62,37 @@ const baselineOffStyle = {
         strokeWidth: 0.5
     }
 };
-const dateStyle = {
-    fontSize: 16,
-    color: "#AAA",
-    borderWidth: 1,
-    borderColor: "#F4F4F4"
-};
-const togglestyles = {
-    block: {
-        maxWidth: '8em',
-        display: 'inline-block',
-        marginRight: '1em'
-    },
-    toggle: {
-        maxWidth: '8em',
-        display: 'inline-block',
-        marginRight: '1em',
-        fontSize: '16px',
-        marginBottom: '1em',
-    },
-    thumbOff: {
-        backgroundColor: red500,
-    },
-    trackOff: {
-        backgroundColor: red100,
-    },
-    thumbSwitched: {
-        backgroundColor: green500,
-    },
-    trackSwitched: {
-        backgroundColor: green100,
-    }
-}
-const styles = {
-    shim_1em: { display: 'inline-block', width: '1em' },
-    inline: { display: 'inline-block', fontSize: '16px' }
-};
 
-const RelayLabel = ({record}) => (
-    record
-    ?
-    <span style={styles.inline}>
-        {record.connected
-        ? (
-        `${record.label} - connected to ${record.contacts === 'NO' ? `Normal Open` : `Normal Close`} contacts.`
-        )
-        : `Not Connected` }
-        </span>
-    :
-    <span/>
-);
+const styles = theme => ({
+	btnPadding: {
+        paddingRight: theme.spacing.unit
+    },
+    title: {
+        display: 'inline-flex',
+        alignItems: 'center',
+    },
+    content: {
+        paddingLeft: theme.spacing.unit * 3,
+        paddingRight: theme.spacing.unit * 3,
+        paddingBottom: 0
+	}
+});
 
-const getCellIcon = (ss) => {
+
+const getCellIcon = (classes, ss) => {
     switch (ss) {
         case 1:
-            return <CellSignal0Icon color={grey600} />;
+            return <CellSignal0Icon className={classes.btnPadding} color={grey600} />;
         case 2:
-            return <CellSignal1Icon color={red600} />;
+            return <CellSignal1Icon className={classes.btnPadding} color={red600} />;
         case 3:
-            return <CellSignal2Icon color={orange600} />;
+            return <CellSignal2Icon className={classes.btnPadding} color={orange600} />;
         case 4:
-            return <CellSignal3Icon color={blue600} />;
+            return <CellSignal3Icon className={classes.btnPadding} color={blue600} />;
         case 5:
-            return <CellSignal4Icon color={green600} />;
+            return <CellSignal4Icon className={classes.btnPadding} color={green600} />;
         default:
-            return <CellIcon />
+            return <CellIcon className={classes.btnPadding} />
     }
 };
 
@@ -129,35 +104,34 @@ class TestCube extends Component {
             r: new Ring(120),
             i: new Ring(120),
             ss: 0,
-            relay_switch: false,
-            data: {}
+            completed: 0
         };
-
-        this.onRelayToggle = this.onRelayToggle.bind(this);
     }
 
-    onRelayToggle = event => {
-        dataProvider(UPDATE, 'test', {
-            id: this.props.cubeID,
-            data: { relay: event.target.checked }
+    startTest = () => {
+        dataProvider(CREATE, 'test', {
+            data: {cubeID: this.props.cubeID}
         });
+
+        this.timer = setInterval(this.progress, 2000);
+    };
+
+    progress = () => {
+        const { completed } = this.state;
+        if (completed === 100) {
+            clearInterval(this.timer);
+            // TODO: 
+
+
+        } else {
+            const diff = Math.random() * 10;
+            this.setState({ completed: Math.min(completed + diff, 100) });
+        }
     };
 
     componentWillMount() {
-        dataProvider(GET_ONE, 'setup', {
-            id: this.props.cubeID
-        })
-        .then(response => response.data)
-        .then(data => {
-            if (data) {
-                this.setState({
-                    data
-                });
-            }
-        });
-
         this.interval = setInterval(() => {
-            const t = new Date(this.state.time.getTime() + second);
+            let t = moment();
 
             dataProvider(GET_ONE, 'test', {
                 id: this.props.cubeID
@@ -165,26 +139,21 @@ class TestCube extends Component {
             .then(response => response.data)
             .then(data => {
                 if (data) {
-                    // Relay events
                     const relayEvents = this.state.r;
                     relayEvents.push(new TimeEvent(t, data.r));
-                    // Input events
+                    
                     const inputEvents = this.state.i;
                     inputEvents.push(new TimeEvent(t, data.i));
-                    // Signal Streght
-                    const ss = data.ss;
 
                     this.setState({
                         time: t,
                         r: relayEvents,
                         i: inputEvents,
-                        ss: ss,
-
-                        relay_switch: (data.r === 1 ? true : false),
+                        ss: data.ss // Signal Streght
                     });
                 }
             });
-        }, second );
+        }, 5 * second);
     };
 
     componentWillUnmount() {
@@ -198,60 +167,56 @@ class TestCube extends Component {
     }
 
     render() {
-        const { startTime } = this.props;
-        const latestTime = `${this.state.time}`;
-        const { relay_switch, data, ss } = this.state;
+        const { classes, startTime } = this.props;
+        const { time, r, i, ss } = this.state;
 
         // Series data for each chart
         const relaySeries = new TimeSeries({
             name: "relay",
-            events: this.state.r.toArray()
+            events: r.toArray()
         });
         const inputSeries = new TimeSeries({
             name: "input",
-            events: this.state.i.toArray()
+            events: i.toArray()
         });
 
         // Timerange for the chart axis
         const initialBeginTime = startTime;
         const timeWindow = 2 * minute;
 
+        const endTime = moment().add(5, 's'); // new Date(time.getTime() + 5 * second);
         let beginTime;
-        const endTime = new Date(this.state.time.getTime() + second);
-        if (endTime.getTime() - timeWindow < initialBeginTime.getTime()) {
+        if (endTime.seconds() - timeWindow < initialBeginTime.seconds()) {
             beginTime = initialBeginTime;
         } else {
-            beginTime = new Date(endTime.getTime() - timeWindow);
+            beginTime = moment().subtract(timeWindow, 'm');// new Date(endTime.getTime() - timeWindow);
         }
         const timeRange = new TimeRange(beginTime, endTime);
 
         return (
             <div>
-                <div>
-                    <span>
-                        {getCellIcon(ss)}
-                        <span style={ styles.shim_1em }>&nbsp;</span>
-                            Signal Strength - {ss} of 5
+                <Fragment>
+                    <span className={classes.title}>
+                        {getCellIcon(classes, ss)}
+                        Signal Strength - {ss} of 5
                     </span>
-                </div>
+                </Fragment>
 
                 <Divider style={{ marginTop: '1em' }} />
 
-                <div>
-                    <Switch
-                        checked={relay_switch}
-                        onChange={this.onRelayToggle}
-                        value={relay_switch}
-                        color="primary"
-                    />
-                    <RelayLabel record={data.relay} />
-                </div>
+                <Fragment>
+                    <Button label='START TEST' color="primary" onClick={this.startTest} >
+                        <StartTestIcon />
+                    </Button>
+                </Fragment>
 
                 <Divider style={{ marginBottom: '1em' }} />
 
-                <div style={{ marginBottom: '1em' }}>
-                    <span style={dateStyle}>{latestTime}</span>
-                </div>
+                <Fragment>
+                    <LinearProgress variant="determinate" value={this.state.completed} />
+                </Fragment>
+
+                <Divider style={{ marginBottom: '1em' }} />
 
                 <Resizable>
                     <ChartContainer timeRange={timeRange} showGrid showGridPosition="under">
@@ -260,6 +225,7 @@ class TestCube extends Component {
                                 id="relay"
                                 label="RELAY"
                                 min={0} max={1}
+                                width="50"
                                 tickCount={1}
                                 format=",.0f"
                                 type="linear"
@@ -272,6 +238,7 @@ class TestCube extends Component {
                                     interpolation="curveStep"
                                     style={relaystyle}
                                 />
+{/* 
                                 <Baseline
                                     axis="relay"
                                     value={0.07}
@@ -284,6 +251,7 @@ class TestCube extends Component {
                                     label="ON"
                                     style={baselineOnStyle}
                                 />
+ */}
                             </Charts>
                         </ChartRow>
                         <ChartRow height="100">
@@ -291,6 +259,7 @@ class TestCube extends Component {
                                 id="input"
                                 label="INPUT"
                                 min={0} max={1}
+                                width="50"
                                 tickCount={1}
                                 format=",.0f"
                                 type="linear"
@@ -303,6 +272,7 @@ class TestCube extends Component {
                                     interpolation="curveStep"
                                     style={inputstyle}
                                 />
+{/* 
                                 <Baseline
                                     axis="input"
                                     value={0.07}
@@ -315,7 +285,8 @@ class TestCube extends Component {
                                     label="HIGH"
                                     style={baselineOnStyle}
                                 />
-                            </Charts>
+*/}
+                             </Charts>
                         </ChartRow>
                     </ChartContainer>
                 </Resizable>
@@ -329,4 +300,4 @@ TestCube.propTypes = {
   startTime: PropTypes.object
 };
 
-export default TestCube;
+export default withStyles(styles)(TestCube);

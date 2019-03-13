@@ -9,6 +9,7 @@ import CancelIcon from '@material-ui/icons/Close';
 
 import { Button } from 'react-admin';
 import TestCube from '../test/TestCube';
+import moment from 'moment';
 
 const styles = theme => ({
 	btnPadding: {
@@ -69,7 +70,7 @@ class TestButton extends Component {
 					</DialogTitle>
 					
 					<DialogContent className={classes.content}>
-                        <TestCube cubeID={record.id} startTime={new Date()}/>
+                        <TestCube cubeID={record.id} startTime={moment()}/>
 					</DialogContent>
 
 					<DialogActions>

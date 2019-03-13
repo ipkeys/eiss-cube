@@ -9,6 +9,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import xyz.morphia.Datastore;
 import xyz.morphia.query.Query;
 
@@ -43,9 +44,15 @@ public class GetRoute implements Handler<RoutingContext> {
         HttpServerResponse response = context.response();
 
         String cubeID = request.getParam("cubeID");
+        if (!ObjectId.isValid(cubeID)) {
+            response.setStatusCode(SC_BAD_REQUEST)
+                .setStatusMessage(String.format("id: %s is not valid", cubeID))
+                .end();
+            return;
+        }
 
         Query<CubeSetup> q = datastore.createQuery(CubeSetup.class);
-        q.criteria("cubeID").equal(cubeID);
+        q.criteria("cubeID").equal(new ObjectId(cubeID));
 
         vertx.executeBlocking(op -> {
             CubeSetup result = q.get();

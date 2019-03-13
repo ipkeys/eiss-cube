@@ -21,6 +21,7 @@ import javax.ws.rs.Path;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 @Slf4j
@@ -30,13 +31,11 @@ public class PutRoute implements Handler<RoutingContext> {
 
     private Vertx vertx;
     private Datastore datastore;
-    private Gson gson;
 
     @Inject
     public PutRoute(Vertx vertx, Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
-        this.gson = gson;
     }
 
     @PUT
@@ -46,31 +45,35 @@ public class PutRoute implements Handler<RoutingContext> {
         HttpServerResponse response = context.response();
 
         String cubeID = request.getParam("cubeID");
-        if (cubeID != null && ObjectId.isValid(cubeID)) {
-            String json = context.getBodyAsString();
-            if (json != null) {
-                JsonObject body = new JsonObject(json);
-                Boolean relay = body.getBoolean("relay");
-
-                if (relay != null) {
-                    Query<EISScube> q = datastore.createQuery(EISScube.class);
-                    q.criteria("id").equal(new ObjectId(cubeID));
-
-                    vertx.executeBlocking(future -> {
-                        EISScube cube = q.get();
-                        future.complete(cube);
-                    }, res_future -> {
-                        EISScube cube = (EISScube) res_future.result();
-                        if (cube != null) {
-                            vertx.eventBus().send("eisscubetest", new JsonObject()
-                                .put("to", cube.getDeviceID())
-                                .put("cmd", (relay ? "c=ron" : "c=roff"))
-                            );
-                        }
-                    });
-                }
-            }
+        if (!ObjectId.isValid(cubeID)) {
+            response.setStatusCode(SC_BAD_REQUEST)
+                .setStatusMessage(String.format("id: %s is not valid", cubeID))
+                .end();
+            return;
         }
+
+        String json = context.getBodyAsString();
+        if (json != null) {
+            JsonObject body = new JsonObject(json);
+            Boolean relay = body.getBoolean("relay");
+
+
+            Query<EISScube> q = datastore.createQuery(EISScube.class);
+            q.criteria("id").equal(new ObjectId(cubeID));
+
+            vertx.executeBlocking(future -> {
+                EISScube cube = q.get();
+                future.complete(cube);
+            }, res_future -> {
+                EISScube cube = (EISScube)res_future.result();
+                if (cube != null) {
+                    vertx.eventBus().send("eisscubetest", new JsonObject()
+                        .put("to", cube.getDeviceID())
+                        .put("cmd", (relay ? "c=ron" : "c=roff")));
+                }
+            });
+        }
+
         response
             .putHeader(CONTENT_TYPE, APPLICATION_JSON)
             .setStatusCode(SC_OK)

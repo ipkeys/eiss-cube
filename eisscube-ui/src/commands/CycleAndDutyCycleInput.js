@@ -18,7 +18,7 @@ const styles = theme => ({
         width: theme.spacing.unit * 32
     },
     slider: {
-        marginTop: 34 
+        marginTop: 36 
     },
     green: { 
         color: green[500] 
@@ -53,6 +53,8 @@ class CycleAndDutyCycleInput extends Component {
         const on = isNaN(cycle) && isNaN(duty) ? 0 :  Math.round(cycle * duty / 100);
         const off = isNaN(cycle) ? 0 : Math.round(cycle - on);
 
+        onChange(`${cycle}/${duty}`);
+
         return (
             <FormGroup row>
                 <TextField
@@ -63,7 +65,6 @@ class CycleAndDutyCycleInput extends Component {
                     helperText={touched && error}    
                     onChange={(event) => {
                         this.setState({cycle: parseInt(event.target.value)});
-                        onChange(`${cycle}/${duty}`);
                     }}
                     label={<FieldTitle label="Cycle (sec)" />}
                     margin={margin ? margin : 'normal'}
@@ -78,7 +79,6 @@ class CycleAndDutyCycleInput extends Component {
                             step={1}
                             onChange={(event, value) => {
                                 this.setState({ duty: value });
-                                onChange(`${cycle}/${duty}`);
                             }}
                             value={duty}
                         />

@@ -275,46 +275,48 @@ public class CubeHandler implements Handler<NetSocket> {
         log.info("Message: {} from DeviceID: {}", message, deviceID);
 
         // all command acknowledgment contains 'id' - CubeCommand id
-        if (message.contains("id")) {
+        if (message.contains("id") && !message.contains("ts")) {
             acknowledgeCommand(deviceID, message);
         }
 
         // all reports record contains 'ts' - timestamp
-        if (message.contains("ts")) {
+        if (message.contains("ts") &&  (message.contains("v") || message.contains("dur"))) {
             saveReport(deviceID, message);
         }
 
         // status contains 'r', 'i', 'ss'
-        if (message.contains("r") &&  message.contains("i") && message.contains("ss")) {
+        if (message.contains("ts") && message.contains("r") &&  message.contains("i") && message.contains("ss")) {
             saveStatus(deviceID, message);
         }
 
     }
 
     private void acknowledgeCommand(String deviceID, String message) {
-        vertx.executeBlocking(future -> {
-            String id = message.replace("id=", "");
+        if (!message.contains("id=test")) { // ignore test
+            vertx.executeBlocking(future -> {
+                String id = message.replace("id=", "");
 
-            if (ObjectId.isValid(id)) {
-                Query<CubeCommand> q = datastore.createQuery(CubeCommand.class);
-                q.criteria("_id").equal(new ObjectId(id));
+                if (ObjectId.isValid(id)) {
+                    Query<CubeCommand> q = datastore.createQuery(CubeCommand.class);
+                    q.criteria("_id").equal(new ObjectId(id));
 
-                UpdateOperations<CubeCommand> ops = datastore.createUpdateOperations(CubeCommand.class);
-                ops.set("received", Instant.now());
-                ops.set("status", "Received");
-                datastore.update(q, ops);
+                    UpdateOperations<CubeCommand> ops = datastore.createUpdateOperations(CubeCommand.class);
+                    ops.set("received", Instant.now());
+                    ops.set("status", "Received");
+                    datastore.update(q, ops);
 
-                future.complete(String.format("DeviceID: %s acknowledge command id: %s", deviceID, id));
-            } else {
-                future.fail(String.format("DeviceID: %s failed to acknowledge command id: {}", deviceID, id));
-            }
-        }, res -> {
-            if (res.succeeded()) {
-                log.info(res.result().toString());
-            } else {
-                log.info(res.cause().getMessage());
-            }
-        });
+                    future.complete(String.format("DeviceID: %s acknowledge command id: %s", deviceID, id));
+                } else {
+                    future.fail(String.format("DeviceID: %s failed to acknowledge command id: %s", deviceID, id));
+                }
+            }, res -> {
+                if (res.succeeded()) {
+                    log.info(res.result().toString());
+                } else {
+                    log.info(res.cause().getMessage());
+                }
+            });
+        }
     }
 
     private void saveReport(String deviceID, String message) {
@@ -366,7 +368,7 @@ public class CubeHandler implements Handler<NetSocket> {
         });
     }
 
-    // r=on&i=high&ss=3
+    // r=1&i=0&ss=3
     private void saveStatus(String deviceID, String message) {
         Query<EISScube> q = datastore.createQuery(EISScube.class);
         q.criteria("deviceID").equal(deviceID);
@@ -374,11 +376,16 @@ public class CubeHandler implements Handler<NetSocket> {
         vertx.executeBlocking(future -> {
             EISScube cube = q.get();
             if (cube != null) {
+                Instant ts = null;
                 String r = null;
                 String i = null;
                 String ss = null;
 
                 for (String part : message.split("&")) {
+                    if (part.startsWith("ts=")) {
+                        String timestamp = part.replace("ts=", "");
+                        ts = Instant.ofEpochSecond(Long.valueOf(timestamp));
+                    }
                     if (part.startsWith("r=")) {
                         r = part.replace("r=", "");
                     }
@@ -390,16 +397,15 @@ public class CubeHandler implements Handler<NetSocket> {
                     }
                 }
 
-                if (r != null && i != null && ss != null) {
-                    Query<CubeTest> qs = datastore.createQuery(CubeTest.class);
-                    qs.criteria("cubeID").equal(cube.getId().toString());
+                if (ts != null && r != null && i != null && ss != null) {
+                    CubeTest cubeTest = new CubeTest();
+                    cubeTest.setCubeID(cube.getId());
+                    cubeTest.setTimestamp(ts);
+                    cubeTest.setR(Integer.valueOf(r));
+                    cubeTest.setI(Integer.valueOf(i));
+                    cubeTest.setSs(Integer.valueOf(ss));
 
-                    UpdateOperations<CubeTest> ops = datastore.createUpdateOperations(CubeTest.class)
-                            .set("r", Integer.valueOf(r))
-                            .set("i", Integer.valueOf(i))
-                            .set("ss", Integer.valueOf(ss));
-
-                    datastore.update(qs, ops, true);
+                    datastore.save(cubeTest);
                     future.complete(String.format("DeviceID: %s - status saved into DB", deviceID));
                 } else {
                     future.fail(String.format("DeviceID: %s - status failed to save into DB", deviceID));
