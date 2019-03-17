@@ -1,16 +1,10 @@
-import React, { Component, Fragment } from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import moment from 'moment';
-import { Button, CREATE, GET_ONE, UPDATE } from 'react-admin';
+import { Button, CREATE, GET_ONE } from 'react-admin';
 import { dataProvider } from '../App';
-import Ring from "ringjs";
-import { 
-    TimeSeries, 
-    TimeRange, 
-    TimeEvent
-} from "pondjs";
-
+import { TimeSeries, TimeRange} from "pondjs";
 import {
   ChartContainer,
   ChartRow,
@@ -21,47 +15,52 @@ import {
   Resizable
 } from "react-timeseries-charts";
 
-import { red100, red500, green100, green500, blueA700, amberA700 } from '@material-ui/core/colors';
-
 import LinearProgress from '@material-ui/core/LinearProgress';
-import Divider from '@material-ui/core/Divider';
 
 import StartTestIcon from '@material-ui/icons/PlayCircleOutline';
-import CellIcon from '@material-ui/icons/NetworkCell';
-import CellSignal0Icon from '@material-ui/icons/SignalCellular0Bar';
-import CellSignal1Icon from '@material-ui/icons/SignalCellular1Bar';
-import CellSignal2Icon from '@material-ui/icons/SignalCellular2Bar';
-import CellSignal3Icon from '@material-ui/icons/SignalCellular3Bar';
-import CellSignal4Icon from '@material-ui/icons/SignalCellular4Bar';
-import { green600, blue600, orange600, red600, grey600 } from '@material-ui/core/colors';
+import { green, red, blue, amber } from '@material-ui/core/colors';
 
-const second = 1000;
-const minute = 60000;
-
-const relaystyle = {
-    value: { normal: {stroke: blueA700, fill: "none", strokeWidth: 2} },
-    labels: { labelColor: blueA700 },
-    axis: { axisColor: blueA700 }
-};
-
-const inputstyle = {
-    value: { normal: {stroke: amberA700, fill: "none", strokeWidth: 2} },
-    labels: { labelColor: amberA700 },
-    axis: { axisColor: amberA700 }
-};
-
-const baselineOnStyle = {
-    line: {
-        stroke: green500,
-        strokeWidth: 0.5
+const relayStyle = {
+    value: { 
+        normal: {
+            stroke: blue[800], 
+            fill: "none", 
+            strokeWidth: 2
+        } 
     }
 };
-const baselineOffStyle = {
-    line: {
-        stroke: red500,
-        strokeWidth: 0.5
+
+const inputStyle = {
+    value: { 
+        normal: {
+            stroke: amber[800], 
+            fill: "none", 
+            strokeWidth: 2
+        } 
     }
 };
+
+const baselineUpStyle = {
+    line: {
+        stroke: green[500],
+        strokeWidth: 1,
+        opacity: 0.5
+    },
+    label: {
+        fill: green[500]
+    }
+};
+
+const baselineDownStyle = {
+    line: {
+        stroke: red[500],
+        strokeWidth: 1,
+        opacity: 0.5
+    },
+    label: {
+        fill: red[500]
+    }
+};   
 
 const styles = theme => ({
 	btnPadding: {
@@ -75,36 +74,35 @@ const styles = theme => ({
         paddingLeft: theme.spacing.unit * 3,
         paddingRight: theme.spacing.unit * 3,
         paddingBottom: 0
-	}
+    },
+    button: {
+        marginTop: theme.spacing.unit,
+        marginBottom: theme.spacing.unit
+    },
+    progress: {
+        marginTop: theme.spacing.unit,
+        marginBottom: theme.spacing.unit * 2
+    },
+    noprogress: {
+        marginTop: theme.spacing.unit,
+        marginBottom: theme.spacing.unit * 2
+    }
 });
 
-
-const getCellIcon = (classes, ss) => {
-    switch (ss) {
-        case 1:
-            return <CellSignal0Icon className={classes.btnPadding} color={grey600} />;
-        case 2:
-            return <CellSignal1Icon className={classes.btnPadding} color={red600} />;
-        case 3:
-            return <CellSignal2Icon className={classes.btnPadding} color={orange600} />;
-        case 4:
-            return <CellSignal3Icon className={classes.btnPadding} color={blue600} />;
-        case 5:
-            return <CellSignal4Icon className={classes.btnPadding} color={green600} />;
-        default:
-            return <CellIcon className={classes.btnPadding} />
-    }
-};
+const MIN = 0;
+const MAX = 25;
+const normalise = value => (value - MIN) * 100 / (MAX - MIN);
 
 class TestCube extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            time: props.startTime,
-            r: new Ring(120),
-            i: new Ring(120),
-            ss: 0,
-            completed: 0
+            relaySeries: null,
+            inputSeries: null,
+            completed: 0,
+            buffer: 0,
+            started: false,
+            finished: false
         };
     }
 
@@ -113,52 +111,74 @@ class TestCube extends Component {
             data: {cubeID: this.props.cubeID}
         });
 
-        this.timer = setInterval(this.progress, 2000);
+        this.timer = setInterval(this.progress, 5000);
+
+        this.setState({
+            relaySeries: null,
+            inputSeries: null,
+            started: true
+        });
     };
 
     progress = () => {
-        const { completed } = this.state;
-        if (completed === 100) {
+        const { completed, finished } = this.state;
+
+        if (finished) {
             clearInterval(this.timer);
-            // TODO: 
-
-
-        } else {
-            const diff = Math.random() * 10;
-            this.setState({ completed: Math.min(completed + diff, 100) });
+            this.setState({
+                completed: 0,
+                buffer: 0,
+                started: false,
+                finished: false
+            });
         }
-    };
 
-    componentWillMount() {
-        this.interval = setInterval(() => {
-            let t = moment();
+        dataProvider(GET_ONE, 'test', {
+            id: this.props.cubeID
+        })
+        .then(response => response.data)
+        .then(data => {
+            if (data) {
+                let count = data.length;
+                if (count === 0) {
+                    const diff = Math.random() * 2;
+                    const diff2 = Math.random() * 2;
+                    this.setState({ completed: completed + diff, buffer: completed + diff + diff2 });
+                } else {
+                    const relays = [];
+                    const inputs = [];
 
-            dataProvider(GET_ONE, 'test', {
-                id: this.props.cubeID
-            })
-            .then(response => response.data)
-            .then(data => {
-                if (data) {
-                    const relayEvents = this.state.r;
-                    relayEvents.push(new TimeEvent(t, data.r));
-                    
-                    const inputEvents = this.state.i;
-                    inputEvents.push(new TimeEvent(t, data.i));
+                    data.map(item => {
+                        let time = moment.utc(item.timestamp);
+                        let local_time = time.local().valueOf();
+                        relays.push([local_time, item.r]);
+                        inputs.push([local_time, item.i]);
+                        return null;
+                    })
+
+                    const relaySeries = new TimeSeries({
+                        name: "relay",
+                        columns: ["time", "value"],
+                        points: relays
+                    });
+                
+                    const inputSeries = new TimeSeries({
+                        name: "input",
+                        columns: ["time", "value"],
+                        points: inputs
+                    });
 
                     this.setState({
-                        time: t,
-                        r: relayEvents,
-                        i: inputEvents,
-                        ss: data.ss // Signal Streght
+                        relaySeries,
+                        inputSeries,
+                        completed: count,
+                        buffer: count + 1,
+                        finished: count === 25
                     });
                 }
-            });
-        }, 5 * second);
+            }
+        });
     };
-
-    componentWillUnmount() {
-        clearInterval(this.interval);
-    }
 
     componentDidMount() {
         setTimeout(() => {
@@ -167,91 +187,105 @@ class TestCube extends Component {
     }
 
     render() {
-        const { classes, startTime } = this.props;
-        const { time, r, i, ss } = this.state;
+        const { classes } = this.props;
+        const { relaySeries, inputSeries, completed, buffer, started } = this.state;
 
-        // Series data for each chart
-        const relaySeries = new TimeSeries({
-            name: "relay",
-            events: r.toArray()
-        });
-        const inputSeries = new TimeSeries({
-            name: "input",
-            events: i.toArray()
-        });
+        const beginTime = moment();
+        const endTime = moment().add(5, 'm');
+        let timeRange = new TimeRange(beginTime, endTime);
 
-        // Timerange for the chart axis
-        const initialBeginTime = startTime;
-        const timeWindow = 2 * minute;
-
-        const endTime = moment().add(5, 's'); // new Date(time.getTime() + 5 * second);
-        let beginTime;
-        if (endTime.seconds() - timeWindow < initialBeginTime.seconds()) {
-            beginTime = initialBeginTime;
-        } else {
-            beginTime = moment().subtract(timeWindow, 'm');// new Date(endTime.getTime() - timeWindow);
+        const relayCharts = [
+            <Baseline
+                axis="relay"
+                value={0.99}
+                label="ON"
+                position="right"
+                style={ baselineUpStyle }
+            />,
+            <Baseline
+                axis="relay"
+                value={0.01}
+                label="OFF"
+                position="right"
+                style={ baselineDownStyle }
+            />
+        ];
+        if (relaySeries) {
+            timeRange = relaySeries.range();
+            relayCharts.push(
+                <LineChart
+                    axis="relay"
+                    series={ relaySeries }
+                    interpolation="curveStep"
+                    style={ relayStyle }
+                />
+            );
         }
-        const timeRange = new TimeRange(beginTime, endTime);
+
+        const inputCharts = [
+            <Baseline
+                axis="input"
+                value={0.99}
+                label="HIGH"
+                position="right"
+                style={ baselineUpStyle }
+            />,
+            <Baseline
+                axis="input"
+                value={0.01}
+                label="LOW"
+                position="right"
+                style={ baselineDownStyle }
+            />
+        ];
+        if (inputSeries) {
+            inputCharts.push(
+                <LineChart
+                    axis="input"
+                    series={ inputSeries }
+                    interpolation="curveStep"
+                    style={ inputStyle }
+                />
+            );
+        }
+
+        const progress = started 
+            ? 
+            <LinearProgress className={classes.progress} variant="buffer" value={normalise(completed)} valueBuffer={normalise(buffer)} /> 
+            : 
+            <LinearProgress className={classes.progress} variant="determinate" value={0}/>;
 
         return (
             <div>
-                <Fragment>
-                    <span className={classes.title}>
-                        {getCellIcon(classes, ss)}
-                        Signal Strength - {ss} of 5
-                    </span>
-                </Fragment>
+                <Button 
+                    className={classes.button} 
+                    variant="contained" 
+                    color="primary" 
+                    label='Start test' 
+                    onClick={this.startTest}
+                    disabled={started} 
+                >
+                    <StartTestIcon />
+                </Button>
 
-                <Divider style={{ marginTop: '1em' }} />
-
-                <Fragment>
-                    <Button label='START TEST' color="primary" onClick={this.startTest} >
-                        <StartTestIcon />
-                    </Button>
-                </Fragment>
-
-                <Divider style={{ marginBottom: '1em' }} />
-
-                <Fragment>
-                    <LinearProgress variant="determinate" value={this.state.completed} />
-                </Fragment>
-
-                <Divider style={{ marginBottom: '1em' }} />
+                {progress}
 
                 <Resizable>
-                    <ChartContainer timeRange={timeRange} showGrid showGridPosition="under">
+                    <ChartContainer
+                        timeRange={timeRange} 
+                        format="%H:%M:%S"
+                    >
                         <ChartRow height="100">
                             <YAxis
                                 id="relay"
                                 label="RELAY"
                                 min={0} max={1}
-                                width="50"
-                                tickCount={1}
+                                tickCount={2}
                                 format=",.0f"
                                 type="linear"
-                                style={relaystyle}
                             />
                             <Charts>
-                                <LineChart
-                                    axis="relay"
-                                    series={relaySeries}
-                                    interpolation="curveStep"
-                                    style={relaystyle}
-                                />
-{/* 
-                                <Baseline
-                                    axis="relay"
-                                    value={0.07}
-                                    label="OFF"
-                                    style={baselineOffStyle}
-                                />
-                                <Baseline
-                                    axis="relay"
-                                    value={0.93}
-                                    label="ON"
-                                    style={baselineOnStyle}
-                                />
- */}
+                                {relayCharts}
                             </Charts>
                         </ChartRow>
                         <ChartRow height="100">
@@ -259,33 +293,12 @@ class TestCube extends Component {
                                 id="input"
                                 label="INPUT"
                                 min={0} max={1}
-                                width="50"
-                                tickCount={1}
+                                tickCount={2}
                                 format=",.0f"
                                 type="linear"
-                                style={inputstyle}
                             />
                             <Charts>
-                                <LineChart
-                                    axis="input"
-                                    series={inputSeries}
-                                    interpolation="curveStep"
-                                    style={inputstyle}
-                                />
-{/* 
-                                <Baseline
-                                    axis="input"
-                                    value={0.07}
-                                    label="LOW"
-                                    style={baselineOffStyle}
-                                />
-                                <Baseline
-                                    axis="input"
-                                    value={0.93}
-                                    label="HIGH"
-                                    style={baselineOnStyle}
-                                />
-*/}
+                                {inputCharts}
                              </Charts>
                         </ChartRow>
                     </ChartContainer>
@@ -296,8 +309,7 @@ class TestCube extends Component {
 }
 
 TestCube.propTypes = {
-  cubeID: PropTypes.string,
-  startTime: PropTypes.object
+    cubeID: PropTypes.string
 };
 
 export default withStyles(styles)(TestCube);

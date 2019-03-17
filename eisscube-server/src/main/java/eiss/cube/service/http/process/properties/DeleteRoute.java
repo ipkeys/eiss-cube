@@ -1,14 +1,12 @@
-package eiss.cube.service.http.process.test;
+package eiss.cube.service.http.process.properties;
 
 import com.google.gson.Gson;
 import eiss.cube.service.http.process.api.Api;
-import eiss.models.cubes.CubeTest;
-import eiss.models.cubes.EISScube;
+import eiss.models.cubes.CubeProperty;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
@@ -16,60 +14,56 @@ import xyz.morphia.Datastore;
 import xyz.morphia.query.Query;
 
 import javax.inject.Inject;
-import javax.ws.rs.GET;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.Path;
-
-import java.util.Arrays;
-import java.util.List;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
-import static java.lang.Boolean.FALSE;
 import static javax.servlet.http.HttpServletResponse.*;
 
 @Slf4j
 @Api
-@Path("/test/{cubeID}")
-public class GetRoute implements Handler<RoutingContext> {
+@Path("/properties/{id}")
+public class DeleteRoute implements Handler<RoutingContext> {
 
     private Vertx vertx;
     private Datastore datastore;
     private Gson gson;
 
     @Inject
-    public GetRoute(Vertx vertx, Datastore datastore, Gson gson) {
+    public DeleteRoute(Vertx vertx, Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;
     }
 
-    @GET
+    @DELETE
     @Override
     public void handle(RoutingContext context) {
         HttpServerRequest request = context.request();
         HttpServerResponse response = context.response();
 
-        String cubeID = request.getParam("cubeID");
-        if (!ObjectId.isValid(cubeID)) {
+        String id = request.getParam("id");
+        if (!ObjectId.isValid(id)) {
             response.setStatusCode(SC_BAD_REQUEST)
-                .setStatusMessage(String.format("id: %s is not valid", cubeID))
+                .setStatusMessage(String.format("id: %s is not valid", id))
                 .end();
             return;
         }
 
-        Query<CubeTest> qt = datastore.createQuery(CubeTest.class);
-        qt.criteria("cubeID").equal(new ObjectId(cubeID));
-
-        // projections
-        qt.project("_id", FALSE);
-        qt.project("cubeID", FALSE);
+        Query<CubeProperty> q = datastore.createQuery(CubeProperty.class);
+        q.criteria("_id").equal(new ObjectId(id));
 
         vertx.executeBlocking(op -> {
-            List<CubeTest> result = qt.asList();
-            if (result != null) {
-                op.complete(result);
+            // react-admin expect previous data
+            CubeProperty property = q.get();
+
+            if (property != null) {
+                // delete Command
+                datastore.delete(q);
+                op.complete(property);
             } else {
-                op.fail(String.format("No Test results for: %s", cubeID));
+                op.fail(String.format("Cannot delete Command id: %s", id));
             }
         }, res -> {
             if (res.succeeded()) {
@@ -79,11 +73,10 @@ public class GetRoute implements Handler<RoutingContext> {
                     .end(gson.toJson(res.result()));
             } else {
                 response
-                    .setStatusCode(SC_BAD_REQUEST)
+                    .setStatusCode(SC_NOT_FOUND)
                     .setStatusMessage(res.cause().getMessage())
                     .end();
             }
-
         });
     }
 

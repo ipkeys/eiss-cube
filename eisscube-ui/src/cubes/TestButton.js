@@ -9,7 +9,14 @@ import CancelIcon from '@material-ui/icons/Close';
 
 import { Button } from 'react-admin';
 import TestCube from '../test/TestCube';
-import moment from 'moment';
+
+import CellIcon from '@material-ui/icons/NetworkCell';
+import CellSignal0Icon from '@material-ui/icons/SignalCellular0Bar';
+import CellSignal1Icon from '@material-ui/icons/SignalCellular1Bar';
+import CellSignal2Icon from '@material-ui/icons/SignalCellular2Bar';
+import CellSignal3Icon from '@material-ui/icons/SignalCellular3Bar';
+import CellSignal4Icon from '@material-ui/icons/SignalCellular4Bar';
+import { green, red, blue, grey, orange } from '@material-ui/core/colors';
 
 const styles = theme => ({
 	btnPadding: {
@@ -17,7 +24,12 @@ const styles = theme => ({
     },
     title: {
         display: 'inline-flex',
-        alignItems: 'center',
+        alignItems: 'center'
+    },
+    titleRight: {
+        float: 'right',
+        display: 'inline-flex',
+        alignItems: 'center'
     },
     content: {
         paddingLeft: theme.spacing.unit * 3,
@@ -25,6 +37,23 @@ const styles = theme => ({
         paddingBottom: 0
 	}
 });
+
+const getCellIcon = (classes, ss) => {
+    switch (ss) {
+        case 1:
+            return <CellSignal0Icon className={classes.btnPadding} color={grey[500]} />;
+        case 2:
+            return <CellSignal1Icon className={classes.btnPadding} color={red[500]} />;
+        case 3:
+            return <CellSignal2Icon className={classes.btnPadding} color={orange[500]} />;
+        case 4:
+            return <CellSignal3Icon className={classes.btnPadding} color={blue[500]} />;
+        case 5:
+            return <CellSignal4Icon className={classes.btnPadding} color={green[500]} />;
+        default:
+            return <CellIcon className={classes.btnPadding} />
+    }
+};
 
 class TestButton extends Component {
     constructor(props) {
@@ -67,10 +96,14 @@ class TestButton extends Component {
                             <TestIcon className={classes.btnPadding} />
                             {record && `${record.name}`} - Live test
 						</span>
+						<span className={classes.titleRight}>
+                            Signal Strength - {record.signalStrength} of 5
+                            {getCellIcon(classes, record.signalStrength)}
+                        </span>
 					</DialogTitle>
 					
 					<DialogContent className={classes.content}>
-                        <TestCube cubeID={record.id} startTime={moment()}/>
+                        <TestCube cubeID={record.id} />
 					</DialogContent>
 
 					<DialogActions>

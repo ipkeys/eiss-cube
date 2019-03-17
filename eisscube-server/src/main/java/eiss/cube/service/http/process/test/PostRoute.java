@@ -2,6 +2,7 @@ package eiss.cube.service.http.process.test;
 
 import com.google.gson.Gson;
 import eiss.cube.service.http.process.api.Api;
+import eiss.models.cubes.CubeTest;
 import eiss.models.cubes.EISScube;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -66,14 +67,20 @@ public class PostRoute implements Handler<RoutingContext> {
         vertx.executeBlocking(future -> {
             EISScube cube = q.get();
             if (cube != null) {
+                // remove old test's results
+                Query<CubeTest> qt = datastore.createQuery(CubeTest.class);
+                qt.criteria("cubeID").equal(cube.getId());
+                datastore.delete(qt);
+
+
                 long now = Instant.now().getEpochSecond();
                 // do Input Cycle
                 vertx.eventBus().send("eisscubetest", new JsonObject()
                     .put("to", cube.getDeviceID())
                     .put("cmd", String.format("c=status&each=5&st=%d&dur=%d&id=test", now, 120))
                 );
+                // do Relay Cycle after 1 second
                 vertx.setTimer(1000, id -> {
-                    // do Relay Cycle
                     vertx.eventBus().send("eisscubetest", new JsonObject()
                         .put("to", cube.getDeviceID())
                         .put("cmd", String.format("c=rcyc&each=30&pct=50&st=%d&dur=%d&id=test", now, 120))

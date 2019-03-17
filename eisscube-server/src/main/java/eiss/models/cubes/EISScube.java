@@ -31,4 +31,6 @@ public class EISScube {
     @Property Instant lastPing;
     @Property Instant timeStarted;
 
+    @Property Integer signalStrength;
+
 }

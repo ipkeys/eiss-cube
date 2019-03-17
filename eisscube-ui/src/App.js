@@ -8,6 +8,7 @@ import AppLayout from './AppLayout';
 import { Dashboard } from './dashboard';
 import { EissCubesIcon, EissCubesList, EissCubesShow, EissCubesEdit } from './cubes';
 import { CommandIcon, CommandList, CommandShow, CommandCreate } from './commands';
+import { PropertyIcon, PropertyList, PropertyShow, PropertyEdit, PropertyCreate } from './properties';
 import createRealtimeSaga from "./rest/createRealtimeSaga";
 
 import HttpService from './rest/HttpService';
@@ -77,6 +78,14 @@ const App = () => (
             list={ CommandList }
             show={ CommandShow }
             create={ CommandCreate }
+		/>
+		<Resource options={{ label: 'Properties' }}
+			name="properties"
+			icon={ PropertyIcon }
+            list={ PropertyList }
+            show={ PropertyShow }
+            edit={ PropertyEdit }
+            create={ PropertyCreate }
 		/>
 	</Admin>
 );

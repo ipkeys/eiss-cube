@@ -11,6 +11,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.NetSocket;
+import io.vertx.core.parsetools.RecordParser;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import xyz.morphia.Datastore;
@@ -44,31 +45,31 @@ public class CubeHandler implements Handler<NetSocket> {
             JsonObject json = message.body();
 
             String id = json.getString("id");
-            String deviceId = json.getString("to");
+            String deviceID = json.getString("to");
             String command = json.getString("cmd");
 
-            send(id, deviceId, command);
+            send(id, deviceID, command);
         });
         eventBus.<JsonObject>consumer("eisscubetest", message -> {
             JsonObject json = message.body();
 
-            String deviceId = json.getString("to");
+            String deviceID = json.getString("to");
             String command = json.getString("cmd");
 
-            sendNoStore(deviceId, command);
+            sendNoStore(deviceID, command);
         });
 
     }
 
     // send command to EISScube (save record for history)
-    private void send(final String id, final String deviceId, final String command) {
+    private void send(final String id, final String deviceID, final String command) {
         vertx.executeBlocking(future -> {
             Query<CubeCommand> q = datastore.createQuery(CubeCommand.class);
             q.criteria("_id").equal(new ObjectId(id));
 
             UpdateOperations<CubeCommand> ops = datastore.createUpdateOperations(CubeCommand.class);
 
-            String writeHandlerID = clientMap.get(deviceId);
+            String writeHandlerID = clientMap.get(deviceID);
             if (writeHandlerID != null) {
                 Buffer outBuffer = Buffer.buffer();
                 outBuffer.appendString(command).appendString("\0");
@@ -79,12 +80,12 @@ public class CubeHandler implements Handler<NetSocket> {
                 ops.set("status", "Sending");
                 datastore.update(q, ops);
 
-                future.complete(String.format("DeviceID: %s is online. Sending message: %s", deviceId, command));
+                future.complete(String.format("DeviceID: %s is ONLINE. Sending message: %s", deviceID, command));
             } else {
                 ops.set("status", "Pending");
                 datastore.update(q, ops);
 
-                future.fail(String.format("DeviceID: %s is offline. Pending message: %s", deviceId, command));
+                future.fail(String.format("DeviceID: %s is OFFLINE. Pending message: %s", deviceID, command));
             }
         }, res -> {
             if (res.succeeded()) {
@@ -96,49 +97,44 @@ public class CubeHandler implements Handler<NetSocket> {
     }
 
     // send command to EISScube (no save record)
-    private void sendNoStore(final String deviceId, final String command) {
-        String writeHandlerID = clientMap.get(deviceId);
+    private void sendNoStore(final String deviceID, final String command) {
+        String writeHandlerID = clientMap.get(deviceID);
         if (writeHandlerID != null) {
             Buffer outBuffer = Buffer.buffer();
             outBuffer.appendString(command).appendString("\0");
 
             eventBus.send(writeHandlerID, outBuffer);
 
-            log.info("DeviceID: %s is ONLINE. Sending message: %s", deviceId, command);
+            log.info("DeviceID: {} is ONLINE. Sending message: {}", deviceID, command);
        } else {
-            log.info("DeviceID: %s is OFFLINE. Dropped message: %s", deviceId, command);
+            log.info("DeviceID: {} is OFFLINE. Dropped message: {}", deviceID, command);
         }
     }
 
     @Override
     public void handle(NetSocket socket) {
-        StringBuilder received = new StringBuilder();
-        socket.handler(buffer -> {
-            String packet = buffer.getString(0, buffer.length());
-            received.append(packet);
-            if (received.indexOf("\0") != -1) {
-                Arrays.stream(received.toString().split("\0")).forEach(message -> {
-                    if (!message.isEmpty()) {
-                        if (message.contains("auth")) { // auth
-                            doAuth(socket, message);
-                        } else if (message.equalsIgnoreCase("I")) { // ping-pong
-                            doPing(socket);
-                        } else { // other messages
-                            parseMessage(socket, message);
-                        }
-                    }
-                    received.delete(0, received.length());
-                });
+
+        final RecordParser parser = RecordParser.newDelimited("\0", h -> {
+            String message = h.toString();
+            if (message.contains("auth")) { // auth
+                doAuth(socket, message);
+            } else if (message.equalsIgnoreCase("I")) { // ping-pong
+                doPing(socket, message);
+            } else { // other messages
+                parseMessage(socket, message);
             }
-        })
-        .closeHandler(h -> {
-            log.error("Socket closed");
-            goOffline(socket);
-        })
-        .exceptionHandler(h -> {
-            log.error("Socket problem: {}", h.getMessage());
-            socket.close();
         });
+
+        socket
+            .handler(parser)
+            .closeHandler(h -> {
+                log.error("Socket closed");
+                goOffline(socket);
+            })
+            .exceptionHandler(h -> {
+                log.error("Socket problem: {}", h.getMessage());
+                socket.close();
+            });
 
         // let EISSCube 30 sec to establish connection and send "auth" request
         vertx.setTimer(30000, id -> {
@@ -148,6 +144,8 @@ public class CubeHandler implements Handler<NetSocket> {
     }
 
     private void doAuth(NetSocket socket, String message) {
+        log.info("Do authentication. Got from client: {}", message);
+
         String[] parts = message.split(" ");
         if (parts.length == 2) {
             String deviceID = parts[1]; // SIM card number
@@ -218,10 +216,11 @@ public class CubeHandler implements Handler<NetSocket> {
         }, res_future -> log.debug("Served pending commands for DeviceID: {} ", deviceID));
     }
 
-    private void doPing(final NetSocket socket) {
+    private void doPing(final NetSocket socket, String message) {
+
         String deviceID = getDeviceID(socket.writeHandlerID());
 
-        socket.write("O\0");
+        log.info("Do PING. Got: {} from DeviceID: {}", message, deviceID);
 
         Instant timestamp = Instant.now();
         vertx.executeBlocking(future -> {
@@ -235,7 +234,10 @@ public class CubeHandler implements Handler<NetSocket> {
 
             datastore.update(q, ops);
             future.complete();
-        }, res -> log.info("Ping from DeviceID: {}", deviceID));
+        }, res -> {
+            socket.write("O\0");
+            log.info("PONG to DeviceID: {}", deviceID);
+        });
     }
 
     private void goOffline(final NetSocket socket) {
@@ -272,7 +274,7 @@ public class CubeHandler implements Handler<NetSocket> {
     private void parseMessage(final NetSocket socket, String message) {
         String deviceID = getDeviceID(socket.writeHandlerID());
 
-        log.info("Message: {} from DeviceID: {}", message, deviceID);
+        log.info("Do message. Got: {} from DeviceID: {}", message, deviceID);
 
         // all command acknowledgment contains 'id' - CubeCommand id
         if (message.contains("id") && !message.contains("ts")) {
