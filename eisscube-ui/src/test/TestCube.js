@@ -16,9 +16,15 @@ import {
 } from "react-timeseries-charts";
 
 import LinearProgress from '@material-ui/core/LinearProgress';
+import ExpansionPanel from '@material-ui/core/ExpansionPanel';
+import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
+import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
+import Typography from '@material-ui/core/Typography';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import Divider from '@material-ui/core/Divider';
 
 import StartTestIcon from '@material-ui/icons/PlayCircleOutline';
-import { green, red, blue, amber } from '@material-ui/core/colors';
+import { green, red, blue, amber, yellow } from '@material-ui/core/colors';
 
 const relayStyle = {
     value: { 
@@ -83,9 +89,20 @@ const styles = theme => ({
         marginTop: theme.spacing.unit,
         marginBottom: theme.spacing.unit * 2
     },
-    noprogress: {
+    note: {
+        display: 'inline-flex',
+		alignItems: 'center'
+	},
+	notePanel: {
+        backgroundColor: yellow[50],
+        marginBottom: theme.spacing.unit
+	},
+    divider: {
         marginTop: theme.spacing.unit,
-        marginBottom: theme.spacing.unit * 2
+        marginBottom: theme.spacing.unit
+    },
+    leftgap: {
+        paddingLeft: theme.spacing.unit * 2
     }
 });
 
@@ -102,7 +119,8 @@ class TestCube extends Component {
             completed: 0,
             buffer: 0,
             started: false,
-            finished: false
+            finished: false,
+            expanded: null
         };
     }
 
@@ -185,10 +203,20 @@ class TestCube extends Component {
             window.dispatchEvent(new Event('resize'));
         }, 0);
     }
+    
+    componentWillUnmount() {
+        clearInterval(this.timer);
+    }
+
+    handleNote = panel => (event, expanded) => {
+		this.setState({
+			expanded: expanded ? panel : false,
+		});
+	};
 
     render() {
         const { classes } = this.props;
-        const { relaySeries, inputSeries, completed, buffer, started } = this.state;
+        const { relaySeries, inputSeries, completed, buffer, started, finished, expanded } = this.state;
 
         const beginTime = moment();
         const endTime = moment().add(5, 'm');
@@ -249,24 +277,60 @@ class TestCube extends Component {
             );
         }
 
-        const progress = started 
-            ? 
+        const progress = started ? 
             <LinearProgress className={classes.progress} variant="buffer" value={normalise(completed)} valueBuffer={normalise(buffer)} /> 
             : 
-            <LinearProgress className={classes.progress} variant="determinate" value={0}/>;
+            <LinearProgress className={classes.progress} variant="determinate" value={0}/>
+            ;
+
+        const message = started ?
+            <Typography className={classes.leftgap} variant='subheading'>
+                <i style={{color: green[500]}}>Test in process...</i>
+            </Typography>
+            :
+                finished ? 
+                <Typography className={classes.leftgap} variant='subheading'>
+                    <i style={{color: red[500]}}>Test is finished!</i>
+                </Typography>
+                :
+                    null
+                ;
+            ;
 
         return (
             <div>
-                <Button 
-                    className={classes.button} 
-                    variant="contained" 
-                    color="primary" 
-                    label='Start test' 
-                    onClick={this.startTest}
-                    disabled={started} 
-                >
-                    <StartTestIcon />
-                </Button>
+                <ExpansionPanel className={classes.notePanel} expanded={expanded === 'test_note'} onChange={this.handleNote('test_note')}>
+                    <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
+                        <i style={{color: red[500]}}>Note!</i>
+                        Testing process will take from 2 to 5 minutes (depends on network speed). Press [START...] to run.
+                    </ExpansionPanelSummary>
+                    <ExpansionPanelDetails>
+                        <Typography paragraph>
+                        RELAY will cycle during <b>2 minutes</b> with <b style={{color: green[500]}}>15 seconds ON</b> and <b style={{color: red[500]}}>15 seconds OFF</b>.
+                        <Divider className={classes.divider} />
+                        Connect <b style={{color: blue[500]}}>INPUT (#5)</b> to <b style={{color: blue[500]}}>NC - Normal Close (#8)</b> RELAY's contact
+                        <br/>
+                        Connect <b style={{color: red[500]}}>+12V (#3)</b> to <b style={{color: red[500]}}>COM - Common (#7)</b> RELAY's contact.
+                        <Divider className={classes.divider} />
+                        Input will reflect RELAY's switches and show <b style={{color: green[500]}}>HIGH</b> and <b style={{color: red[500]}}>LOW</b> level. 
+                        </Typography>
+                    </ExpansionPanelDetails>
+                </ExpansionPanel>
+
+                <span className={classes.title}>
+                    <Button 
+                        className={classes.button} 
+                        variant="contained" 
+                        color="primary" 
+                        label='Start...' 
+                        onClick={this.startTest}
+                        disabled={started} 
+                    >
+                        <StartTestIcon />
+                    </Button>
+                    
+                    {message}
+                </span>
 
                 {progress}
 

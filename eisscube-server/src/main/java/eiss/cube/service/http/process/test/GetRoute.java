@@ -79,7 +79,7 @@ public class GetRoute implements Handler<RoutingContext> {
                     .end(gson.toJson(res.result()));
             } else {
                 response
-                    .setStatusCode(SC_BAD_REQUEST)
+                    .setStatusCode(SC_NOT_FOUND)
                     .setStatusMessage(res.cause().getMessage())
                     .end();
             }

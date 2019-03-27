@@ -3,6 +3,7 @@ package eiss.cube.service.http.process.properties;
 import com.google.gson.Gson;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeProperty;
+import eiss.models.cubes.EISScube;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import xyz.morphia.Datastore;
 import xyz.morphia.query.Query;
+import xyz.morphia.query.UpdateOperations;
 
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
@@ -59,11 +61,18 @@ public class DeleteRoute implements Handler<RoutingContext> {
             CubeProperty property = q.get();
 
             if (property != null) {
-                // delete Command
+                // remove the property from all EISSCube records
+                Query<EISScube> qc = datastore.createQuery(EISScube.class);
+                UpdateOperations<EISScube> ops = datastore.createUpdateOperations(EISScube.class);
+                ops.unset("settings." + property.getName());
+                datastore.update(qc, ops);
+
+                // delete Property
                 datastore.delete(q);
+
                 op.complete(property);
             } else {
-                op.fail(String.format("Cannot delete Command id: %s", id));
+                op.fail(String.format("Cannot delete Property id: %s", id));
             }
         }, res -> {
             if (res.succeeded()) {

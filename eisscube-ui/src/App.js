@@ -8,7 +8,7 @@ import AppLayout from './AppLayout';
 import { Dashboard } from './dashboard';
 import { EissCubesIcon, EissCubesList, EissCubesShow, EissCubesEdit } from './cubes';
 import { CommandIcon, CommandList, CommandShow, CommandCreate } from './commands';
-import { PropertyIcon, PropertyList, PropertyShow, PropertyEdit, PropertyCreate } from './properties';
+import { PropertyIcon, PropertyList, PropertyEdit, PropertyCreate } from './properties';
 import createRealtimeSaga from "./rest/createRealtimeSaga";
 
 import HttpService from './rest/HttpService';
@@ -38,6 +38,9 @@ const theme = createMuiTheme({
 		secondary: {
 			main: '#448ab6'
 		}
+    },
+    typography: {
+        useNextVariants: true
     }
 });
 
@@ -83,7 +86,6 @@ const App = () => (
 			name="properties"
 			icon={ PropertyIcon }
             list={ PropertyList }
-            show={ PropertyShow }
             edit={ PropertyEdit }
             create={ PropertyCreate }
 		/>

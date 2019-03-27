@@ -19,12 +19,12 @@ import io.vertx.ext.web.handler.CookieHandler;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.sstore.LocalSessionStore;
-import io.vertx.ext.web.sstore.SessionStore;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletResponse;
 
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
 @Slf4j
@@ -50,8 +50,8 @@ public class Http extends AbstractVerticle {
 
         HttpServerOptions options = new HttpServerOptions()
             .setPort(port)
-            .setLogActivity(true)
-            .setCompressionSupported(true);
+            .setLogActivity(FALSE)
+            .setCompressionSupported(TRUE);
 
         // build Routes based on annotations
         setupRoutes();

@@ -17,7 +17,6 @@ public class CubeTest {
 
     @Property Instant timestamp;
 
-    @Property Integer ss;
     @Property Integer r;
     @Property Integer i;
 

@@ -10,6 +10,6 @@ body {
     height: 670px;
     width: 100%;
     margin: 0 auto;
-    font: 14px "Roboto";
+    font: 14px "Roboto", sans-serif;
     touch-action: none;
 }

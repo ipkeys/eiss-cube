@@ -41,15 +41,15 @@ const styles = theme => ({
 const getCellIcon = (classes, ss) => {
     switch (ss) {
         case 1:
-            return <CellSignal0Icon className={classes.btnPadding} color={grey[500]} />;
+            return <CellSignal0Icon className={classes.btnPadding} nativeColor={grey[500]} />;
         case 2:
-            return <CellSignal1Icon className={classes.btnPadding} color={red[500]} />;
+            return <CellSignal1Icon className={classes.btnPadding} nativeColor={red[500]} />;
         case 3:
-            return <CellSignal2Icon className={classes.btnPadding} color={orange[500]} />;
+            return <CellSignal2Icon className={classes.btnPadding} nativeColor={orange[500]} />;
         case 4:
-            return <CellSignal3Icon className={classes.btnPadding} color={blue[500]} />;
+            return <CellSignal3Icon className={classes.btnPadding} nativeColor={blue[500]} />;
         case 5:
-            return <CellSignal4Icon className={classes.btnPadding} color={green[500]} />;
+            return <CellSignal4Icon className={classes.btnPadding} nativeColor={green[500]} />;
         default:
             return <CellIcon className={classes.btnPadding} />
     }
@@ -79,7 +79,11 @@ class TestButton extends Component {
             record
             ?
             <span>
-                <Button label='Test' onClick={this.handleOpen} >
+                <Button 
+                    disabled={record.online === false} 
+                    label='Test' 
+                    onClick={this.handleOpen} 
+                >
                     <TestIcon />
                 </Button>
 				<Dialog

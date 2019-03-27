@@ -3,7 +3,7 @@ import { withStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import Avatar from '@material-ui/core/Avatar';
-import LightBulbIcon from '@material-ui/icons/LightbulbOutline';
+import LightBulbIcon from '@material-ui/icons/HighlightOutlined';
 
 const styles = theme => ({
     card: { 

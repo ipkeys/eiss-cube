@@ -5,6 +5,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import eiss.cube.config.AppConfig;
 import eiss.cube.config.DatabaseConfig;
+import eiss.cube.db.converters.JsonObjectConverter;
 import xyz.morphia.Datastore;
 import xyz.morphia.Morphia;
 
@@ -30,6 +31,8 @@ public class DatastoreProvider implements Provider<Datastore> {
             String name = cfg.getName();
 
             morphia.mapPackage(cfg.getDataPackage());
+            // custom converters
+            morphia.getMapper().getConverters().addConverter(JsonObjectConverter.class);
 
             MongoClient client = new MongoClient(new ServerAddress(host, port));
 

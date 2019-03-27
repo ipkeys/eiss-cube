@@ -10,6 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
 
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
+
 @Slf4j
 public class Tcp extends AbstractVerticle {
 
@@ -29,8 +32,8 @@ public class Tcp extends AbstractVerticle {
 
         NetServerOptions options = new NetServerOptions()
             .setPort(port)
-            .setTcpKeepAlive(Boolean.TRUE)
-            .setLogActivity(Boolean.TRUE);
+            .setTcpKeepAlive(TRUE)
+            .setLogActivity(FALSE);
 
         NetServer server = getVertx().createNetServer(options);
 

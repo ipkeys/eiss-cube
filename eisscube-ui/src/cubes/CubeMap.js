@@ -4,6 +4,7 @@ import L from 'leaflet';
 import { Map, LayersControl, TileLayer, Marker, Popup } from 'react-leaflet';
 import { showNotification, UPDATE } from 'react-admin';
 import { dataProvider } from '../App';
+import { red } from '@material-ui/core/colors';
 
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.js';
@@ -93,7 +94,7 @@ class CubeMap extends Component {
                     <a href={`#/reports?filter={"q":"${record.deviceID}"}&page=1&perPage=10&sort=reportID&order=ASC`}>Reports</a>
                     <br/>
                     <br/>
-                    <i>NOTE: Hold and move to change location</i>
+                    <i style={{color: red[500]}}>Note! Hold and move to change location</i>
                     </span>
                 </Popup>
             </Marker>

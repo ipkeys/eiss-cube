@@ -53,30 +53,23 @@ public class ListRoute implements Handler<RoutingContext> {
         // search
         String search = request.getParam(FILTER);
         if (search != null && !search.isEmpty()) {
-            q.field("cubeID").containsIgnoreCase(search);
+            search = search.toLowerCase()
+                    .replaceAll(" ", "")
+                    .replaceAll("relay", "r")
+                    .replaceAll("cointing", "i")
+                    .replaceAll("cycle", "cyc")
+                    .replaceAll("pulse", "cp")
+                    .replaceAll("stop", "off");
+
+            q.field("command").containsIgnoreCase(search);
         }
         // ~search
 
         // filters
-        String id_like = request.getParam("id_like");
-        if (id_like != null && !id_like.isEmpty()) {
-            if (id_like.contains("|")) { // multiple ids
-                String[] ids = id_like.split("|");
-                Arrays.stream(ids).forEach(item -> {
-                    if (ObjectId.isValid(item)) {
-                        ObjectId oid = new ObjectId(item);
-                        q.field("_id").equal(oid);
-                    } else {
-                        q.field("cubeID").equal(item);
-                    }
-                });
-            } else { // single
-                if (ObjectId.isValid(id_like)) {
-                    ObjectId oid = new ObjectId(id_like);
-                    q.field("_id").equal(oid);
-                } else {
-                    q.field("cubeID").equal(id_like);
-                }
+        String cubeID = request.getParam("cubeID");
+        if (cubeID != null && !cubeID.isEmpty()) {
+            if (ObjectId.isValid(cubeID)) {
+                q.field("cubeID").equal(new ObjectId(cubeID));
             }
         }
         String sinceTime = request.getParam("timestamp_gte");

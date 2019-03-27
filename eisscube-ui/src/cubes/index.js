@@ -28,8 +28,8 @@ import { green, red } from '@material-ui/core/colors';
 import { AppDateTimeFormat, DateTimeMomentFormat } from '../App';
 import StatusField from './StatusField';
 import CubeMap from './CubeMap';
-//import PasswordInput from './PasswordInput';
 import EissCubesShowActions from './ShowActions';
+import Settings from './Settings';
 
 export const EissCubesIcon = Icon;
 
@@ -152,6 +152,9 @@ export const EissCubesEdit = withStyles(styles)(
                     <TextInput label='City, State' source='city' formClassName={classes.inline} />
                     <TextInput label='Zip Code' source='zipCode' formClassName={classes.inline} />
                 </FormTab>
+                <FormTab label='settings'>
+                    <Settings />
+               </FormTab>
             </TabbedForm>
         </Edit>
     )

@@ -20,18 +20,19 @@ import {
     FormDataConsumer,
     ShowController,
     ShowView,
-
+    SearchInput,
     required
 } from 'react-admin';
-import Icon from '@material-ui/icons/Message';
 import { withStyles } from '@material-ui/core/styles';
-import { AppDateTimeFormat, DateTimeFormat } from '../App';
-import { DateTimeInput } from 'react-admin-date-inputs';
+import Icon from '@material-ui/icons/Message';
+import { AppDateTimeFormat, DateTimeMomentFormat } from '../App';
 import CycleField from './CycleField';
 import DutyCycleField from './DutyCycleField';
 import DividerField from './DividerField';
 import CycleAndDutyCycleInput from './CycleAndDutyCycleInput';
 import CommandStatusField from './CommandStatusField';
+import { DateTimeInput } from './DateTimePickerInput';
+import moment from 'moment';
 
 export const CommandIcon = Icon;
 
@@ -83,11 +84,28 @@ const CommandTitle = withStyles(styles)(
 
 const CommandFilter = props => (
     <Filter {...props}>
-        <ReferenceInput label='for EISS™Cube' source='q' reference='cubes'>
+        <SearchInput source='q' alwaysOn />
+        <ReferenceInput label='for EISS™Cube' source='cubeID' reference='cubes'>
             <AutocompleteInput optionText='name'/>
         </ReferenceInput>
-        <DateTimeInput label='Created Before' source='timestamp_lte' options={{ format: DateTimeFormat, ampm: false }} />
-        <DateTimeInput label='Created Since' source='timestamp_gte' options={{ format: DateTimeFormat, ampm: false }} />
+        <DateTimeInput label='Created Before' source='timestamp_lte'
+            options={{
+                keyboard: true,
+                format: DateTimeMomentFormat,
+                mask: [/\d/,/\d/,"/",/\d/,/\d/,"/",/\d/,/\d/,/\d/,/\d/,","," ",/\d/,/\d/,":",/\d/,/\d/,":",/\d/,/\d/],
+                ampm: false, 
+                clearable: true
+            }} 
+        />
+        <DateTimeInput label='Created Since' source='timestamp_gte'
+            options={{
+                keyboard: true,
+                format: DateTimeMomentFormat,
+                mask: [/\d/,/\d/,"/",/\d/,/\d/,"/",/\d/,/\d/,/\d/,/\d/,","," ",/\d/,/\d/,":",/\d/,/\d/,":",/\d/,/\d/],
+                ampm: false, 
+                clearable: true
+            }} 
+        />
     </Filter>
 );
 
@@ -102,11 +120,11 @@ export const CommandList = withStyles(styles)(
             {...props}
         >
             <Datagrid classes={{ rowEven: classes.rowEven }} >
-                <DateField label='Created' source='created' showTime options={AppDateTimeFormat} />
-                <ReferenceField label='EISS™Cube' source='cubeID' reference='cubes' linkType='show'>
+                <SelectField label='Command' source='command' choices={cmds} />
+                <ReferenceField label='for EISS™Cube' source='cubeID' reference='cubes' linkType='show'>
                     <TextField source='name' />
                 </ReferenceField>
-                <SelectField label='Command' source='command' choices={cmds} />
+                <DateField label='Created' source='created' showTime options={AppDateTimeFormat} />
                 <CommandStatusField source='status' />
                 <ShowButton />
             </Datagrid>
@@ -190,18 +208,23 @@ const validateCommandCreation = (values) => {
     let s = (values.startTime) ? values.startTime : null;
     let e = (values.endTime) ? values.endTime : null;
 
-    if (s !== null && e !== null) {
-        let sDate = s instanceof Date ? s : new Date(s);
-        let eDate = e instanceof Date ? e : new Date(e);
-        if (sDate.getTime() >= eDate.getTime()) {
-            errors.endTime = ['Must be after Start Time'];
+    if (s !== null) {
+        let sDate = moment(s);
+        if (moment(sDate).isBefore()) {
+            errors.startTime = ['Must be after of the current moment']
         }
     }
-    if (s === null && e !== null) {
-        let sDate = new Date();
-        let eDate = e instanceof Date ? e : new Date(e);
-        if (sDate.getTime() >= eDate.getTime()) {
-            errors.endTime = ['Must be after of current moment'];
+    if (e !== null) {
+        let eDate = moment(e);
+        if (moment(eDate).isBefore()) {
+            errors.endTime = ['Must be after of the current moment']
+        }
+    }
+    if (s !== null && e !== null) {
+        let sDate = moment(s);
+        let eDate = moment(e);
+        if (moment(eDate).isSameOrBefore(sDate)) {
+            errors.endTime = ['Must be after Start Date, Time'];
         }
     }
 
@@ -255,26 +278,33 @@ export const CommandCreate = withStyles(styles)(
                 }
                 </FormDataConsumer>
 
-                <DateTimeInput formClassName={classes.inline}
-                    label='Start date, time' source='startTime' options={{ 
-                        adornmentPosition: 'end',
-                        format: DateTimeFormat, 
+                <DateTimeInput 
+                    formClassName={classes.inline}
+                    label='Start Date, Time' 
+                    source='startTime' 
+                    options={{
+                        keyboard: true,
+                        format: DateTimeMomentFormat, 
+                        mask: [/\d/,/\d/,"/",/\d/,/\d/,"/",/\d/,/\d/,/\d/,/\d/,","," ",/\d/,/\d/,":",/\d/,/\d/,":",/\d/,/\d/],
                         ampm: false, 
                         clearable: true,
                         disablePast: true
                     }} 
                 />
 
-                <DateTimeInput formClassName={classes.inline}
-                    label='End date, time' source='endTime' options={{ 
-                        adornmentPosition: 'end',
-                        format: DateTimeFormat, 
+                <DateTimeInput 
+                    formClassName={classes.inline}
+                    label='End Date, Time' 
+                    source='endTime' 
+                    options={{
+                        keyboard: true,
+                        format: DateTimeMomentFormat,
+                        mask: [/\d/,/\d/,"/",/\d/,/\d/,"/",/\d/,/\d/,/\d/,/\d/,","," ",/\d/,/\d/,":",/\d/,/\d/,":",/\d/,/\d/],
                         ampm: false, 
                         clearable: true,
                         disablePast: true
                     }} 
                 />
-
             </SimpleForm>
         </Create>
     )

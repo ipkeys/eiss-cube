@@ -2,7 +2,6 @@ import React from 'react';
 import { 
     downloadCSV,
     List,
-    Show,
     Edit,
     Create,
     Filter,
@@ -10,12 +9,10 @@ import {
     TextField,
     SearchInput,
     TextInput,
-    LongTextInput,
-    ShowButton,
+    EditButton,
     Responsive, 
     SimpleList,
     SimpleForm,
-    SimpleShowLayout,
     required,
     maxLength
 } from 'react-admin';
@@ -34,6 +31,13 @@ const styles = theme => ({
     },
     showLayout: {
         paddingTop: theme.spacing.unit * 2
+    },
+    inline: { 
+        display: 'inline-block', 
+        marginRight: theme.spacing.unit * 2
+    },
+    longText: {
+        minWidth: theme.spacing.unit * 66 
     }
 });
 
@@ -77,35 +81,22 @@ export const PropertyList = withStyles(styles)(
             <Responsive
                 small={
                     <SimpleList
-                        linkType="show"
-                        primaryText={record => record.name}
-                        secondaryText={record => record.label}
+                        linkType="edit"
+                        primaryText={record => record.label}
+                        secondaryText={record => record.name}
+                        tertiaryText={record => record.description}
                     />
                 }
                 medium={
                     <Datagrid classes={{ rowEven: classes.rowEven }} >
                         <TextField source='name' label='Name' />
                         <TextField source='label' label='Label' />
-                        <ShowButton />
+                        <TextField source='description' label='Description' />
+                        <EditButton />
                     </Datagrid>
                 }
             />
         </List>
-    )
-);
-
-export const PropertyShow = withStyles(styles)(
-    ({ classes, ...props }) => (
-        <Show 
-            title={<PropertyTitle title='EISS™Cubes Property -' />}
-            {...props}
-        >
-            <SimpleShowLayout className={classes.showLayout} >
-                <TextField label='Name' source='name' />
-                <TextField label='Label' source='label' />
-                <TextField label='Description' source='description' />
-            </SimpleShowLayout>
-        </Show>
     )
 );
 
@@ -117,10 +108,10 @@ export const PropertyEdit = withStyles(styles)(
             title={<PropertyTitle title='Edit EISS™Cube Property -' />}
             {...props}
         >
-            <SimpleForm redirect='show'>
-                <TextInput label='Name' source='name' validate={validateValue} />
-                <TextInput label='Label' source='label' validate={validateValue} />
-                <LongTextInput label='Description' source='description' />
+            <SimpleForm redirect='list'>
+                <TextInput label='Name' source='name' validate={validateValue} formClassName={classes.inline} />
+                <TextInput label='Label' source='label' validate={validateValue} formClassName={classes.inline} />
+                <TextInput label='Description' source='description' validate={[maxLength(50)]} className={classes.longText} />
             </SimpleForm>
         </Edit>
     )
@@ -132,10 +123,10 @@ export const PropertyCreate = withStyles(styles)(
             title={<PropertyTitle title='Create a new EISS™Cube Property' />} 
             {...props}
         >
-            <SimpleForm redirect='show'>
-                <TextInput label='Name' source='name' validate={validateValue} />
-                <TextInput label='Label' source='label' validate={validateValue} />
-                <LongTextInput label='Description' source='description' />
+            <SimpleForm redirect='list'>
+                <TextInput label='Name' source='name' validate={validateValue} formClassName={classes.inline} />
+                <TextInput label='Label' source='label' validate={validateValue} formClassName={classes.inline} />
+                <TextInput label='Description' source='description' validate={[maxLength(50)]} className={classes.longText} />
             </SimpleForm>
         </Create>
     )

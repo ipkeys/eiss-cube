@@ -1,12 +1,9 @@
 package eiss.cube.service.http.process.cubes;
 
 import com.google.gson.Gson;
-import com.google.maps.GeoApiContext;
-import com.google.maps.GeocodingApi;
-import com.google.maps.model.GeocodingResult;
+import com.mongodb.BasicDBObject;
 import eiss.cube.config.AppConfig;
 import eiss.cube.service.http.process.api.Api;
-import eiss.models.cubes.CubePoint;
 import eiss.models.cubes.EISScube;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -24,8 +21,11 @@ import javax.inject.Inject;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 
+import java.util.Map;
+
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
+import static java.util.stream.Collectors.toMap;
 import static javax.servlet.http.HttpServletResponse.*;
 
 @Slf4j
@@ -72,53 +72,6 @@ public class PutRoute implements Handler<RoutingContext> {
             return;
         }
 
-        Query<EISScube> q = datastore.createQuery(EISScube.class);
-        q.criteria("_id").equal(new ObjectId(id));
-
-        UpdateOperations<EISScube> ops = datastore.createUpdateOperations(EISScube.class);
-
-        if (cube.getName() == null) {
-            ops.unset("name");
-        } else {
-            ops.set("name", cube.getName());
-        }
-
-        if (cube.getAddress() == null) {
-            ops.unset("address");
-        } else {
-            ops.set("address", cube.getAddress());
-        }
-
-        if (cube.getCity() == null) {
-            ops.unset("city");
-        } else {
-            ops.set("city", cube.getCity());
-        }
-
-        if (cube.getZipCode() == null) {
-            ops.unset("zipCode");
-        } else {
-            ops.set("zipCode", cube.getZipCode());
-        }
-
-        if (cube.getCustomerID() == null) {
-            ops.unset("customerID");
-        } else {
-            ops.set("customerID", cube.getCustomerID());
-        }
-
-        if (cube.getZone() == null) {
-            ops.unset("zone");
-        } else {
-            ops.set("zone", cube.getZone());
-        }
-
-        if (cube.getSubZone() == null) {
-            ops.unset("subZone");
-        } else {
-            ops.set("subZone", cube.getSubZone());
-        }
-
         vertx.executeBlocking(op -> {
             /*
             try {
@@ -143,6 +96,67 @@ public class PutRoute implements Handler<RoutingContext> {
                 op.fail(String.format("Unable to update EISScube: %s", e.getMessage()));
             }
             */
+            Query<EISScube> q = datastore.createQuery(EISScube.class);
+            q.criteria("_id").equal(new ObjectId(id));
+
+            UpdateOperations<EISScube> ops = datastore.createUpdateOperations(EISScube.class);
+
+            if (cube.getName() == null) {
+                ops.unset("name");
+            } else {
+                ops.set("name", cube.getName());
+            }
+
+            if (cube.getAddress() == null) {
+                ops.unset("address");
+            } else {
+                ops.set("address", cube.getAddress());
+            }
+
+            if (cube.getCity() == null) {
+                ops.unset("city");
+            } else {
+                ops.set("city", cube.getCity());
+            }
+
+            if (cube.getZipCode() == null) {
+                ops.unset("zipCode");
+            } else {
+                ops.set("zipCode", cube.getZipCode());
+            }
+
+            if (cube.getCustomerID() == null) {
+                ops.unset("customerID");
+            } else {
+                ops.set("customerID", cube.getCustomerID());
+            }
+
+            if (cube.getZone() == null) {
+                ops.unset("zone");
+            } else {
+                ops.set("zone", cube.getZone());
+            }
+
+            if (cube.getSubZone() == null) {
+                ops.unset("subZone");
+            } else {
+                ops.set("subZone", cube.getSubZone());
+            }
+
+            if (cube.getSettings() == null) {
+                ops.unset("settings");
+            } else {
+                // do not keep an empty string (convert it to null
+                Map<String, Object> settings = cube.getSettings()
+                    .entrySet()
+                    .stream()
+                    .filter(entry -> ((entry.getValue() instanceof String) && !(((String) entry.getValue()).isEmpty()))
+                    ).collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+                cube.setSettings(new BasicDBObject(settings));
+
+                ops.set("settings", cube.getSettings());
+            }
 
             UpdateResults result = datastore.update(q, ops);
             if (result.getUpdatedCount() == 1) {

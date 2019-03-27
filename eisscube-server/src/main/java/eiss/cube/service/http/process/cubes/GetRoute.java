@@ -19,7 +19,6 @@ import javax.ws.rs.Path;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
-import static java.lang.Boolean.FALSE;
 import static javax.servlet.http.HttpServletResponse.*;
 
 @Slf4j
@@ -56,9 +55,9 @@ public class GetRoute implements Handler<RoutingContext> {
         q.criteria("_id").equal(new ObjectId(id));
 
         vertx.executeBlocking(op -> {
-            EISScube result = q.get();
-            if (result != null) {
-                op.complete(result);
+            EISScube cube = q.get();
+            if (cube != null) {
+                op.complete(cube);
             } else {
                 op.fail(String.format("EISScube: %s not found", id));
             }

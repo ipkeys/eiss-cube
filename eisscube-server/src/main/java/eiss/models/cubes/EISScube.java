@@ -1,5 +1,6 @@
 package eiss.models.cubes;
 
+import com.mongodb.BasicDBObject;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import xyz.morphia.annotations.*;
@@ -32,5 +33,6 @@ public class EISScube {
     @Property Instant timeStarted;
 
     @Property Integer signalStrength;
+    @Embedded BasicDBObject settings;
 
 }
