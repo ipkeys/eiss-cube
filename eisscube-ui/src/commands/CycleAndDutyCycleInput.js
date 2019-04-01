@@ -18,7 +18,9 @@ const styles = theme => ({
         width: theme.spacing.unit * 32
     },
     slider: {
-        marginTop: 36 
+        marginTop: 20,
+        paddingRight: 0,
+        paddingLeft: 0 
     },
     green: { 
         color: green[500] 
@@ -75,13 +77,13 @@ class CycleAndDutyCycleInput extends Component {
                         <span className={classes.grey}>Duty Cycle </span>{duty}% (<span className={classes.green}>{on} sec ON</span> / <span className={classes.red}>{off} sec OFF</span>)
                     </FormLabel>
                     <Slider
-                            className={classes.slider}
-                            step={1}
-                            onChange={(event, value) => {
-                                this.setState({ duty: value });
-                            }}
-                            value={duty}
-                        />
+                        className={classes.slider}
+                        step={1}
+                        onChange={(event, value) => {
+                            this.setState({ duty: value });
+                        }}
+                        value={duty}
+                    />
                 </FormControl>
             </FormGroup>
         );

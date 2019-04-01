@@ -31,7 +31,7 @@ import DutyCycleField from './DutyCycleField';
 import DividerField from './DividerField';
 import CycleAndDutyCycleInput from './CycleAndDutyCycleInput';
 import CommandStatusField from './CommandStatusField';
-import { DateTimeInput } from './DateTimePickerInput';
+import { DateTimeInput, DateTimeInlineInput } from './DateTimePickerInput';
 import moment from 'moment';
 
 export const CommandIcon = Icon;
@@ -77,7 +77,7 @@ const edges = [
 const CommandTitle = withStyles(styles)(
     ({classes, title, record}) => (
         <div className={classes.title}>
-            {title} {record && record.deviceID && `${record.deviceID}`}
+            {title} {record && record.id && `${record.id}`}
         </div>
     )
 );
@@ -88,24 +88,8 @@ const CommandFilter = props => (
         <ReferenceInput label='for EISS™Cube' source='cubeID' reference='cubes'>
             <AutocompleteInput optionText='name'/>
         </ReferenceInput>
-        <DateTimeInput label='Created Before' source='timestamp_lte'
-            options={{
-                keyboard: true,
-                format: DateTimeMomentFormat,
-                mask: [/\d/,/\d/,"/",/\d/,/\d/,"/",/\d/,/\d/,/\d/,/\d/,","," ",/\d/,/\d/,":",/\d/,/\d/,":",/\d/,/\d/],
-                ampm: false, 
-                clearable: true
-            }} 
-        />
-        <DateTimeInput label='Created Since' source='timestamp_gte'
-            options={{
-                keyboard: true,
-                format: DateTimeMomentFormat,
-                mask: [/\d/,/\d/,"/",/\d/,/\d/,"/",/\d/,/\d/,/\d/,/\d/,","," ",/\d/,/\d/,":",/\d/,/\d/,":",/\d/,/\d/],
-                ampm: false, 
-                clearable: true
-            }} 
-        />
+        <DateTimeInlineInput label='Created Before' source='timestamp_lte' options={{ format: DateTimeMomentFormat, ampm: false }} />
+        <DateTimeInlineInput label='Created Since' source='timestamp_gte' options={{ format: DateTimeMomentFormat, ampm: false }} />
     </Filter>
 );
 
@@ -134,7 +118,10 @@ export const CommandList = withStyles(styles)(
 
 export const CommandShow = withStyles(styles)(
     ({ classes, ...props }) => (
-        <ShowController title={<CommandTitle title='Command' />} {...props}>
+        <ShowController 
+            title={<CommandTitle title='Command' />} 
+            {...props}
+        >
             {controllerProps => 
                 <ShowView {...props} {...controllerProps}>
                     <SimpleShowLayout>
@@ -278,33 +265,28 @@ export const CommandCreate = withStyles(styles)(
                 }
                 </FormDataConsumer>
 
-                <DateTimeInput 
-                    formClassName={classes.inline}
+                <DateTimeInput formClassName={classes.inline}
                     label='Start Date, Time' 
                     source='startTime' 
-                    options={{
-                        keyboard: true,
+                    options={{ 
                         format: DateTimeMomentFormat, 
-                        mask: [/\d/,/\d/,"/",/\d/,/\d/,"/",/\d/,/\d/,/\d/,/\d/,","," ",/\d/,/\d/,":",/\d/,/\d/,":",/\d/,/\d/],
                         ampm: false, 
                         clearable: true,
                         disablePast: true
                     }} 
                 />
 
-                <DateTimeInput 
-                    formClassName={classes.inline}
+                <DateTimeInput formClassName={classes.inline}
                     label='End Date, Time' 
                     source='endTime' 
-                    options={{
-                        keyboard: true,
-                        format: DateTimeMomentFormat,
-                        mask: [/\d/,/\d/,"/",/\d/,/\d/,"/",/\d/,/\d/,/\d/,/\d/,","," ",/\d/,/\d/,":",/\d/,/\d/,":",/\d/,/\d/],
+                    options={{ 
+                        format: DateTimeMomentFormat, 
                         ampm: false, 
                         clearable: true,
                         disablePast: true
                     }} 
                 />
+
             </SimpleForm>
         </Create>
     )

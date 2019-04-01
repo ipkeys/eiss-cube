@@ -38,9 +38,6 @@ const theme = createMuiTheme({
 		secondary: {
 			main: '#448ab6'
 		}
-    },
-    typography: {
-        useNextVariants: true
     }
 });
 

@@ -1,15 +1,14 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { addField, FieldTitle } from 'react-admin';
-import MomentUtils from '@date-io/moment';
+import MomentUtils from 'material-ui-pickers/utils/moment-utils';
+
 import { 
 	MuiPickersUtilsProvider, 
 	DatePicker, 
-	InlineDatePicker,  
 	TimePicker, 
-	InlineTimePicker, 
-	DateTimePicker, 
-	InlineDateTimePicker 
+	DateTimePicker,
+	InlineDateTimePicker
 } from 'material-ui-pickers';
 
 const makePicker = (PickerComponent) => {
@@ -85,7 +84,7 @@ const makePicker = (PickerComponent) => {
 		options: {},
 		resource: '',
 		source: '',
-		labelTime: 'klmn',
+		labelTime: '',
 		className: '',
 		providerOptions: {
 			utils: MomentUtils,
@@ -97,10 +96,7 @@ const makePicker = (PickerComponent) => {
 };
 
 export const DateInput = addField(makePicker(DatePicker));
-export const InlineDateInput = addField(makePicker(InlineDatePicker));
-
 export const TimeInput = addField(makePicker(TimePicker));
-export const InlineTimeInput = addField(makePicker(InlineTimePicker));
-
 export const DateTimeInput = addField(makePicker(DateTimePicker));
-export const InlineDateTimeInput = addField(makePicker(InlineDateTimePicker));
+export const DateTimeInlineInput = addField(makePicker(InlineDateTimePicker));
+
