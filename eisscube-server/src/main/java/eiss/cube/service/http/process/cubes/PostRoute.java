@@ -1,9 +1,6 @@
 package eiss.cube.service.http.process.cubes;
 
 import com.google.gson.Gson;
-import com.google.maps.GeoApiContext;
-import com.google.maps.GeocodingApi;
-import com.google.maps.model.GeocodingResult;
 import com.mongodb.DuplicateKeyException;
 import eiss.cube.config.AppConfig;
 import eiss.cube.service.http.process.api.Api;
@@ -16,14 +13,13 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
-import xyz.morphia.Datastore;
-import xyz.morphia.Key;
+import dev.morphia.Datastore;
+import dev.morphia.Key;
 
 import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import java.time.Instant;
-import java.util.Date;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
@@ -66,36 +62,8 @@ public class PostRoute implements Handler<RoutingContext> {
                 return;
             }
 
-/*
-            if (cube.getPassword().isEmpty()) {
-                response
-                    .setStatusCode(SC_BAD_REQUEST)
-                    .setStatusMessage("Unable to add EISScube - password is missed")
-                    .end();
-                return;
-            }
-*/
-
             vertx.executeBlocking(op -> {
                 try {
-/*
-                    if (cube.getAddress() != null && cube.getCity() != null && cube.getZipCode() != null) {
-                        String address = cube.getAddress() + ", " + cube.getCity() + " " + cube.getZipCode();
-
-                        // use geocoding to get location by address
-                        GeoApiContext geoContext = new GeoApiContext().setApiKey(cfg.getGoogleApiKey());
-
-                        GeocodingResult[] results = GeocodingApi
-                            .geocode(geoContext, address)
-                            .await();
-
-
-                        CubePoint location = new CubePoint();
-                        location.setLat(results[0].geometry.location.lat);
-                        location.setLng(results[0].geometry.location.lng);
-                        cube.setLocation(location);
-                    }
-*/
                     CubePoint location = new CubePoint();
                     location.setLat(40.2769179);
                     location.setLng(-74.0388226);

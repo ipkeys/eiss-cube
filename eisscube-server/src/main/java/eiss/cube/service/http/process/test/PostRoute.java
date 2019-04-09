@@ -12,14 +12,15 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
-import xyz.morphia.Datastore;
-import xyz.morphia.query.Query;
+import dev.morphia.Datastore;
+import dev.morphia.query.Query;
 
 import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 
 import java.time.Instant;
+import java.util.Optional;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
@@ -61,6 +62,9 @@ public class PostRoute implements Handler<RoutingContext> {
             return;
         }
 
+        Integer duration = Optional.of(json.getInteger("duration")).orElse(60);
+        Integer cycle = Optional.of(json.getInteger("cycle")).orElse(10) * 2; // with duty cycle = 50%
+
         Query<EISScube> q = datastore.createQuery(EISScube.class);
         q.criteria("id").equal(new ObjectId(cubeID));
 
@@ -77,13 +81,13 @@ public class PostRoute implements Handler<RoutingContext> {
                 // do Input Cycle
                 vertx.eventBus().send("eisscubetest", new JsonObject()
                     .put("to", cube.getDeviceID())
-                    .put("cmd", String.format("c=status&each=5&st=%d&dur=%d&id=test", now, 120))
+                    .put("cmd", String.format("c=status&each=5&st=%d&dur=%d&id=test", now, duration))
                 );
                 // do Relay Cycle after 1 second
                 vertx.setTimer(1000, id -> {
                     vertx.eventBus().send("eisscubetest", new JsonObject()
                         .put("to", cube.getDeviceID())
-                        .put("cmd", String.format("c=rcyc&each=30&pct=50&st=%d&dur=%d&id=test", now, 120))
+                        .put("cmd", String.format("c=rcyc&each=%d&pct=50&st=%d&dur=%d&id=test", cycle, now, duration))
                     );
                 });
 

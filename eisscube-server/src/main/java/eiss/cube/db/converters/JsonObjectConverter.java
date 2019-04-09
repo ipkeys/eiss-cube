@@ -2,9 +2,9 @@ package eiss.cube.db.converters;
 
 import com.mongodb.BasicDBObject;
 import io.vertx.core.json.JsonObject;
-import xyz.morphia.converters.SimpleValueConverter;
-import xyz.morphia.converters.TypeConverter;
-import xyz.morphia.mapping.MappedField;
+import dev.morphia.converters.SimpleValueConverter;
+import dev.morphia.converters.TypeConverter;
+import dev.morphia.mapping.MappedField;
 
 public class JsonObjectConverter extends TypeConverter implements SimpleValueConverter {
 

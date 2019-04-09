@@ -2,7 +2,7 @@ package eiss.models.cubes;
 
 import lombok.Data;
 import org.bson.types.ObjectId;
-import xyz.morphia.annotations.*;
+import dev.morphia.annotations.*;
 
 import java.time.Instant;
 
@@ -45,17 +45,17 @@ public class CubeCommand {
             long start = startTime.getEpochSecond();
             b.append("&st=").append(String.format("%d", start));
         }
-
-        if (endTime != null) {
+        if (startTime != null && endTime != null) {
+            long start = startTime.getEpochSecond();
             long end = endTime.getEpochSecond();
 
-            long start;
-            if (startTime != null) {
-                start = startTime.getEpochSecond();
-            } else {
-                start = Instant.now().getEpochSecond();
-            }
+            b.append("&dur=").append(String.format("%d", end - start));
+        }
+        if (startTime == null && endTime != null) {
+            long start = Instant.now().getEpochSecond();
+            long end = endTime.getEpochSecond();
 
+            b.append("&st=").append(String.format("%d", start)); // duration need start point!!!
             b.append("&dur=").append(String.format("%d", end - start));
         }
 

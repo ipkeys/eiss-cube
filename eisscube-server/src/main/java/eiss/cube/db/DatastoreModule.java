@@ -1,7 +1,7 @@
 package eiss.cube.db;
 
 import com.google.inject.AbstractModule;
-import xyz.morphia.Datastore;
+import dev.morphia.Datastore;
 
 public class DatastoreModule extends AbstractModule {
 

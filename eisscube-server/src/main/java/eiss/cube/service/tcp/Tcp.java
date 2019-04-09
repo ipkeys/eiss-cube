@@ -18,6 +18,7 @@ public class Tcp extends AbstractVerticle {
 
     private EissCubeConfig cfg;
     private CubeHandler handler;
+    private NetServer server;
 
     @Inject
     public Tcp(AppConfig cfg, CubeHandler handler) {
@@ -35,7 +36,7 @@ public class Tcp extends AbstractVerticle {
             .setTcpKeepAlive(TRUE)
             .setLogActivity(FALSE);
 
-        NetServer server = getVertx().createNetServer(options);
+        server = getVertx().createNetServer(options);
 
         server
             .connectHandler(handler)
@@ -51,6 +52,10 @@ public class Tcp extends AbstractVerticle {
     @Override
     public void stop() throws Exception {
         log.info("Stop TCP server");
+
+        server.close(h -> {
+            // TODO: set all eisscubes to offline
+        });
     }
 
 }

@@ -10,9 +10,9 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
-import xyz.morphia.Datastore;
-import xyz.morphia.query.FindOptions;
-import xyz.morphia.query.Query;
+import dev.morphia.Datastore;
+import dev.morphia.query.FindOptions;
+import dev.morphia.query.Query;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;

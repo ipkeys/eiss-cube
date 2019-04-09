@@ -15,9 +15,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
-import xyz.morphia.Datastore;
-import xyz.morphia.Key;
-import xyz.morphia.query.Query;
+import dev.morphia.Datastore;
+import dev.morphia.Key;
+import dev.morphia.query.Query;
 
 import javax.inject.Inject;
 import javax.ws.rs.POST;

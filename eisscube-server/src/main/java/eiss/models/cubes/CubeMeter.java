@@ -2,7 +2,7 @@ package eiss.models.cubes;
 
 import lombok.Data;
 import org.bson.types.ObjectId;
-import xyz.morphia.annotations.*;
+import dev.morphia.annotations.*;
 
 import java.time.Instant;
 

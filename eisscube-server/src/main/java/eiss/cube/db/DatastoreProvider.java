@@ -6,8 +6,8 @@ import com.mongodb.ServerAddress;
 import eiss.cube.config.AppConfig;
 import eiss.cube.config.DatabaseConfig;
 import eiss.cube.db.converters.JsonObjectConverter;
-import xyz.morphia.Datastore;
-import xyz.morphia.Morphia;
+import dev.morphia.Datastore;
+import dev.morphia.Morphia;
 
 import javax.inject.Inject;
 

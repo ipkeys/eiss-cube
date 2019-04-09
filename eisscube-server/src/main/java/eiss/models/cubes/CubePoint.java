@@ -1,7 +1,7 @@
 package eiss.models.cubes;
 
 import lombok.Data;
-import xyz.morphia.annotations.*;
+import dev.morphia.annotations.*;
 
 @Data
 @Embedded

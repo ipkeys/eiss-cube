@@ -14,11 +14,12 @@ import io.vertx.core.net.NetSocket;
 import io.vertx.core.parsetools.RecordParser;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
-import xyz.morphia.Datastore;
-import xyz.morphia.query.Query;
-import xyz.morphia.query.UpdateOperations;
+import dev.morphia.Datastore;
+import dev.morphia.query.Query;
+import dev.morphia.query.UpdateOperations;
 
 import javax.inject.Inject;
+import javax.validation.constraints.NotNull;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -228,7 +229,7 @@ public class CubeHandler implements Handler<NetSocket> {
             }
 
             future.complete();
-        }, res_future -> log.debug("DeviceID: {} served pending commands", deviceID));
+        }, res_future -> log.info("DeviceID: {} served pending commands", deviceID));
     }
 
     private void doPing(final NetSocket socket) {
