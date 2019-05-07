@@ -124,7 +124,7 @@ const styles = theme => ({
 });
 
 const MIN = 0;
-let duration = 60, cycle = 10, MAX = 13;
+let duration = 20, cycle = 5, MAX = 5;
 const normalise = value => (value - MIN) * 100 / (MAX - MIN);
 
 class TestCube extends Component {
