@@ -27,7 +27,7 @@ public class DatastoreProvider implements Provider<Datastore> {
 
         if (datastore == null) {
             String host = cfg.getHost();
-            Integer port = cfg.getPort();
+            int port = Integer.valueOf(cfg.getPort());
             String name = cfg.getName();
 
             morphia.mapPackage(cfg.getDataPackage());

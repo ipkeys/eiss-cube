@@ -12,7 +12,7 @@ public class CubeTest {
 
     @Id ObjectId id;
 
-    @Indexed(options = @IndexOptions(name = "CubeIDIndex", unique = false))
+    @Indexed(options = @IndexOptions(name = "CubeIDIndex"))
     @Property ObjectId cubeID; // reference to EISScube.id
 
     @Property Instant timestamp;

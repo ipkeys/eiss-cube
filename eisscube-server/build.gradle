@@ -74,7 +74,7 @@ dependencies {
     compile "org.codehaus.groovy:groovy:2.4.10"
     compile "org.codehaus.groovy:groovy-json:2.4.10"
 
-    compile name: 'eissclient-1.0.7'
+    compile name: 'eissclient-1.0.8'
     compile name: 'eissclientapi-3.0'
     compile name: 'eissdata-3.0'
     compile name: 'eisshttp-3.0'

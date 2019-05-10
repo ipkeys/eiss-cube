@@ -16,9 +16,9 @@ import RestAdapter from './rest/restAdapter';
 import AuthProvider from './rest/AuthProvider';
 import addUploadFeature from './rest/addUploadFeature';
 
-const apiUrl = (process.env.NODE_ENV === 'development') ? 'http://localhost:5000' : '/cube';
-const tokenUrl = (process.env.NODE_ENV === 'development') ? 'http://localhost:4000/auth/token' : '/auth/token';
-const refreshUrl = (process.env.NODE_ENV === 'development') ? 'http://localhost:4000/auth/refresh' :'/auth/refresh';
+const apiUrl = (process.env.NODE_ENV === 'development') ? 'http://localhost:5002' : '/cube';
+const tokenUrl = (process.env.NODE_ENV === 'development') ? 'http://localhost:4002/auth/token' : '/auth/token';
+const refreshUrl = (process.env.NODE_ENV === 'development') ? 'http://localhost:4002/auth/refresh' :'/auth/refresh';
 
 const http = new HttpService({ tokenUrl, refreshUrl });
 const authProvider = new AuthProvider(http).authenticate;

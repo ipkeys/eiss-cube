@@ -38,7 +38,6 @@ public class ClientEventHandler implements EventHandler {
         return (String)o;
     }
 
-
     public void oadrReceivedEvent(Map<String, Object> params) {
         String id = getEventId(params);
         if (id == null) return;
@@ -77,12 +76,23 @@ public class ClientEventHandler implements EventHandler {
         String signalValue = e.getSignalValue();
 
         log.info(
-                "\n=== Start Signal ===========" +
+                "\n=== Start signal ===========" +
                 "\nID        : {}" +
+                "\nstart     : {}" +
+                "\nend       : {}" +
+                "\nprogram   : {}" +
+                "\nven       : {}" +
+                "\nresources : {}" +
+                "\n----------------------------" +
                 "\ntype      : {}" +
                 "\nvalue     : {}" +
                 "\n============================",
                 id,
+                e.getStart(),
+                e.getEnd(),
+                e.getProgram(),
+                e.getVen(),
+                String.join(",", e.getResources()),
                 signalType,
                 signalValue
         );
@@ -115,11 +125,22 @@ public class ClientEventHandler implements EventHandler {
         String signalType = e.getSignalType();
 
         log.info(
-                "\n=== End Signal =============" +
+                "\n=== Stop signal ============" +
                 "\nID        : {}" +
+                "\nstart     : {}" +
+                "\nend       : {}" +
+                "\nprogram   : {}" +
+                "\nven       : {}" +
+                "\nresources : {}" +
+                "\n----------------------------" +
                 "\ntype      : {}" +
                 "\n============================",
                 id,
+                e.getStart(),
+                e.getEnd(),
+                e.getProgram(),
+                e.getVen(),
+                String.join(",", e.getResources()),
                 signalType
         );
 

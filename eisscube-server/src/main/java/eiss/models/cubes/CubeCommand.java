@@ -14,7 +14,7 @@ public class CubeCommand {
 
     @Property String status;
 
-    @Indexed(options = @IndexOptions(name = "CubeCommandsCreatedIndex", unique = true))
+    @Indexed(options = @IndexOptions(name = "CubeCommandsCreatedIndex"))
     @Property Instant created;
 
     @Property Instant sent;
