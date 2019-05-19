@@ -112,7 +112,7 @@ public class ListRoute implements Handler<RoutingContext> {
         String s = request.getParam(START);
         String e = request.getParam(END);
         if (s != null && e != null && !s.isEmpty() && !e.isEmpty()) {
-            o.skip(Integer.valueOf(s)).limit(Integer.valueOf(e));
+            o.skip(Integer.valueOf(s)).limit(Integer.valueOf(e) - Integer.valueOf(s));
         }
         // ~skip/limit
 
