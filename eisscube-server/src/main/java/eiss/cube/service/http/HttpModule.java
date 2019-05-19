@@ -10,7 +10,7 @@ public class HttpModule extends AbstractModule {
     protected void configure() {
         bindConstant().annotatedWith(Names.named("api_package")).to("eiss.cube.service.http.process");
 
-        bind(Http.class).asEagerSingleton();;
+        bind(Http.class).asEagerSingleton();
         bind(ApiBuilder.class).asEagerSingleton();
         bind(Jwt.class).asEagerSingleton();
     }

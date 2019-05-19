@@ -3,12 +3,10 @@ package eiss.cube.service.http.process.test;
 import com.google.gson.Gson;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeTest;
-import eiss.models.cubes.EISScube;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
@@ -19,7 +17,6 @@ import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
@@ -52,8 +49,8 @@ public class GetRoute implements Handler<RoutingContext> {
         String cubeID = request.getParam("cubeID");
         if (!ObjectId.isValid(cubeID)) {
             response.setStatusCode(SC_BAD_REQUEST)
-                .setStatusMessage(String.format("id: %s is not valid", cubeID))
-                .end();
+                    .setStatusMessage(String.format("id: %s is not valid", cubeID))
+                    .end();
             return;
         }
 
@@ -63,25 +60,24 @@ public class GetRoute implements Handler<RoutingContext> {
         // projections
         qt.project("_id", FALSE);
         qt.project("cubeID", FALSE);
+        // ~projections
 
-        vertx.executeBlocking(op -> {
-            List<CubeTest> result = qt.asList();
-            if (result != null) {
-                op.complete(result);
+        vertx.executeBlocking(list_op -> {
+            List<CubeTest> list = qt.find().toList();
+            if (list != null) {
+                list_op.complete(gson.toJson(list));
             } else {
-                op.fail(String.format("No Test results for: %s", cubeID));
+                list_op.fail(String.format("No Test results for: %s", cubeID));
             }
         }, res -> {
             if (res.succeeded()) {
-                response
-                    .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                    .setStatusCode(SC_OK)
-                    .end(gson.toJson(res.result()));
+                response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                        .setStatusCode(SC_OK)
+                        .end(String.valueOf(res.result()));
             } else {
-                response
-                    .setStatusCode(SC_NOT_FOUND)
-                    .setStatusMessage(res.cause().getMessage())
-                    .end();
+                response.setStatusCode(SC_NOT_FOUND)
+                        .setStatusMessage(res.cause().getMessage())
+                        .end();
             }
 
         });

@@ -46,8 +46,8 @@ public class DeleteRoute implements Handler<RoutingContext> {
         String id = request.getParam("id");
         if (!ObjectId.isValid(id)) {
             response.setStatusCode(SC_BAD_REQUEST)
-                .setStatusMessage(String.format("id: %s is not valid", id))
-                .end();
+                    .setStatusMessage(String.format("id: %s is not valid", id))
+                    .end();
             return;
         }
 
@@ -56,8 +56,7 @@ public class DeleteRoute implements Handler<RoutingContext> {
 
         vertx.executeBlocking(op -> {
             // react-admin expect previous data
-            CubeCommand cube = q.get();
-
+            CubeCommand cube = q.first();
             if (cube != null) {
                 // delete Command
                 datastore.delete(q);
@@ -67,15 +66,13 @@ public class DeleteRoute implements Handler<RoutingContext> {
             }
         }, res -> {
             if (res.succeeded()) {
-                response
-                    .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                    .setStatusCode(SC_OK)
-                    .end(gson.toJson(res.result()));
+                response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                        .setStatusCode(SC_OK)
+                        .end(gson.toJson(res.result()));
             } else {
-                response
-                    .setStatusCode(SC_NOT_FOUND)
-                    .setStatusMessage(res.cause().getMessage())
-                    .end();
+                response.setStatusCode(SC_NOT_FOUND)
+                        .setStatusMessage(res.cause().getMessage())
+                        .end();
             }
         });
     }

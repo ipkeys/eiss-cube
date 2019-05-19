@@ -33,14 +33,12 @@ import static javax.servlet.http.HttpServletResponse.*;
 @Path("/cubes/{id}")
 public class PutRoute implements Handler<RoutingContext> {
 
-    private AppConfig cfg;
     private Vertx vertx;
     private Datastore datastore;
     private Gson gson;
 
     @Inject
-    public PutRoute(AppConfig cfg, Vertx vertx, Datastore datastore, Gson gson) {
-        this.cfg = cfg;
+    public PutRoute(Vertx vertx, Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;
@@ -54,10 +52,9 @@ public class PutRoute implements Handler<RoutingContext> {
 
         String id = request.getParam("id");
         if (!ObjectId.isValid(id)) {
-            response
-                .setStatusCode(SC_BAD_REQUEST)
-                .setStatusMessage(String.format("id '%s' is not valid", id))
-                .end();
+            response.setStatusCode(SC_BAD_REQUEST)
+                    .setStatusMessage(String.format("id '%s' is not valid", id))
+                    .end();
             return;
         }
 
@@ -65,14 +62,13 @@ public class PutRoute implements Handler<RoutingContext> {
         log.info("Update existing EISScube: {} by: {}", id, json);
         EISScube cube = gson.fromJson(json, EISScube.class);
         if (cube == null) {
-            response
-                .setStatusCode(SC_BAD_REQUEST)
-                .setStatusMessage(String.format("Unable to update EISScube with id: %s", id))
-                .end();
+            response.setStatusCode(SC_BAD_REQUEST)
+                    .setStatusMessage(String.format("Unable to update EISScube with id: %s", id))
+                    .end();
             return;
         }
 
-        vertx.executeBlocking(op -> {
+        vertx.executeBlocking(cube_op -> {
             /*
             try {
                if (cube.getAddress() != null && cube.getCity() != null && cube.getZipCode() != null) {
@@ -93,7 +89,7 @@ public class PutRoute implements Handler<RoutingContext> {
                     ops.unset("location");
                 }
             } catch (Exception e) {
-                op.fail(String.format("Unable to update EISScube: %s", e.getMessage()));
+                cube_op.fail(String.format("Unable to update EISScube: %s", e.getMessage()));
             }
             */
             Query<EISScube> q = datastore.createQuery(EISScube.class);
@@ -160,21 +156,19 @@ public class PutRoute implements Handler<RoutingContext> {
 
             UpdateResults result = datastore.update(q, ops);
             if (result.getUpdatedCount() == 1) {
-                op.complete(cube);
+                cube_op.complete(gson.toJson(cube));
             } else {
-                op.fail(String.format("Unable to update EISScube with id: %s", id));
+                cube_op.fail(String.format("Unable to update EISScube with id: %s", id));
             }
-        }, res -> {
-            if (res.succeeded()) {
-                response
-                    .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                    .setStatusCode(SC_OK)
-                    .end(gson.toJson(res.result()));
+        }, cube_res -> {
+            if (cube_res.succeeded()) {
+                response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                        .setStatusCode(SC_OK)
+                        .end(String.valueOf(cube_res.result()));
             } else {
-                response
-                    .setStatusCode(SC_BAD_REQUEST)
-                    .setStatusMessage(res.cause().getMessage())
-                    .end();
+                response.setStatusCode(SC_BAD_REQUEST)
+                        .setStatusMessage(cube_res.cause().getMessage())
+                        .end();
             }
         });
     }

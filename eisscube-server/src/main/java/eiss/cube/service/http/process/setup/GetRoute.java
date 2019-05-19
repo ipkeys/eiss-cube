@@ -46,8 +46,8 @@ public class GetRoute implements Handler<RoutingContext> {
         String cubeID = request.getParam("cubeID");
         if (!ObjectId.isValid(cubeID)) {
             response.setStatusCode(SC_BAD_REQUEST)
-                .setStatusMessage(String.format("id: %s is not valid", cubeID))
-                .end();
+                    .setStatusMessage(String.format("id: %s is not valid", cubeID))
+                    .end();
             return;
         }
 
@@ -55,19 +55,21 @@ public class GetRoute implements Handler<RoutingContext> {
         q.criteria("cubeID").equal(new ObjectId(cubeID));
 
         vertx.executeBlocking(op -> {
-            CubeSetup result = q.get();
-            op.complete(result);
+            CubeSetup setup = q.first();
+            if (setup != null) {
+                op.complete(gson.toJson(setup));
+            } else {
+                op.fail(String.format("Setup for EISScube id: %s not found", cubeID));
+            }
         }, res -> {
             if (res.succeeded()) {
-                response
-                    .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                    .setStatusCode(SC_OK)
-                    .end(gson.toJson(res.result()));
+                response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                        .setStatusCode(SC_OK)
+                        .end(String.valueOf(res.result()));
             } else {
-                response
-                    .setStatusCode(SC_NOT_FOUND)
-                    .setStatusMessage(res.cause().getMessage())
-                    .end();
+                response.setStatusCode(SC_NOT_FOUND)
+                        .setStatusMessage(res.cause().getMessage())
+                        .end();
             }
         });
     }

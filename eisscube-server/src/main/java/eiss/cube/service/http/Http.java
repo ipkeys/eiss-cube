@@ -8,6 +8,7 @@ import eiss.jwt.Jwt;
 import eiss.cube.service.http.process.api.ApiBuilder;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
@@ -35,12 +36,19 @@ public class Http extends AbstractVerticle {
     private ApiBuilder builder;
     private Jwt jwt;
 
+    private Vertx vertx;
+    private HttpServer server;
+
     @Inject
-    public Http(AppConfig cfg, ApiBuilder builder, Jwt jwt) {
+    public Http(AppConfig cfg, ApiBuilder builder, Jwt jwt, Vertx vertx) {
         this.cfg = cfg.getEissCubeConfig();
-        this.router = Router.router(getVertx());
+        this.router = Router.router(vertx);
         this.builder = builder;
         this.jwt = jwt;
+        this.vertx = vertx;
+
+        // build Routes based on annotations
+        setupRoutes();
     }
 
     @Override
@@ -53,10 +61,7 @@ public class Http extends AbstractVerticle {
             .setLogActivity(FALSE)
             .setCompressionSupported(TRUE);
 
-        // build Routes based on annotations
-        setupRoutes();
-
-        HttpServer server = getVertx().createHttpServer(options);
+        server = vertx.createHttpServer(options);
 
         server
             .requestHandler(router)
@@ -72,6 +77,7 @@ public class Http extends AbstractVerticle {
     @Override
     public void stop() throws Exception {
         log.info("Stop HTTP server");
+        server.close();
     }
 
     private void setupRoutes() {
@@ -94,11 +100,11 @@ public class Http extends AbstractVerticle {
         router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
         router.route("/cubes").handler(context -> {
-            HttpServerResponse res = context.response();
+            HttpServerResponse response = context.response();
             String auth = context.request().getHeader("Authorization");
             if (auth != null) {
                 try {
-                    jwt.decodeAuthHeader(Config.getInstance().getServerKey(), auth);
+                    jwt.decodeAuthHeader(Config.INSTANCE.getKey(), auth);
 
                     // allow access only for roles - "admin", "securityadmin" & "operator"
                     String role = jwt.getRole();
@@ -116,29 +122,24 @@ public class Http extends AbstractVerticle {
                         // Now call the next handler
                         context.next();
                     } else {
-                        res
-                            .setStatusCode(SC_UNAUTHORIZED)
-                            .setStatusMessage("Unauthorized")
-                            .end();
+                        response.setStatusCode(SC_UNAUTHORIZED)
+                                .setStatusMessage("Unauthorized")
+                                .end();
                     }
 
                 } catch (ExpiredTokenException ex) {
-                    res
-                        .setStatusCode(SC_UNAUTHORIZED)
-                        .setStatusMessage("Token expired")
-                        .end();
+                    response.setStatusCode(SC_UNAUTHORIZED)
+                            .setStatusMessage("Token expired")
+                            .end();
                 } catch (IllegalArgumentException ex) {
-                    res
-                        .setStatusCode(SC_UNAUTHORIZED)
-                        .setStatusMessage("Invalid token")
-                        .end();
+                    response.setStatusCode(SC_UNAUTHORIZED)
+                            .setStatusMessage("Invalid token")
+                            .end();
                 }
-
             } else {
-                res
-                    .setStatusCode(SC_UNAUTHORIZED)
-                    .setStatusMessage("Unauthorized")
-                    .end();
+                response.setStatusCode(SC_UNAUTHORIZED)
+                        .setStatusMessage("Unauthorized")
+                        .end();
             }
         });
 

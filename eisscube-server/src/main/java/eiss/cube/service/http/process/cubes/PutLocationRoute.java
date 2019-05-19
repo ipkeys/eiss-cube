@@ -60,10 +60,9 @@ public class PutLocationRoute implements Handler<RoutingContext> {
 
         CubePoint location = gson.fromJson(json, CubePoint.class);
         if (location == null) {
-            response
-                .setStatusCode(SC_BAD_REQUEST)
-                .setStatusMessage("Location is not valid")
-                .end();
+            response.setStatusCode(SC_BAD_REQUEST)
+                    .setStatusMessage("Location is not valid")
+                    .end();
             return;
         }
 
@@ -83,15 +82,13 @@ public class PutLocationRoute implements Handler<RoutingContext> {
             }
         }, res -> {
             if (res.succeeded()) {
-                response
-                    .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                    .setStatusCode(SC_OK)
-                    .end();
+                response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                        .setStatusCode(SC_OK)
+                        .end();
             } else {
-                response
-                    .setStatusCode(SC_BAD_REQUEST)
-                    .setStatusMessage(res.cause().getMessage())
-                    .end();
+                response.setStatusCode(SC_BAD_REQUEST)
+                        .setStatusMessage(res.cause().getMessage())
+                        .end();
             }
         });
     }

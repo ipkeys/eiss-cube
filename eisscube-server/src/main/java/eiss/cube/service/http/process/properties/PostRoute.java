@@ -5,7 +5,6 @@ import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeProperty;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
@@ -41,41 +40,37 @@ public class PostRoute implements Handler<RoutingContext> {
     @POST
     @Override
     public void handle(RoutingContext context) {
-        HttpServerRequest request = context.request();
         HttpServerResponse response = context.response();
 
         String json = context.getBodyAsString();
         log.info("Create new CubeProperty: {}", json);
 
-        CubeProperty cmd = gson.fromJson(json, CubeProperty.class);
-        if (cmd == null) {
-            response
-                .setStatusCode(SC_BAD_REQUEST)
-                .setStatusMessage("Unable to create a cube property")
-                .end();
+        CubeProperty property = gson.fromJson(json, CubeProperty.class);
+        if (property == null) {
+            response.setStatusCode(SC_BAD_REQUEST)
+                    .setStatusMessage("Unable to create a cube property")
+                    .end();
             return;
         }
 
         vertx.executeBlocking(op -> {
             try{
-                Key<CubeProperty> key = datastore.save(cmd);
-                cmd.setId((ObjectId)key.getId());
-                op.complete(cmd);
+                Key<CubeProperty> key = datastore.save(property);
+                property.setId((ObjectId)key.getId());
+                op.complete(gson.toJson(property));
             } catch (Exception e) {
                 log.error(e.getMessage());
                 op.fail("Unable to create a cube property");
             }
         }, res -> {
             if (res.succeeded()) {
-                response
-                    .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                    .setStatusCode(SC_CREATED)
-                    .end(gson.toJson(cmd));
+                response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                        .setStatusCode(SC_CREATED)
+                        .end(String.valueOf(res.result()));
             } else {
-                response
-                    .setStatusCode(SC_BAD_REQUEST)
-                    .setStatusMessage(res.cause().getMessage())
-                    .end();
+                response.setStatusCode(SC_BAD_REQUEST)
+                        .setStatusMessage(res.cause().getMessage())
+                        .end();
             }
         });
     }

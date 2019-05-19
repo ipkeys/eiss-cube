@@ -7,7 +7,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
@@ -15,7 +14,6 @@ import dev.morphia.Datastore;
 import dev.morphia.query.Query;
 
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
@@ -45,10 +43,9 @@ public class GetRoute implements Handler<RoutingContext> {
 
         String id = request.getParam("id");
         if (!ObjectId.isValid(id)) {
-            response
-                .setStatusCode(SC_BAD_REQUEST)
-                .setStatusMessage(String.format("id: %s is not valid", id))
-                .end();
+            response.setStatusCode(SC_BAD_REQUEST)
+                    .setStatusMessage(String.format("id: %s is not valid", id))
+                    .end();
             return;
         }
 
@@ -56,23 +53,21 @@ public class GetRoute implements Handler<RoutingContext> {
         q.criteria("_id").equal(new ObjectId(id));
 
         vertx.executeBlocking(op -> {
-            CubeReport result = q.get();
-            if (result != null) {
-                op.complete(result);
+            CubeReport report = q.first();
+            if (report != null) {
+                op.complete(gson.toJson(report));
             } else {
                 op.fail(String.format("CubeReport: %s not found", id));
             }
         }, res -> {
             if (res.succeeded()) {
-                response
-                    .putHeader("content-type", "application/json")
-                    .setStatusCode(SC_OK)
-                    .end(gson.toJson(res.result()));
+                response.putHeader("content-type", "application/json")
+                        .setStatusCode(SC_OK)
+                        .end(String.valueOf(res.result()));
             } else {
-                response
-                    .setStatusCode(SC_NOT_FOUND)
-                    .setStatusMessage(res.cause().getMessage())
-                    .end();
+                response.setStatusCode(SC_NOT_FOUND)
+                        .setStatusMessage(res.cause().getMessage())
+                        .end();
             }
         });
     }

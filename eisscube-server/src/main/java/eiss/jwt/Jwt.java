@@ -12,8 +12,6 @@ import java.util.regex.PatternSyntaxException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-// for creating tokens
-
 /**
  * Wrapper for decoding JWTs with convenience methods for accessing
  * eiss specific user, group and role attributes.

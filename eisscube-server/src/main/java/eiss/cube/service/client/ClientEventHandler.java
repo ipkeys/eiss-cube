@@ -100,11 +100,15 @@ public class ClientEventHandler implements EventHandler {
         if (signalType.equalsIgnoreCase(Event.LEVEL)) {
             switch(signalValue.toLowerCase()) {
                 case "normal":
-                    break;
                 case "moderate":
                 case "high":
                 case "special":
-                    e.getResources().forEach(r -> sendCommandToCube(e.getVen(), r, "ron"));
+                    if (e.getResources().size() > 0) {
+                        e.getResources().forEach(r -> sendCommandToResource(r, "ron"));
+                    } else {
+                        sendCommandToVEN(e.getVen(), "ron");
+                    }
+
                     break;
             }
         }
@@ -145,7 +149,11 @@ public class ClientEventHandler implements EventHandler {
         );
 
         if (signalType.equalsIgnoreCase(Event.LEVEL)) {
-            e.getResources().forEach(r -> sendCommandToCube(e.getVen(), r, "roff"));
+            if (e.getResources().size() > 0) {
+                e.getResources().forEach(r -> sendCommandToResource(r, "roff"));
+            } else {
+                sendCommandToVEN(e.getVen(), "roff");
+            }
         }
     }
 
@@ -183,14 +191,44 @@ public class ClientEventHandler implements EventHandler {
         events.remove(id);
     }
 
-    private void sendCommandToCube(String ven, String resource, String command) {
+    private void sendCommandToResource(String resource, String command) {
 
         Query<EISScube> q = datastore.createQuery(EISScube.class);
         q.criteria("name").equal(resource);
 
-        vertx.executeBlocking(op -> {
-            EISScube cube = q.get();
-            if (cube != null) {
+        EISScube cube = q.get();
+        if (cube != null) {
+            CubeCommand cmd = new CubeCommand();
+            cmd.setCubeID(cube.getId());
+            cmd.setStatus("Created");
+            cmd.setCreated(Instant.now());
+            cmd.setCommand(command);
+
+            try {
+                Key<CubeCommand> key = datastore.save(cmd);
+                cmd.setId((ObjectId)key.getId());
+
+                vertx.eventBus().send("eisscube", new JsonObject()
+                    .put("id", cmd.getId().toString())
+                    .put("to", cube.getDeviceID())
+                    .put("cmd", cmd.toString()));
+
+            } catch (Exception e) {
+                log.error("Unable to create a cube command: {}", e.getMessage());
+            }
+        } else {
+            log.error("Unable to find an EISScube for name: {}", resource);
+        }
+    }
+
+    private void sendCommandToVEN(String ven, String command) {
+
+        Query<EISScube> q = datastore.createQuery(EISScube.class);
+        q.criteria("settings.VEN").equal(ven);
+
+        List<EISScube> cubes = q.asList();
+        if (cubes != null) {
+            cubes.forEach(cube -> {
                 CubeCommand cmd = new CubeCommand();
                 cmd.setCubeID(cube.getId());
                 cmd.setStatus("Created");
@@ -206,21 +244,14 @@ public class ClientEventHandler implements EventHandler {
                         .put("to", cube.getDeviceID())
                         .put("cmd", cmd.toString()));
 
-                    op.complete(cmd);
                 } catch (Exception e) {
-                    log.error(e.getMessage());
-                    op.fail("Unable to create a cube command");
+                    log.error("Unable to create a cube command: {}", e.getMessage());
                 }
-            } else {
-                op.fail(String.format("Unable to find an EISScube for name: %s", resource));
-            }
-        }, res -> {
-            if (res.succeeded()) {
-                log.info("Command sent: {}", res.result().toString());
-            } else {
-                log.error(res.cause().getMessage());
-            }
-        });
+            });
+        } else {
+            log.error("Unable to find an EISScube for VEN: {}", ven);
+        }
     }
+
 
 }

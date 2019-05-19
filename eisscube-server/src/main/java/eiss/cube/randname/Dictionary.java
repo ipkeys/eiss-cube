@@ -40,7 +40,7 @@ public class Dictionary {
         prime = primeCombo + 1;
     }
 
-    public String getWord(int i) {
+    String getWord(int i) {
         int a = i % adjectives.size();
         int n = i / adjectives.size();
 

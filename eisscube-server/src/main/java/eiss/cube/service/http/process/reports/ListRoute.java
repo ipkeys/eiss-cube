@@ -1,6 +1,7 @@
 package eiss.cube.service.http.process.reports;
 
 import com.google.gson.Gson;
+import dev.morphia.query.Sort;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeReport;
 import io.vertx.core.Handler;
@@ -55,12 +56,12 @@ public class ListRoute implements Handler<RoutingContext> {
         // ~filters
 
         // sorts
-        String sort = context.request().getParam(SORT);
+        String byField = context.request().getParam(SORT);
         String order = context.request().getParam(ORDER);
-        if (sort != null && order != null && !sort.isEmpty() && !order.isEmpty()) {
-            q.order(order.equalsIgnoreCase(ASC) ? sort : "-" + sort);
+        if (byField != null && order != null && !byField.isEmpty() && !order.isEmpty()) {
+            q.order(order.equalsIgnoreCase(ASC) ? Sort.ascending(byField) : Sort.descending(byField));
         } else {
-            q.order("cubeID");
+            q.order(Sort.ascending("cubeID"));
         }
         // ~sorts
 
@@ -71,27 +72,31 @@ public class ListRoute implements Handler<RoutingContext> {
         if (s != null && e != null && !s.isEmpty() && !e.isEmpty()) {
             o.skip(Integer.valueOf(s)).limit(Integer.valueOf(e));
         }
+        // ~skip/limit
 
-        vertx.executeBlocking(op -> {
-            List<CubeReport> result = q.asList(o);
-            op.complete(result);
-        }, res -> {
-            if (res.succeeded()) {
-                vertx.executeBlocking(c -> {
-                    Long result = q.count();
-                    c.complete(result);
-                }, c -> {
-                    response
-                        .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                        .putHeader("X-Total-Count", String.valueOf(c.result()))
-                        .setStatusCode(SC_OK)
-                        .end(gson.toJson(res.result()));
+        vertx.executeBlocking(list_op -> {
+            List<CubeReport> list = q.find(o).toList();
+            if (list != null) {
+                list_op.complete(gson.toJson(list));
+            } else {
+                list_op.fail("Cannot get list of Reports");
+            }
+        }, list_res -> {
+            if (list_res.succeeded()) {
+                vertx.executeBlocking(count_op -> {
+                    Long count = q.count();
+                    count_op.complete(count);
+                }, count_res -> {
+                    log.debug("List of reports - success");
+                    response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                            .putHeader("X-Total-Count", String.valueOf(count_res.result()))
+                            .setStatusCode(SC_OK)
+                            .end(String.valueOf(list_res.result()));
                 });
             } else {
-                response
-                    .setStatusCode(SC_BAD_REQUEST)
-                    .setStatusMessage("Cannot get list of Reports")
-                    .end();
+                response.setStatusCode(SC_BAD_REQUEST)
+                        .setStatusMessage(list_res.cause().getMessage())
+                        .end();
             }
         });
     }

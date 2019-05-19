@@ -1,5 +1,6 @@
 package eiss.cube.service.tcp.process;
 
+import dev.morphia.query.Sort;
 import eiss.cube.randname.Randname;
 import eiss.models.cubes.CubeCommand;
 import eiss.models.cubes.CubeMeter;
@@ -65,7 +66,7 @@ public class CubeHandler implements Handler<NetSocket> {
 
     // send command to EISScube (save record for history)
     private void send(final String id, final String deviceID, final String command) {
-        vertx.executeBlocking(future -> {
+        vertx.executeBlocking(op -> {
             Query<CubeCommand> q = datastore.createQuery(CubeCommand.class);
             q.criteria("_id").equal(new ObjectId(id));
 
@@ -82,16 +83,16 @@ public class CubeHandler implements Handler<NetSocket> {
                 ops.set("status", "Sending");
                 datastore.update(q, ops);
 
-                future.complete(String.format("DeviceID: %s is ONLINE. Sending message: %s", deviceID, command));
+                op.complete(String.format("DeviceID: %s is ONLINE. Sending message: %s", deviceID, command));
             } else {
                 ops.set("status", "Pending");
                 datastore.update(q, ops);
 
-                future.fail(String.format("DeviceID: %s is OFFLINE. Pending message: %s", deviceID, command));
+                op.fail(String.format("DeviceID: %s is OFFLINE. Pending message: %s", deviceID, command));
             }
         }, res -> {
             if (res.succeeded()) {
-                log.info(res.result().toString());
+                log.info(String.valueOf(res.result()));
             } else {
                 log.info(res.cause().getMessage());
             }
@@ -111,6 +112,18 @@ public class CubeHandler implements Handler<NetSocket> {
        } else {
             log.info("DeviceID: {} is OFFLINE. Dropped message: {}", deviceID, command);
         }
+    }
+
+    public void setAllDevicesOffline() {
+        vertx.executeBlocking(op -> {
+            Query<EISScube> q = datastore.createQuery(EISScube.class);
+            UpdateOperations<EISScube> ops = datastore.createUpdateOperations(EISScube.class)
+                .set("online", Boolean.FALSE);
+
+            datastore.update(q, ops);
+
+            op.complete();
+        }, res -> log.info("Server is shutdown! Set status of all EISScubes to OFFLINE"));
     }
 
     @Override
@@ -140,12 +153,8 @@ public class CubeHandler implements Handler<NetSocket> {
 
         // let EISSCube 15 sec to establish connection and send "auth" request
         vertx.setTimer(15000, id -> {
-            Buffer outBuffer = Buffer
-                    .buffer()
-                    .appendString("auth").appendString("\0");
-
+            Buffer outBuffer = Buffer.buffer().appendString("auth").appendString("\0");
             eventBus.send(socket.writeHandlerID(), outBuffer);
-
             log.info("Who is connected?...");
         });
     }
@@ -183,8 +192,8 @@ public class CubeHandler implements Handler<NetSocket> {
         Query<EISScube> q = datastore.createQuery(EISScube.class);
         q.criteria("deviceID").equal(deviceID);
 
-        vertx.executeBlocking(future -> {
-            EISScube cube = q.get();
+        vertx.executeBlocking(op -> {
+            EISScube cube = q.first();
             if (cube == null) {
                 cube = new EISScube();
                 cube.setDeviceID(deviceID);
@@ -200,7 +209,7 @@ public class CubeHandler implements Handler<NetSocket> {
 
             datastore.save(cube);
 
-            future.complete();
+            op.complete();
         }, res -> log.info("DeviceID: {} is ONLINE", deviceID));
     }
 
@@ -209,17 +218,16 @@ public class CubeHandler implements Handler<NetSocket> {
         q.criteria("deviceID").equal(deviceID);
 
         vertx.executeBlocking(future -> {
-            EISScube cube = q.get();
+            EISScube cube = q.first();
             if (cube != null) {
                 Query<CubeCommand> qc = datastore.createQuery(CubeCommand.class);
                 qc.and(
                     qc.criteria("cubeID").equal(cube.getId()),
                     qc.criteria("status").equal("Pending")
                 );
-                qc.order("-created");
+                qc.order(Sort.descending("created"));
 
-                List<CubeCommand> list = qc.asList();
-
+                List<CubeCommand> list = qc.find().toList();
                 list.forEach(cmd ->
                     eventBus.send("eisscube", new JsonObject()
                         .put("id", cmd.getId().toString())
@@ -238,7 +246,7 @@ public class CubeHandler implements Handler<NetSocket> {
 
         if (!deviceID.equalsIgnoreCase("Unknown")) {
             Instant timestamp = Instant.now();
-            vertx.executeBlocking(future -> {
+            vertx.executeBlocking(op -> {
 
                 Query<EISScube> q = datastore.createQuery(EISScube.class);
                 q.criteria("deviceID").equal(deviceID);
@@ -248,7 +256,7 @@ public class CubeHandler implements Handler<NetSocket> {
                         .set("lastPing", timestamp);
 
                 datastore.update(q, ops);
-                future.complete();
+                op.complete();
             }, res -> {
                 Buffer outBuffer = Buffer
                         .buffer()
@@ -268,7 +276,7 @@ public class CubeHandler implements Handler<NetSocket> {
         String deviceID = getDeviceID(socket.writeHandlerID());
 
         if (!deviceID.equalsIgnoreCase("Unknown")) {
-            vertx.executeBlocking(future -> {
+            vertx.executeBlocking(op -> {
                 Query<EISScube> q = datastore.createQuery(EISScube.class);
                 q.criteria("deviceID").equal(deviceID);
 
@@ -276,7 +284,7 @@ public class CubeHandler implements Handler<NetSocket> {
                     .set("online", Boolean.FALSE);
 
                 datastore.update(q, ops);
-                future.complete();
+                op.complete();
             }, res -> {
                 log.debug("DeviceID: {} is OFFLINE", deviceID);
                 clientMap.remove(deviceID);
@@ -319,7 +327,7 @@ public class CubeHandler implements Handler<NetSocket> {
 
     private void acknowledgeCommand(String deviceID, String message) {
         if (!message.contains("ack=test")) { // ignore test
-            vertx.executeBlocking(future -> {
+            vertx.executeBlocking(op -> {
                 String id = message.replace("ack=", "");
 
                 if (ObjectId.isValid(id)) {
@@ -331,13 +339,13 @@ public class CubeHandler implements Handler<NetSocket> {
                     ops.set("status", "Received");
                     datastore.update(q, ops);
 
-                    future.complete(String.format("DeviceID: %s acknowledge the command id: %s", deviceID, id));
+                    op.complete(String.format("DeviceID: %s acknowledge the command id: %s", deviceID, id));
                 } else {
-                    future.fail(String.format("DeviceID: %s NOT acknowledge the command id: %s", deviceID, id));
+                    op.fail(String.format("DeviceID: %s NOT acknowledge the command id: %s", deviceID, id));
                 }
             }, res -> {
                 if (res.succeeded()) {
-                    log.info(res.result().toString());
+                    log.info(String.valueOf(res.result()));
                 } else {
                     log.info(res.cause().getMessage());
                 }
@@ -349,8 +357,8 @@ public class CubeHandler implements Handler<NetSocket> {
         Query<EISScube> q = datastore.createQuery(EISScube.class);
         q.criteria("deviceID").equal(deviceID);
 
-        vertx.executeBlocking(future -> {
-            EISScube cube = q.get();
+        vertx.executeBlocking(op -> {
+            EISScube cube = q.first();
             if (cube != null) {
                 Instant ts = null;
                 String v = null;
@@ -378,16 +386,16 @@ public class CubeHandler implements Handler<NetSocket> {
                     cubeMeter.setValue(Double.valueOf(v));
 
                     datastore.save(cubeMeter);
-                    future.complete(String.format("DeviceID: %s report saved", deviceID));
+                    op.complete(String.format("DeviceID: %s report saved", deviceID));
                 } else {
-                    future.fail(String.format("DeviceID: %s report NOT saved", deviceID));
+                    op.fail(String.format("DeviceID: %s report NOT saved", deviceID));
                 }
             } else {
-                future.fail(String.format("DeviceID: %s not found", deviceID));
+                op.fail(String.format("DeviceID: %s not found", deviceID));
             }
         }, res -> {
             if (res.succeeded()) {
-                log.info(res.result().toString());
+                log.info(String.valueOf(res.result()));
             } else {
                 log.info(res.cause().getMessage());
             }
@@ -399,8 +407,8 @@ public class CubeHandler implements Handler<NetSocket> {
         Query<EISScube> q = datastore.createQuery(EISScube.class);
         q.criteria("deviceID").equal(deviceID);
 
-        vertx.executeBlocking(future -> {
-            EISScube cube = q.get();
+        vertx.executeBlocking(op -> {
+            EISScube cube = q.first();
             if (cube != null) {
                 Instant ts = null;
                 String r = null;
@@ -427,16 +435,16 @@ public class CubeHandler implements Handler<NetSocket> {
                     cubeTest.setI(Integer.valueOf(i));
 
                     datastore.save(cubeTest);
-                    future.complete(String.format("DeviceID: %s status saved", deviceID));
+                    op.complete(String.format("DeviceID: %s status saved", deviceID));
                 } else {
-                    future.fail(String.format("DeviceID: %s status NOT saved", deviceID));
+                    op.fail(String.format("DeviceID: %s status NOT saved", deviceID));
                 }
             } else {
-                future.fail(String.format("DeviceID: %s not found", deviceID));
+                op.fail(String.format("DeviceID: %s not found", deviceID));
             }
         }, res -> {
             if (res.succeeded()) {
-                log.info(res.result().toString());
+                log.info(String.valueOf(res.result()));
             } else {
                 log.info(res.cause().getMessage());
             }

@@ -46,36 +46,33 @@ public class DeleteRoute implements Handler<RoutingContext> {
         String id = request.getParam("id");
         if (!ObjectId.isValid(id)) {
             response.setStatusCode(SC_BAD_REQUEST)
-                .setStatusMessage(String.format("id: %s is not valid", id))
-                .end();
+                    .setStatusMessage(String.format("id: %s is not valid", id))
+                    .end();
             return;
         }
 
         Query<EISScube> q = datastore.createQuery(EISScube.class);
         q.criteria("_id").equal(new ObjectId(id));
 
-        vertx.executeBlocking(op -> {
+        vertx.executeBlocking(cube_op -> {
             // react-admin expect previous data
-            EISScube cube = q.get();
-
+            EISScube cube = q.first();
             if (cube != null) {
                 // delete EISScube
                 datastore.delete(q);
-                op.complete(cube);
+                cube_op.complete(gson.toJson(cube));
             } else {
-                op.fail(String.format("Cannot delete EISScube id: %s", id));
+                cube_op.fail(String.format("Cannot delete EISScube id: %s", id));
             }
-        }, res -> {
-            if (res.succeeded()) {
-                response
-                    .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                    .setStatusCode(SC_OK)
-                    .end(gson.toJson(res.result()));
+        }, cube_res -> {
+            if (cube_res.succeeded()) {
+                response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                        .setStatusCode(SC_OK)
+                        .end((String)cube_res.result());
             } else {
-                response
-                    .setStatusCode(SC_NOT_FOUND)
-                    .setStatusMessage(res.cause().getMessage())
-                    .end();
+                response.setStatusCode(SC_NOT_FOUND)
+                        .setStatusMessage(cube_res.cause().getMessage())
+                        .end();
             }
         });
     }

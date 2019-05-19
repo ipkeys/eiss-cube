@@ -48,7 +48,6 @@ public class PostRoute implements Handler<RoutingContext> {
     @POST
     @Override
     public void handle(RoutingContext context) {
-        HttpServerRequest request = context.request();
         HttpServerResponse response = context.response();
 
         String json = context.getBodyAsString();
@@ -56,10 +55,9 @@ public class PostRoute implements Handler<RoutingContext> {
 
         CubeCommand cmd = gson.fromJson(json, CubeCommand.class);
         if (cmd == null) {
-            response
-                .setStatusCode(SC_BAD_REQUEST)
-                .setStatusMessage("Unable to create a cube command")
-                .end();
+            response.setStatusCode(SC_BAD_REQUEST)
+                    .setStatusMessage("Unable to create a cube command")
+                    .end();
             return;
         }
 
@@ -92,15 +90,13 @@ public class PostRoute implements Handler<RoutingContext> {
                 // prepare report record
                 //recordIt(cmd);
 
-                response
-                    .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                    .setStatusCode(SC_CREATED)
-                    .end(gson.toJson(cmd));
+                response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                        .setStatusCode(SC_CREATED)
+                        .end(gson.toJson(cmd));
             } else {
-                response
-                    .setStatusCode(SC_BAD_REQUEST)
-                    .setStatusMessage(res.cause().getMessage())
-                    .end();
+                response.setStatusCode(SC_BAD_REQUEST)
+                        .setStatusMessage(res.cause().getMessage())
+                        .end();
             }
         });
     }
@@ -109,16 +105,24 @@ public class PostRoute implements Handler<RoutingContext> {
         Query<EISScube> q = datastore.createQuery(EISScube.class);
         q.criteria("id").equal(cmd.getCubeID());
 
-        vertx.executeBlocking(future -> {
-            EISScube cube = q.get();
-            future.complete(cube);
-        }, res_future -> {
-            EISScube cube = (EISScube)res_future.result();
+        vertx.executeBlocking(cube_op -> {
+            EISScube cube = q.first();
             if (cube != null) {
-                vertx.eventBus().send("eisscube", new JsonObject()
-                    .put("id", cmd.getId().toString())
-                    .put("to", cube.getDeviceID())
-                    .put("cmd", cmd.toString()));
+                vertx.eventBus().send("eisscube",
+                    new JsonObject()
+                        .put("id", cmd.getId().toString())
+                        .put("to", cube.getDeviceID())
+                        .put("cmd", cmd.toString())
+                );
+                cube_op.complete();
+            } else {
+                cube_op.fail(String.format("Cannot find EISSCube for id: %s", cmd.getCubeID().toString()));
+            }
+        }, cube_res -> {
+            if (cube_res.succeeded()) {
+                log.info("Command sent");
+            } else {
+                log.error("Failed to send Command");
             }
         });
     }

@@ -1,6 +1,7 @@
 package eiss.cube.service.http.process.setup;
 
 import com.google.gson.Gson;
+import dev.morphia.UpdateOptions;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeSetup;
 import io.vertx.core.Handler;
@@ -42,7 +43,6 @@ public class PostRoute implements Handler<RoutingContext> {
     @POST
     @Override
     public void handle(RoutingContext context) {
-        HttpServerRequest request = context.request();
         HttpServerResponse response = context.response();
 
         String json = context.getBodyAsString();
@@ -50,10 +50,9 @@ public class PostRoute implements Handler<RoutingContext> {
 
         CubeSetup setup = gson.fromJson(json, CubeSetup.class);
         if (setup == null) {
-            response
-                .setStatusCode(SC_BAD_REQUEST)
-                .setStatusMessage("Unable to save CubeSetup")
-                .end();
+            response.setStatusCode(SC_BAD_REQUEST)
+                    .setStatusMessage("Unable to save CubeSetup")
+                    .end();
             return;
         }
 
@@ -66,23 +65,21 @@ public class PostRoute implements Handler<RoutingContext> {
         ops.set("input", setup.getInput());
 
         vertx.executeBlocking(op -> {
-            UpdateResults result = datastore.update(q, ops, TRUE); // createIfMissing
+            UpdateResults result = datastore.update(q, ops, new UpdateOptions().upsert(TRUE)); // createIfMissing
             if (result.getUpdatedCount() == 1 || result.getInsertedCount() == 1) {
-                op.complete(setup);
+                op.complete(gson.toJson(setup));
             } else {
                 op.fail(String.format("Unable to create/update setup for EISScube: %s", setup.getCubeID()));
             }
         }, res -> {
             if (res.succeeded()) {
-                response
-                    .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                    .setStatusCode(SC_CREATED)
-                    .end(gson.toJson(setup));
+                response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                        .setStatusCode(SC_CREATED)
+                        .end(String.valueOf(res.result()));
             } else {
-                response
-                    .setStatusCode(SC_BAD_REQUEST)
-                    .setStatusMessage(res.cause().getMessage())
-                    .end();
+                response.setStatusCode(SC_BAD_REQUEST)
+                        .setStatusMessage(res.cause().getMessage())
+                        .end();
             }
         });
     }

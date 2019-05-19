@@ -30,14 +30,12 @@ import static javax.servlet.http.HttpServletResponse.*;
 @Path("/cubes")
 public class PostRoute implements Handler<RoutingContext> {
 
-    private AppConfig cfg;
     private Vertx vertx;
     private Datastore datastore;
     private Gson gson;
 
     @Inject
-    public PostRoute(AppConfig cfg, Vertx vertx, Datastore datastore, Gson gson) {
-        this.cfg = cfg;
+    public PostRoute(Vertx vertx, Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;
@@ -46,7 +44,6 @@ public class PostRoute implements Handler<RoutingContext> {
     @POST
     @Override
     public void handle(RoutingContext context) {
-        HttpServerRequest request = context.request();
         HttpServerResponse response = context.response();
 
         String json = context.getBodyAsString();
@@ -55,14 +52,13 @@ public class PostRoute implements Handler<RoutingContext> {
         EISScube cube = gson.fromJson(json, EISScube.class);
         if (cube != null) {
             if (cube.getDeviceID().isEmpty()) {
-                response
-                    .setStatusCode(SC_BAD_REQUEST)
-                    .setStatusMessage("Unable to add EISScube - device ID is missed")
-                    .end();
+                response.setStatusCode(SC_BAD_REQUEST)
+                        .setStatusMessage("Unable to add EISScube - device ID is missed")
+                        .end();
                 return;
             }
 
-            vertx.executeBlocking(op -> {
+            vertx.executeBlocking(cube_op -> {
                 try {
                     CubePoint location = new CubePoint();
                     location.setLat(40.2769179);
@@ -72,32 +68,29 @@ public class PostRoute implements Handler<RoutingContext> {
                     cube.setLastPing(Instant.now());
                     Key<EISScube> key = datastore.save(cube);
                     cube.setId((ObjectId)key.getId());
-                    op.complete(cube);
+                    cube_op.complete(gson.toJson(cube));
                 } catch (DuplicateKeyException dup) {
                     log.error(dup.getMessage());
-                    op.fail("DeviceID already exists");
+                    cube_op.fail("DeviceID already exists");
                 } catch (Exception e) {
                     log.error(e.getMessage());
-                    op.fail("Unable to add EISScube");
+                    cube_op.fail("Unable to add EISScube");
                 }
-            }, res -> {
-                if (res.succeeded()) {
-                    response
-                        .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                        .setStatusCode(SC_CREATED)
-                        .end(gson.toJson(cube));
+            }, cube_res -> {
+                if (cube_res.succeeded()) {
+                    response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                            .setStatusCode(SC_CREATED)
+                            .end(String.valueOf(cube_res.result()));
                 } else {
-                    response
-                        .setStatusCode(SC_BAD_REQUEST)
-                        .setStatusMessage(res.cause().getMessage())
-                        .end();
+                    response.setStatusCode(SC_BAD_REQUEST)
+                            .setStatusMessage(cube_res.cause().getMessage())
+                            .end();
                 }
             });
         } else {
-            response
-                .setStatusCode(SC_BAD_REQUEST)
-                .setStatusMessage("Unable to add EISScube")
-                .end();
+            response.setStatusCode(SC_BAD_REQUEST)
+                    .setStatusMessage("Unable to add EISScube")
+                    .end();
         }
     }
 

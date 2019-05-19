@@ -8,7 +8,7 @@ import java.nio.file.Paths;
 /**
  * This class return a {@link Path} related to EISS_HOME enviroment variable
  */
-public final class HomeDir {
+final class HomeDir {
 
     private static final String EISS_HOME = "/eiss";
 
@@ -18,7 +18,7 @@ public final class HomeDir {
      * Create EISS_HOME if not exists and return a {@link Path}
      * @return the resulting path
      */
-    public static Path getHomePath() {
+    private static Path getHomePath() {
         Path rc;
 
         String home_env = System.getenv("EISS_HOME");
@@ -42,7 +42,7 @@ public final class HomeDir {
      * @param folder - name of directory
      * @return the resulting path
      */
-    public static Path getFolderPath(String folder) {
+    static Path getFolderPath(String folder) {
         Path homeDir = getHomePath();
         Path rc = homeDir.resolve(folder);
 

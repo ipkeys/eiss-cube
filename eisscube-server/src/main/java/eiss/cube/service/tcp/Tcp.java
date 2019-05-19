@@ -42,6 +42,7 @@ public class Tcp extends AbstractVerticle {
             .connectHandler(handler)
             .listen(h -> {
                 if (h.succeeded()) {
+                    handler.setAllDevicesOffline();
                     log.info("Start TCP server to listen on port: {}", port);
                 } else {
                     log.error("Failed to start TCP server on port: {}", port);
@@ -51,11 +52,7 @@ public class Tcp extends AbstractVerticle {
 
     @Override
     public void stop() throws Exception {
-        log.info("Stop TCP server");
-
-        server.close(h -> {
-            // TODO: set all eisscubes to offline
-        });
+        server.close(h -> log.info("Stop TCP server"));
     }
 
 }

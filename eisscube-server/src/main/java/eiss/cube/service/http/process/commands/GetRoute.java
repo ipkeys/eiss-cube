@@ -5,7 +5,6 @@ import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeCommand;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
@@ -40,15 +39,13 @@ public class GetRoute implements Handler<RoutingContext> {
     @GET
     @Override
     public void handle(RoutingContext context) {
-        HttpServerRequest request = context.request();
         HttpServerResponse response = context.response();
 
         String id = context.request().getParam("id");
         if (!ObjectId.isValid(id)) {
-            response
-                .setStatusCode(SC_BAD_REQUEST)
-                .setStatusMessage(String.format("id: %s is not valid", id))
-                .end();
+            response.setStatusCode(SC_BAD_REQUEST)
+                    .setStatusMessage(String.format("id: %s is not valid", id))
+                    .end();
             return;
         }
 
@@ -56,7 +53,7 @@ public class GetRoute implements Handler<RoutingContext> {
         q.criteria("_id").equal(new ObjectId(id));
 
         vertx.executeBlocking(op -> {
-            CubeCommand result = q.get();
+            CubeCommand result = q.first();
             if (result != null) {
                 op.complete(result);
             } else {
@@ -64,15 +61,13 @@ public class GetRoute implements Handler<RoutingContext> {
             }
         }, res -> {
             if (res.succeeded()) {
-                response
-                    .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                    .setStatusCode(SC_OK)
-                    .end(gson.toJson(res.result()));
+                response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                        .setStatusCode(SC_OK)
+                        .end(gson.toJson(res.result()));
             } else {
-                response
-                    .setStatusCode(SC_NOT_FOUND)
-                    .setStatusMessage(res.cause().getMessage())
-                    .end();
+                response.setStatusCode(SC_NOT_FOUND)
+                        .setStatusMessage(res.cause().getMessage())
+                        .end();
             }
         });
     }

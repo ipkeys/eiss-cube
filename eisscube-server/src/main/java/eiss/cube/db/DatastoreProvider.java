@@ -30,9 +30,10 @@ public class DatastoreProvider implements Provider<Datastore> {
             int port = Integer.valueOf(cfg.getPort());
             String name = cfg.getName();
 
-            morphia.mapPackage(cfg.getDataPackage());
             // custom converters
             morphia.getMapper().getConverters().addConverter(JsonObjectConverter.class);
+
+            morphia.mapPackage(cfg.getDataPackage());
 
             MongoClient client = new MongoClient(new ServerAddress(host, port));
 

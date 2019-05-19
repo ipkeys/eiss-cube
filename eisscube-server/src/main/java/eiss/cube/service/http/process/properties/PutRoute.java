@@ -30,14 +30,12 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 @Path("/properties/{id}")
 public class PutRoute implements Handler<RoutingContext> {
 
-    private AppConfig cfg;
     private Vertx vertx;
     private Datastore datastore;
     private Gson gson;
 
     @Inject
-    public PutRoute(AppConfig cfg, Vertx vertx, Datastore datastore, Gson gson) {
-        this.cfg = cfg;
+    public PutRoute(Vertx vertx, Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;
@@ -51,10 +49,9 @@ public class PutRoute implements Handler<RoutingContext> {
 
         String id = request.getParam("id");
         if (!ObjectId.isValid(id)) {
-            response
-                .setStatusCode(SC_BAD_REQUEST)
-                .setStatusMessage(String.format("id '%s' is not valid", id))
-                .end();
+            response.setStatusCode(SC_BAD_REQUEST)
+                    .setStatusMessage(String.format("id '%s' is not valid", id))
+                    .end();
             return;
         }
 
@@ -62,10 +59,9 @@ public class PutRoute implements Handler<RoutingContext> {
         log.info("Update existing Property: {} by: {}", id, json);
         CubeProperty property = gson.fromJson(json, CubeProperty.class);
         if (property == null) {
-            response
-                .setStatusCode(SC_BAD_REQUEST)
-                .setStatusMessage(String.format("Unable to update Property with id: %s", id))
-                .end();
+            response.setStatusCode(SC_BAD_REQUEST)
+                    .setStatusMessage(String.format("Unable to update Property with id: %s", id))
+                    .end();
             return;
         }
 
@@ -95,21 +91,19 @@ public class PutRoute implements Handler<RoutingContext> {
         vertx.executeBlocking(op -> {
             UpdateResults result = datastore.update(q, ops);
             if (result.getUpdatedCount() == 1) {
-                op.complete(property);
+                op.complete(gson.toJson(property));
             } else {
                 op.fail(String.format("Unable to update Property with id: %s", id));
             }
         }, res -> {
             if (res.succeeded()) {
-                response
-                    .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                    .setStatusCode(SC_OK)
-                    .end(gson.toJson(res.result()));
+                response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                        .setStatusCode(SC_OK)
+                        .end(String.valueOf(res.result()));
             } else {
-                response
-                    .setStatusCode(SC_BAD_REQUEST)
-                    .setStatusMessage(res.cause().getMessage())
-                    .end();
+                response.setStatusCode(SC_BAD_REQUEST)
+                        .setStatusMessage(res.cause().getMessage())
+                        .end();
             }
         });
     }

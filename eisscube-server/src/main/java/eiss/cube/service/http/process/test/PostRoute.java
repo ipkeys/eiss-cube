@@ -1,12 +1,10 @@
 package eiss.cube.service.http.process.test;
 
-import com.google.gson.Gson;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeTest;
 import eiss.models.cubes.EISScube;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
@@ -44,7 +42,6 @@ public class PostRoute implements Handler<RoutingContext> {
     @POST
     @Override
     public void handle(RoutingContext context) {
-        HttpServerRequest request = context.request();
         HttpServerResponse response = context.response();
 
         JsonObject json = context.getBodyAsJson();
@@ -57,8 +54,8 @@ public class PostRoute implements Handler<RoutingContext> {
         String cubeID = json.getString("cubeID");
         if (!ObjectId.isValid(cubeID)) {
             response.setStatusCode(SC_BAD_REQUEST)
-                .setStatusMessage(String.format("id: %s is not valid", cubeID))
-                .end();
+                    .setStatusMessage(String.format("id: %s is not valid", cubeID))
+                    .end();
             return;
         }
 
@@ -68,14 +65,13 @@ public class PostRoute implements Handler<RoutingContext> {
         Query<EISScube> q = datastore.createQuery(EISScube.class);
         q.criteria("id").equal(new ObjectId(cubeID));
 
-        vertx.executeBlocking(future -> {
-            EISScube cube = q.get();
+        vertx.executeBlocking(op -> {
+            EISScube cube = q.first();
             if (cube != null) {
                 // remove old test's results
                 Query<CubeTest> qt = datastore.createQuery(CubeTest.class);
                 qt.criteria("cubeID").equal(cube.getId());
                 datastore.delete(qt);
-
 
                 long now = Instant.now().getEpochSecond();
                 // do Input Cycle
@@ -91,21 +87,19 @@ public class PostRoute implements Handler<RoutingContext> {
                     );
                 });
 
-                future.complete(cube);
+                op.complete();
             } else {
-                future.fail(String.format("No Test results for: %s", cubeID));
+                op.fail(String.format("Cannot start Test for: %s", cubeID));
             }
         }, res -> {
             if (res.succeeded()) {
-                response
-                    .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                    .setStatusCode(SC_OK)
-                    .end();
+                response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                        .setStatusCode(SC_OK)
+                        .end();
             } else {
-                response
-                    .setStatusCode(SC_BAD_REQUEST)
-                    .setStatusMessage(res.cause().getMessage())
-                    .end();
+                response.setStatusCode(SC_BAD_REQUEST)
+                        .setStatusMessage(res.cause().getMessage())
+                        .end();
             }
         });
     }

@@ -40,15 +40,13 @@ public class GetRoute implements Handler<RoutingContext> {
     @GET
     @Override
     public void handle(RoutingContext context) {
-        HttpServerRequest request = context.request();
         HttpServerResponse response = context.response();
 
         String id = context.request().getParam("id");
         if (!ObjectId.isValid(id)) {
-            response
-                .setStatusCode(SC_BAD_REQUEST)
-                .setStatusMessage(String.format("id: %s is not valid", id))
-                .end();
+            response.setStatusCode(SC_BAD_REQUEST)
+                    .setStatusMessage(String.format("id: %s is not valid", id))
+                    .end();
             return;
         }
 
@@ -56,23 +54,21 @@ public class GetRoute implements Handler<RoutingContext> {
         q.criteria("_id").equal(new ObjectId(id));
 
         vertx.executeBlocking(op -> {
-            CubeProperty result = q.get();
-            if (result != null) {
-                op.complete(result);
+            CubeProperty property = q.first();
+            if (property != null) {
+                op.complete(gson.toJson(property));
             } else {
                 op.fail(String.format("Property id: %s not found", id));
             }
         }, res -> {
             if (res.succeeded()) {
-                response
-                    .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-                    .setStatusCode(SC_OK)
-                    .end(gson.toJson(res.result()));
+                response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
+                        .setStatusCode(SC_OK)
+                        .end(String.valueOf(res.result()));
             } else {
-                response
-                    .setStatusCode(SC_NOT_FOUND)
-                    .setStatusMessage(res.cause().getMessage())
-                    .end();
+                response.setStatusCode(SC_NOT_FOUND)
+                        .setStatusMessage(res.cause().getMessage())
+                        .end();
             }
         });
     }
