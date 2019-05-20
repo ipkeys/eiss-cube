@@ -63,20 +63,40 @@ public class CubeClientHandler {
 
         //Step 2 - do some real work
         if (message.contains("c=ron")) {
-            log.info("Relay is ON");
+            StringBuilder sb = new StringBuilder().append("Relay ON");
+            logInfo(message, sb);
         }
 
         if (message.contains("c=roff")) {
-            log.info("Relay is OFF");
+            StringBuilder sb = new StringBuilder().append("Relay OFF");
+            logInfo(message, sb);
         }
 
         if (message.contains("c=icp")) {
+            StringBuilder sb = new StringBuilder().append("Input count PULSES");
+            logInfo(message, sb);
             startReportingPulses(message);
         }
 
         if (message.contains("c=ioff")) {
+            StringBuilder sb = new StringBuilder().append("Input STOP count");
+            logInfo(message, sb);
             stopReporting();
         }
+    }
+
+    private void logInfo(String message, StringBuilder sb) {
+        for (String part : message.split("&")) {
+            if (part.contains("st=")) {
+                String st = part.replace("st=", "");
+                sb.append(" start time: ").append(Instant.ofEpochSecond(Long.valueOf(st)));
+            }
+            if (part.contains("dur=")) {
+                String dur = part.replace("dur=", "");
+                sb.append(" for duration: ").append(dur).append(" seconds");
+            }
+        }
+        log.info(sb.toString());
     }
 
     private void acknowledgeCommand(String message) {
