@@ -59,7 +59,11 @@ public class Http extends AbstractVerticle {
         HttpServerOptions options = new HttpServerOptions()
             .setPort(port)
             .setLogActivity(FALSE)
-            .setCompressionSupported(TRUE);
+            .setCompressionSupported(TRUE)
+            .setTcpFastOpen(TRUE)
+            .setTcpCork(TRUE)
+            .setTcpQuickAck(TRUE)
+            .setReusePort(TRUE);
 
         server = vertx.createHttpServer(options);
 
