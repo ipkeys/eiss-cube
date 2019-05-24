@@ -47,7 +47,7 @@ public class PostRoute implements Handler<RoutingContext> {
         JsonObject json = context.getBodyAsJson();
         if (json == null) {
             response.setStatusCode(SC_BAD_REQUEST)
-                .end();
+                    .end();
             return;
         }
 

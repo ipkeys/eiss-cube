@@ -20,6 +20,8 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static eiss.utils.reactadmin.ParamName.*;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
@@ -62,23 +64,11 @@ public class ListRoute implements Handler<RoutingContext> {
         // filters
         String id_like = request.getParam("id_like");
         if (id_like != null && !id_like.isEmpty()) {
-            if (id_like.contains("|")) { // multiple ids
-                String[] ids = id_like.split("|");
-                Arrays.stream(ids).forEach(item -> {
-                    if (ObjectId.isValid(item)) {
-                        ObjectId oid = new ObjectId(item);
-                        q.field("_id").equal(oid);
-                    } else {
-                        q.field("name").equal(item);
-                    }
-                });
-            } else { // single
-                if (ObjectId.isValid(id_like)) {
-                    ObjectId oid = new ObjectId(id_like);
-                    q.field("_id").equal(oid);
-                } else {
-                    q.field("name").equal(id_like);
-                }
+            if (id_like.contains("|")) {
+                List<ObjectId> ids = Stream.of(id_like.split("\\|")).map(ObjectId::new).collect(Collectors.toList());
+                q.criteria("_id").in(ids);
+            } else {
+                q.criteria("_id").equal(new ObjectId(id_like));
             }
         }
         String online = context.request().getParam("online");
