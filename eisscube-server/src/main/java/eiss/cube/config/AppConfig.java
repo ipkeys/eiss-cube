@@ -15,10 +15,6 @@ public class AppConfig {
     @Getter
     private DatabaseConfig databaseConfig;
 
-    @InjectConfig(value = "googleApiKey")
-    @Getter
-    private String googleApiKey;
-
     @InjectConfig(value = "randNameConfig")
     @Getter
     private RandNameConfig randNameConfig;

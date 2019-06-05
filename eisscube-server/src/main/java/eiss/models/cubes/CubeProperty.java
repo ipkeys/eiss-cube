@@ -8,7 +8,7 @@ import dev.morphia.annotations.Id;
 import dev.morphia.annotations.Property;
 
 @Data
-@Entity("cubeproperties")
+@Entity(value = "cubeproperties", noClassnameStored = true)
 public class CubeProperty {
 
     @Id ObjectId id;

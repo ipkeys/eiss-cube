@@ -55,7 +55,7 @@ public class GetRoute implements Handler<RoutingContext> {
         q.criteria("_id").equal(new ObjectId(id));
 
         vertx.executeBlocking(cube_op -> {
-            EISScube cube = q.get();
+            EISScube cube = q.first();
             if (cube != null) {
                 cube_op.complete(gson.toJson(cube));
             } else {

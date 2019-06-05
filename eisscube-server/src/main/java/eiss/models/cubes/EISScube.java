@@ -10,7 +10,7 @@ import java.time.Instant;
 import static java.lang.Boolean.FALSE;
 
 @Data
-@Entity("eisscubes")
+@Entity(value = "eisscubes", noClassnameStored = true)
 public class EISScube {
 
     @Id ObjectId id;
@@ -18,6 +18,7 @@ public class EISScube {
     @Indexed(options = @IndexOptions(name = "CubeDeviceIDIndex", unique = true))
     @Property String deviceID; // SIM Card number provided by device
     @Property String name;
+    @Property String socket;
 
     @Property String address;
     @Property String city;

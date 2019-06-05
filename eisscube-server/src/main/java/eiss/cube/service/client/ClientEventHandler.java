@@ -211,6 +211,7 @@ public class ClientEventHandler implements EventHandler {
                 vertx.eventBus().send("eisscube", new JsonObject()
                     .put("id", cmd.getId().toString())
                     .put("to", cube.getDeviceID())
+                    .put("socket", cube.getSocket())
                     .put("cmd", cmd.toString()));
 
             } catch (Exception e) {
@@ -242,6 +243,7 @@ public class ClientEventHandler implements EventHandler {
                     vertx.eventBus().send("eisscube", new JsonObject()
                         .put("id", cmd.getId().toString())
                         .put("to", cube.getDeviceID())
+                        .put("socket", cube.getSocket())
                         .put("cmd", cmd.toString()));
 
                 } catch (Exception e) {

@@ -6,7 +6,6 @@ import eiss.models.cubes.CubePoint;
 import eiss.models.cubes.EISScube;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +42,6 @@ public class PutLocationRoute implements Handler<RoutingContext> {
     @PUT
     @Override
     public void handle(RoutingContext context) {
-        HttpServerRequest request = context.request();
         HttpServerResponse response = context.response();
 
         String id = context.request().getParam("id");

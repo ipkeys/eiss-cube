@@ -7,7 +7,7 @@ import dev.morphia.annotations.*;
 import java.time.Instant;
 
 @Data
-@Entity("cubemeters")
+@Entity(value = "cubemeters", noClassnameStored = true)
 public class CubeMeter {
 
     @Id ObjectId id;

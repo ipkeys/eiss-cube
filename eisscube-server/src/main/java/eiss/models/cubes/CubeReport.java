@@ -5,7 +5,7 @@ import org.bson.types.ObjectId;
 import dev.morphia.annotations.*;
 
 @Data
-@Entity("cubereports")
+@Entity(value = "cubereports", noClassnameStored = true)
 public class CubeReport {
 
     @Id ObjectId id;

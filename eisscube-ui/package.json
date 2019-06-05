@@ -15,7 +15,7 @@
     "prop-types": "^15.7.2",
     "ra-realtime": "^2.8.6",
     "react": "^16.8",
-    "react-admin": "^2.9.1",
+    "react-admin": "^2.9.2",
     "react-dom": "^16.8",
     "react-leaflet": "^2.3.0",
     "react-leaflet-draw": "^0.19.0",

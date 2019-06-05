@@ -105,18 +105,19 @@ public class PostRoute implements Handler<RoutingContext> {
         Query<EISScube> q = datastore.createQuery(EISScube.class);
         q.criteria("id").equal(cmd.getCubeID());
 
-        vertx.executeBlocking(cube_op -> {
+        vertx.executeBlocking(op -> {
             EISScube cube = q.first();
             if (cube != null) {
                 vertx.eventBus().send("eisscube",
                     new JsonObject()
                         .put("id", cmd.getId().toString())
                         .put("to", cube.getDeviceID())
+                        .put("socket", cube.getSocket())
                         .put("cmd", cmd.toString())
                 );
-                cube_op.complete();
+                op.complete();
             } else {
-                cube_op.fail(String.format("Cannot find EISSCube for id: %s", cmd.getCubeID().toString()));
+                op.fail(String.format("Cannot find EISSCube for id: %s", cmd.getCubeID().toString()));
             }
         }, cube_res -> {
             if (cube_res.succeeded()) {

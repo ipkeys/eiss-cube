@@ -2,7 +2,6 @@ package eiss.cube.service.http.process.cubes;
 
 import com.google.gson.Gson;
 import com.mongodb.BasicDBObject;
-import eiss.cube.config.AppConfig;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.EISScube;
 import io.vertx.core.Handler;
@@ -69,29 +68,6 @@ public class PutRoute implements Handler<RoutingContext> {
         }
 
         vertx.executeBlocking(cube_op -> {
-            /*
-            try {
-               if (cube.getAddress() != null && cube.getCity() != null && cube.getZipCode() != null) {
-                    String address = cube.getAddress() + ", " + cube.getCity() + " " + cube.getZipCode();
-
-                    // use geocoding to get location by address
-                    GeoApiContext geoContext = new GeoApiContext().setApiKey(cfg.getGoogleApiKey());
-
-                    GeocodingResult[] results = GeocodingApi
-                        .geocode(geoContext, address)
-                        .await();
-
-                    CubePoint location = new CubePoint();
-                    location.setLat(results[0].geometry.location.lat);
-                    location.setLng(results[0].geometry.location.lng);
-                    ops.set("location", location);
-                } else {
-                    ops.unset("location");
-                }
-            } catch (Exception e) {
-                cube_op.fail(String.format("Unable to update EISScube: %s", e.getMessage()));
-            }
-            */
             Query<EISScube> q = datastore.createQuery(EISScube.class);
             q.criteria("_id").equal(new ObjectId(id));
 
