@@ -1,5 +1,6 @@
 package eiss.cube.service.http;
 
+import eiss.cube.config.ApiUserConfig;
 import eiss.cube.config.AppConfig;
 import eiss.config.Config;
 import eiss.cube.config.EissCubeConfig;
@@ -15,14 +16,13 @@ import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.handler.CookieHandler;
-import io.vertx.ext.web.handler.CorsHandler;
-import io.vertx.ext.web.handler.SessionHandler;
+import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
+
+import java.util.Base64;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
@@ -32,6 +32,7 @@ import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 public class Http extends AbstractVerticle {
 
     private EissCubeConfig cfg;
+    private ApiUserConfig apiUser;
     private Router router;
     private ApiBuilder builder;
     private Jwt jwt;
@@ -42,6 +43,7 @@ public class Http extends AbstractVerticle {
     @Inject
     public Http(AppConfig cfg, ApiBuilder builder, Jwt jwt, Vertx vertx) {
         this.cfg = cfg.getEissCubeConfig();
+        this.apiUser = cfg.getApiUserConfig();
         this.router = Router.router(vertx);
         this.builder = builder;
         this.jwt = jwt;
@@ -58,7 +60,7 @@ public class Http extends AbstractVerticle {
 
         HttpServerOptions options = new HttpServerOptions()
             .setPort(port)
-            .setLogActivity(FALSE)
+            .setLogActivity(TRUE)
             .setCompressionSupported(TRUE)
             .setTcpFastOpen(TRUE)
             .setTcpCork(TRUE)
@@ -85,7 +87,6 @@ public class Http extends AbstractVerticle {
     }
 
     private void setupRoutes() {
-
         router.route()
             .handler(CorsHandler.create("*")
                 .allowedMethod(HttpMethod.GET)
@@ -93,52 +94,86 @@ public class Http extends AbstractVerticle {
                 .allowedMethod(HttpMethod.DELETE)
                 .allowedMethod(HttpMethod.PUT)
                 .allowedMethod(HttpMethod.OPTIONS)
+
                 .allowedHeader(HttpHeaderNames.CONTENT_TYPE.toString())
                 .allowedHeader(HttpHeaderNames.AUTHORIZATION.toString())
+
                 .exposedHeader("X-Total-Count")
             );
 
-        router.route().handler(BodyHandler.create());
-        // We need a cookie handler first
-        router.route().handler(CookieHandler.create());
-        router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+        router.route()
+                .handler(BodyHandler.create())
+                .handler(CookieHandler.create())
+                .handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
-        router.route("/cubes").handler(context -> {
+        router.route("/*").handler(context -> {
             HttpServerResponse response = context.response();
             String auth = context.request().getHeader("Authorization");
             if (auth != null) {
-                try {
-                    jwt.decodeAuthHeader(Config.INSTANCE.getKey(), auth);
+                if (auth.startsWith("Basic ")) {
+                    try {
+                        String decoded = new String(Base64.getDecoder().decode(auth.replaceAll("Basic ", "")));
 
-                    // allow access only for roles - "admin", "securityadmin" & "operator"
-                    String role = jwt.getRole();
-                    if (role.equalsIgnoreCase("admin") ||
-                        role.equalsIgnoreCase("securityadmin") ||
-                        role.equalsIgnoreCase("operator"))
-                    {
-                        // store user and role in session
-                        Session s = context.session();
+                        String user, pass;
+                        int colonIdx = decoded.indexOf(":");
+                        if (colonIdx != -1) {
+                            user = decoded.substring(0, colonIdx);
+                            pass = decoded.substring(colonIdx + 1);
+                        } else {
+                            user = decoded;
+                            pass = null;
+                        }
 
-                        s.put("user", jwt.getUser());
-                        s.put("group", jwt.getGroup());
-                        s.put("role", role);
+                        if (!user.isEmpty() && user.equals(apiUser.getUsername())) {
+                            if (pass != null && !pass.isEmpty() && pass.equals(apiUser.getPassword())) {
+                                // store user and role in session
+                                Session s = context.session();
 
-                        // Now call the next handler
-                        context.next();
-                    } else {
+                                s.put("user", user);
+
+                                // Call the next handler
+                                context.next();
+                            }
+                        }
+                    } catch (RuntimeException e) {
                         response.setStatusCode(SC_UNAUTHORIZED)
-                                .setStatusMessage("Unauthorized")
+                                .setStatusMessage("Bad username or password")
                                 .end();
                     }
+               } else {
+                    try {
+                        jwt.decodeAuthHeader(Config.INSTANCE.getKey(), auth);
 
-                } catch (ExpiredTokenException ex) {
-                    response.setStatusCode(SC_UNAUTHORIZED)
-                            .setStatusMessage("Token expired")
-                            .end();
-                } catch (IllegalArgumentException ex) {
-                    response.setStatusCode(SC_UNAUTHORIZED)
-                            .setStatusMessage("Invalid token")
-                            .end();
+                        // allow access only for roles - "admin", "securityadmin" & "operator"ß
+                        String role = jwt.getRole();
+                        if (role.equalsIgnoreCase("admin") ||
+                                role.equalsIgnoreCase("securityadmin") ||
+                                role.equalsIgnoreCase("operator"))
+                        {
+                            // store user and role in session
+                            Session s = context.session();
+
+                            s.put("user", jwt.getUser());
+                            s.put("group", jwt.getGroup());
+                            s.put("role", role);
+
+                            // Call the next handler
+                            context.next();
+                        } else {
+                            response.setStatusCode(SC_UNAUTHORIZED)
+                                    .setStatusMessage("Invalid role of user")
+                                    .end();
+                        }
+
+                    } catch (ExpiredTokenException ex) {
+                        response.setStatusCode(SC_UNAUTHORIZED)
+                                .setStatusMessage("Token expired")
+                                .end();
+                    } catch (IllegalArgumentException ex) {
+                        response.setStatusCode(SC_UNAUTHORIZED)
+                                .setStatusMessage("Invalid token")
+                                .end();
+                    }
                 }
             } else {
                 response.setStatusCode(SC_UNAUTHORIZED)

@@ -1,4 +1,4 @@
-package eiss.helpers;
+package eiss.cube.json.messages;
 
 import lombok.Data;
 

@@ -58,11 +58,11 @@ public class DeleteRoute implements Handler<RoutingContext> {
             // react-admin expect previous data
             CubeCommand cube = q.first();
             if (cube != null) {
-                // delete Command
+                // delete VenCommand
                 datastore.delete(q);
                 op.complete(cube);
             } else {
-                op.fail(String.format("Cannot delete Command id: %s", id));
+                op.fail(String.format("Cannot delete VenCommand id: %s", id));
             }
         }, res -> {
             if (res.succeeded()) {

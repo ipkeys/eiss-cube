@@ -89,7 +89,7 @@ public class Tcp extends AbstractVerticle {
     }
 
     private void doConnect() {
-        if (!connectLock.tryAcquire ()) {
+        if (!connectLock.tryAcquire()) {
             log.info ("Connect attempt in progress...");
             return;
         }
@@ -101,9 +101,10 @@ public class Tcp extends AbstractVerticle {
 
                 final RecordParser parser = RecordParser.newDelimited("\0", h -> {
                     String message = h.toString();
-                    log.info("Received:\n{}", message);
-
-                    if (message.contains("auth")) { // auth
+                    if (message.contains("Welcome")) {
+                        // On welcome - just print
+                        log.info("\n{}", message);
+                    } else if (message.contains("auth")) {
                         handler.authClient();
                     } else {
                         handler.parseMessage(message);

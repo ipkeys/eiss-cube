@@ -7,16 +7,20 @@ import net.jmob.guice.conf.core.InjectConfig;
 @BindConfig(value = "app", resolve = true)
 public class AppConfig {
 
-    @InjectConfig(value = "eissCubeConfig")
+    @InjectConfig(value = "eissCube")
     @Getter
     private EissCubeConfig eissCubeConfig;
 
-    @InjectConfig(value = "databaseConfig")
+    @InjectConfig(value = "database")
     @Getter
     private DatabaseConfig databaseConfig;
 
-    @InjectConfig(value = "randNameConfig")
+    @InjectConfig(value = "randName")
     @Getter
     private RandNameConfig randNameConfig;
+
+    @InjectConfig(value = "apiUser")
+    @Getter
+    private ApiUserConfig apiUserConfig;
 
 }

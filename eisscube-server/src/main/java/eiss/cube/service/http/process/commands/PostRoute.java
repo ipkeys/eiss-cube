@@ -1,15 +1,12 @@
 package eiss.cube.service.http.process.commands;
 
 import com.google.gson.Gson;
-import com.mongodb.DuplicateKeyException;
 import eiss.cube.service.http.process.api.Api;
-import eiss.helpers.CycleAndDutyCycleExtractor;
+import eiss.cube.json.messages.CycleAndDutyCycleExtractor;
 import eiss.models.cubes.CubeCommand;
-import eiss.models.cubes.CubeReport;
 import eiss.models.cubes.EISScube;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
@@ -23,7 +20,6 @@ import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import java.time.Instant;
-import java.util.List;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;

@@ -28,7 +28,6 @@ import java.util.*;
 @Slf4j
 public class CubeHandler implements Handler<NetSocket> {
 
-    //private static Map<String, String> clientMap = new HashMap<>();
     private static DateTimeFormatter df = DateTimeFormatter.ofPattern("z MM/dd/yyyy HH:mm:ss").withZone(ZoneId.of("UTC"));
 
     private Vertx vertx;
@@ -74,7 +73,6 @@ public class CubeHandler implements Handler<NetSocket> {
 
             UpdateOperations<CubeCommand> ops = datastore.createUpdateOperations(CubeCommand.class);
 
-            //String writeHandlerID = clientMap.get(deviceID);
             if (socket != null && !socket.isEmpty()) {
                 Buffer outBuffer = Buffer.buffer();
                 outBuffer.appendString(command).appendString("\0");
@@ -103,7 +101,6 @@ public class CubeHandler implements Handler<NetSocket> {
 
     // send command to EISScube (no save record)
     private void sendNoStore(final String deviceID, final String socket, final String command) {
-        //String writeHandlerID = clientMap.get(deviceID);
         if (socket != null && !socket.isEmpty()) {
             Buffer outBuffer = Buffer.buffer();
             outBuffer.appendString(command).appendString("\0");
@@ -170,8 +167,6 @@ public class CubeHandler implements Handler<NetSocket> {
             String ss = parts[2]; // signal strength
             if (deviceID != null && ss != null) {
                 String socket = netSocket.writeHandlerID();
-
-//                clientMap.put(deviceID, addr);
 
                 // Send greeting for a new connection.
                 Buffer outBuffer = Buffer

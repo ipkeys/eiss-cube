@@ -50,11 +50,14 @@ public class CubeClientHandler {
     }
 
     public void authClient() {
+        log.info("\nHello server! I am: {}", auth);
         String response = "auth " + auth + " 5\0";
         socket.write(response);
     }
 
     public void parseMessage(String message) {
+        log.info("Got a command:\n{}", message);
+
         // Step 1 - acknowledge receiving of command
         if (message.contains("id=")) {
             acknowledgeCommand(message);
@@ -103,6 +106,7 @@ public class CubeClientHandler {
         for (String part : message.split("&")) {
             if (part.contains("id=")) {
                 String id = part.replace("id=", "");
+                log.info("Acknowledged:\n{}", id);
                 String response = "ack=" + id + "\0";
                 socket.write(response);
             }
