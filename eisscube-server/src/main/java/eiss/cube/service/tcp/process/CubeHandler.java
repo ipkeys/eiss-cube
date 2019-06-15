@@ -304,29 +304,29 @@ public class CubeHandler implements Handler<NetSocket> {
     private void acknowledgeCommand(String socket, String message) {
         if (!message.contains("ack=test")) { // ignore test
             vertx.executeBlocking(op -> {
-                String deviceID = "Unknown";
-
                 Query<EISScube> qc = datastore.createQuery(EISScube.class);
                 qc.criteria("socket").equal(socket);
 
                 EISScube cube = qc.first();
                 if (cube != null) {
-                    deviceID = cube.getDeviceID();
-                }
+                    String deviceID = cube.getDeviceID();
 
-                String id = message.replace("ack=", "");
-                if (ObjectId.isValid(id)) {
-                    Query<CubeCommand> q = datastore.createQuery(CubeCommand.class);
-                    q.criteria("_id").equal(new ObjectId(id));
+                    String id = message.replace("ack=", "");
+                    if (ObjectId.isValid(id)) {
+                        Query<CubeCommand> q = datastore.createQuery(CubeCommand.class);
+                        q.criteria("_id").equal(new ObjectId(id));
 
-                    UpdateOperations<CubeCommand> ops = datastore.createUpdateOperations(CubeCommand.class);
-                    ops.set("received", Instant.now());
-                    ops.set("status", "Received");
-                    datastore.update(q, ops);
+                        UpdateOperations<CubeCommand> ops = datastore.createUpdateOperations(CubeCommand.class);
+                        ops.set("received", Instant.now());
+                        ops.set("status", "Received");
+                        datastore.update(q, ops);
 
-                    op.complete(String.format("DeviceID: %s acknowledge the command id: %s", deviceID, id));
+                        op.complete(String.format("DeviceID: %s acknowledge the command id: %s", deviceID, id));
+                    } else {
+                        op.fail(String.format("DeviceID: %s NOT acknowledge the command id: %s", deviceID, id));
+                    }
                 } else {
-                    op.fail(String.format("DeviceID: %s NOT acknowledge the command id: %s", deviceID, id));
+                    op.fail(String.format("DeviceID: not found on socket: %s", socket));
                 }
             }, res -> {
                 if (res.succeeded()) {
@@ -340,8 +340,6 @@ public class CubeHandler implements Handler<NetSocket> {
 
     private void saveReport(String socket, String message) {
         vertx.executeBlocking(op -> {
-            String deviceID ="Unknown";
-
             Query<EISScube> qc = datastore.createQuery(EISScube.class);
             qc.criteria("socket").equal(socket);
 
@@ -365,6 +363,8 @@ public class CubeHandler implements Handler<NetSocket> {
                     }
                 }
 
+                String deviceID = cube.getDeviceID();
+
                 if (ts != null && v != null) {
                     CubeMeter cubeMeter = new CubeMeter();
                     cubeMeter.setCubeID(cube.getId());
@@ -378,7 +378,7 @@ public class CubeHandler implements Handler<NetSocket> {
                     op.fail(String.format("DeviceID: %s report NOT saved", deviceID));
                 }
             } else {
-                op.fail(String.format("DeviceID: %s not found", deviceID));
+                op.fail(String.format("DeviceID: not found on socket: %s", socket));
             }
         }, res -> {
             if (res.succeeded()) {
@@ -392,8 +392,6 @@ public class CubeHandler implements Handler<NetSocket> {
     // r=1&i=0&ss=3
     private void saveStatus(String socket, String message) {
         vertx.executeBlocking(op -> {
-            String deviceID ="Unknown";
-
             Query<EISScube> qc = datastore.createQuery(EISScube.class);
             qc.criteria("socket").equal(socket);
 
@@ -416,6 +414,8 @@ public class CubeHandler implements Handler<NetSocket> {
                     }
                 }
 
+                String deviceID = cube.getDeviceID();
+
                 if (ts != null && r != null && i != null) {
                     CubeTest cubeTest = new CubeTest();
                     cubeTest.setCubeID(cube.getId());
@@ -429,7 +429,7 @@ public class CubeHandler implements Handler<NetSocket> {
                     op.fail(String.format("DeviceID: %s status NOT saved", deviceID));
                 }
             } else {
-                op.fail(String.format("DeviceID: %s not found", deviceID));
+                op.fail(String.format("DeviceID: not found on socket: %s", socket));
             }
         }, res -> {
             if (res.succeeded()) {

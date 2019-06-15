@@ -5,7 +5,6 @@ import eiss.cube.db.DatastoreModule;
 import eiss.cube.json.GsonModule;
 import eiss.cube.randname.RandnameModule;
 import eiss.cube.service.app.Application;
-import eiss.cube.service.client.ClientModule;
 import eiss.cube.service.http.HttpModule;
 import eiss.cube.service.tcp.TcpModule;
 import eiss.cube.vertx.VertxModule;
@@ -26,8 +25,7 @@ public class Launcher {
             new TcpModule(),
             new DatastoreModule(),
             new GsonModule(),
-            new RandnameModule(),
-            new ClientModule()
+            new RandnameModule()
         );
 
         final Application app = injector.getInstance(Application.class);

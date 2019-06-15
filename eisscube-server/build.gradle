@@ -4,12 +4,11 @@ plugins {
 }
 
 group 'eiss-cube'
-version '3.3.3'
+version '3.3.4'
 
 repositories {
     mavenCentral()
     jcenter()
-    flatDir name: 'local', dirs: 'lib'
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -45,43 +44,5 @@ dependencies {
     compile 'dev.morphia.morphia:core:1.5.3'
 
     compile 'io.jsonwebtoken:jjwt:0.9.1'
-    
-    // eissclient - old groovy code
-    compile 'org.igniterealtime.smack:smack-core:4.0.3'
-    compile 'org.igniterealtime.smack:smackx:3.2.1'
-    compile 'org.igniterealtime.smack:smack-debug:4.0.3'
-    compile 'org.igniterealtime.smack:smackx-jingle:3.2.1'
-    compile 'org.igniterealtime.smack:smack-tcp:4.0.3'
-    compile 'org.eclipse.jetty:jetty-continuation:8.1.10.v20130312'
-    compile 'org.eclipse.jetty:jetty-http:8.1.10.v20130312'
-    compile 'org.eclipse.jetty:jetty-io:8.1.10.v20130312'
-    compile 'org.eclipse.jetty:jetty-security:8.1.10.v20130312'
-    compile 'org.eclipse.jetty:jetty-server:8.1.10.v20130312'
-    compile 'org.eclipse.jetty:jetty-servlet:8.1.10.v20130312'
-    compile 'org.eclipse.jetty:jetty-util:8.1.10.v20130312'
-    compile 'org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016'
-    compile 'org.apache.commons:commons-exec:1.2'
-
-    compile 'log4j:log4j:1.2.17'
-
-    compile 'org.mnode.ical4j:ical4j:1.0.2'
-    compile 'org.apache.commons:commons-lang3:3.3.2'
-
-    compile 'org.apache.httpcomponents:httpclient:4.5.2'
-    compile 'org.apache.httpcomponents:fluent-hc:4.5.2'
-    compile 'org.apache.httpcomponents:httpmime:4.5.2'
-
-    compile 'org.codehaus.groovy.modules.http-builder:http-builder:0.7'
-    compile "org.codehaus.groovy:groovy:2.4.10"
-    compile "org.codehaus.groovy:groovy-json:2.4.10"
-
-    compile name: 'eissclient-1.0.8'
-    compile name: 'eissclientapi-3.0'
-    compile name: 'eissdata-3.0'
-    compile name: 'eisshttp-3.0'
-    compile name: 'eissutil-3.2.4'
-    compile name: 'license-3.0'
-    compile name: 'payloads-3.0'
-    // ~eissclient - old groovy code
 
 }

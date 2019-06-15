@@ -4,6 +4,7 @@ import eiss.cube.config.AppConfig;
 import eiss.cube.config.EissCubeConfig;
 import eiss.cube.service.tcp.process.CubeHandler;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Vertx;
 import io.vertx.core.net.NetServer;
 import io.vertx.core.net.NetServerOptions;
 import lombok.extern.slf4j.Slf4j;
@@ -18,11 +19,14 @@ public class Tcp extends AbstractVerticle {
 
     private EissCubeConfig cfg;
     private CubeHandler handler;
+
+    private Vertx vertx;
     private NetServer server;
 
     @Inject
-    public Tcp(AppConfig cfg, CubeHandler handler) {
+    public Tcp(AppConfig cfg, Vertx vertx, CubeHandler handler) {
         this.cfg = cfg.getEissCubeConfig();
+        this.vertx = vertx;
         this.handler = handler;
     }
 
@@ -33,10 +37,14 @@ public class Tcp extends AbstractVerticle {
 
         NetServerOptions options = new NetServerOptions()
             .setPort(port)
+            .setLogActivity(FALSE)
             .setTcpKeepAlive(TRUE)
-            .setLogActivity(FALSE);
+            .setTcpFastOpen(TRUE)
+            .setTcpCork(TRUE)
+            .setTcpQuickAck(TRUE)
+            .setReusePort(TRUE);
 
-        server = getVertx().createNetServer(options);
+        server = vertx.createNetServer(options);
 
         server
             .connectHandler(handler)

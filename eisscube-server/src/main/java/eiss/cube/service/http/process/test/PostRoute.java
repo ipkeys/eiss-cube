@@ -77,12 +77,14 @@ public class PostRoute implements Handler<RoutingContext> {
                 // do Input Cycle
                 vertx.eventBus().send("eisscubetest", new JsonObject()
                     .put("to", cube.getDeviceID())
+                    .put("socket", cube.getSocket())
                     .put("cmd", String.format("c=status&each=5&st=%d&dur=%d&id=test", now, duration))
                 );
                 // do Relay Cycle after 1 second
                 vertx.setTimer(1000, id -> {
                     vertx.eventBus().send("eisscubetest", new JsonObject()
                         .put("to", cube.getDeviceID())
+                        .put("socket", cube.getSocket())
                         .put("cmd", String.format("c=rcyc&each=%d&pct=50&st=%d&dur=%d&id=test", cycle, now, duration))
                     );
                 });
