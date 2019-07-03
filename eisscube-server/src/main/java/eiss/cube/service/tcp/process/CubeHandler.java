@@ -122,7 +122,7 @@ public class CubeHandler implements Handler<NetSocket> {
             datastore.update(q, ops);
 
             op.complete();
-        }, res -> log.info("Server is shutdown! Set status of all EISScubes to OFFLINE"));
+        }, res -> log.info("Server was restarted! Set status of ALL devices to OFFLINE"));
     }
 
     @Override
