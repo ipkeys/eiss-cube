@@ -84,10 +84,10 @@ public class EditRoute implements Handler<RoutingContext> {
 
         String id = req.getProperty().getId();
         if (ObjectId.isValid(id)) {
-            Query<CubeProperty> q = datastore.createQuery(CubeProperty.class);
+            Query<CubeProperty> property = datastore.createQuery(CubeProperty.class);
 
             // filter
-            q.criteria("_id").equal(new ObjectId(id));
+            property.criteria("_id").equal(new ObjectId(id));
 
             // projections
 
@@ -97,18 +97,18 @@ public class EditRoute implements Handler<RoutingContext> {
                     .set("label", req.getProperty().getLabel())
                     .set("description", req.getProperty().getDescription());
 
-            datastore.update(q, ops);
+            datastore.update(property, ops);
 
             // get an updated version
-            CubeProperty p = q.first();
+            CubeProperty p = property.first();
             if (p != null) {
 
                 rc.setProperty(
                     Property.builder()
-                            .id(p.getId().toString())
-                            .name(p.getName())
-                            .label(p.getLabel())
-                            .description(p.getDescription())
+                        .id(p.getId().toString())
+                        .name(p.getName())
+                        .label(p.getLabel())
+                        .description(p.getDescription())
                     .build()
                 );
             }

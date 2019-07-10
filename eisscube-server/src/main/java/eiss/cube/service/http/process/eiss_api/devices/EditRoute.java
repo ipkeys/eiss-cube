@@ -132,7 +132,7 @@ public class EditRoute implements Handler<RoutingContext> {
                 rc.setDevice(
                     Device.builder()
                         .id(ud.getId().toString())
-                        .deviceID(ud.getDeviceID())
+                        .ICCID(ud.getDeviceID())
                         .online(ud.getOnline())
                         .timeStarted(ud.getTimeStarted())
                         .lastPing(ud.getLastPing())

@@ -9,5 +9,6 @@ import java.util.List;
 public class DeviceListResponse {
 
     private List<Device> devices = new ArrayList<>();
+    private Long total;
 
 }

@@ -54,12 +54,12 @@ public class ListRoute implements Handler<RoutingContext> {
         String search = request.getParam(FILTER);
         if (search != null && !search.isEmpty()) {
             search = search.toLowerCase()
-                    .replaceAll(" ", "")
-                    .replaceAll("relay", "r")
-                    .replaceAll("cointing", "i")
-                    .replaceAll("cycle", "cyc")
-                    .replaceAll("pulse", "cp")
-                    .replaceAll("stop", "off");
+                .replaceAll(" ", "")
+                .replaceAll("relay", "r")
+                .replaceAll("cointing", "i")
+                .replaceAll("cycle", "cyc")
+                .replaceAll("pulse", "cp")
+                .replaceAll("stop", "off");
 
             q.field("command").containsIgnoreCase(search);
         }

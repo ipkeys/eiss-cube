@@ -79,30 +79,29 @@ public class NewRoute implements Handler<RoutingContext> {
     private PropertyResponse newProperty(PropertyRequest req) {
         PropertyResponse rc = new PropertyResponse();
 
-        CubeProperty property = new CubeProperty();
-        property.setName(req.getProperty().getName());
-        property.setLabel(req.getProperty().getLabel());
-        property.setDescription(req.getProperty().getDescription());
+        CubeProperty newProperty = new CubeProperty();
+        newProperty.setName(req.getProperty().getName());
+        newProperty.setLabel(req.getProperty().getLabel());
+        newProperty.setDescription(req.getProperty().getDescription());
 
-        Key<CubeProperty> key = datastore.save(property);
+        Key<CubeProperty> key = datastore.save(newProperty);
 
-        Query<CubeProperty> q = datastore.createQuery(CubeProperty.class);
+        Query<CubeProperty> property = datastore.createQuery(CubeProperty.class);
 
         // filter
-        q.criteria("_id").equal(key.getId());
+        property.criteria("_id").equal(key.getId());
 
         // projections
 
         // get an updated version
-        CubeProperty p = q.first();
+        CubeProperty p = property.first();
         if (p != null) {
-
             rc.setProperty(
                 Property.builder()
-                        .id(p.getId().toString())
-                        .name(p.getName())
-                        .label(p.getLabel())
-                        .description(p.getDescription())
+                    .id(p.getId().toString())
+                    .name(p.getName())
+                    .label(p.getLabel())
+                    .description(p.getDescription())
                 .build()
             );
         }

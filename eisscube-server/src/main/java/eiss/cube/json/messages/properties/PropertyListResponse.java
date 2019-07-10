@@ -9,5 +9,6 @@ import java.util.List;
 public class PropertyListResponse {
 
     private List<Property> properties = new ArrayList<>();
+    private Long total;
 
 }

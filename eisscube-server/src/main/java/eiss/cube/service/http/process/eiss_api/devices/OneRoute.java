@@ -82,15 +82,15 @@ public class OneRoute implements Handler<RoutingContext> {
 
         String id = req.getId();
         if (ObjectId.isValid(id)) {
-            Query<EISScube> q = datastore.createQuery(EISScube.class);
+            Query<EISScube> cube = datastore.createQuery(EISScube.class);
 
             // filter
-            q.criteria("_id").equal(new ObjectId(id));
+            cube.criteria("_id").equal(new ObjectId(id));
 
             // projections
 
             // get
-            EISScube d = q.first();
+            EISScube d = cube.first();
             if (d != null) {
                 Double lat = Location.defaultLat;
                 Double lng = Location.defaultLng;
@@ -104,7 +104,7 @@ public class OneRoute implements Handler<RoutingContext> {
                 rc.setDevice(
                     Device.builder()
                         .id(d.getId().toString())
-                        .deviceID(d.getDeviceID())
+                        .ICCID(d.getDeviceID())
                         .online(d.getOnline())
                         .timeStarted(d.getTimeStarted())
                         .lastPing(d.getLastPing())

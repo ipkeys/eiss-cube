@@ -1,15 +1,13 @@
-package eiss.cube.service.http.process.eiss_api.properties;
+package eiss.cube.service.http.process.eiss_api.commands;
 
 import com.google.gson.Gson;
 import dev.morphia.Datastore;
 import dev.morphia.query.Query;
-import dev.morphia.query.UpdateOperations;
-import eiss.cube.json.messages.properties.Property;
-import eiss.cube.json.messages.properties.PropertyIdRequest;
-import eiss.cube.json.messages.properties.PropertyResponse;
+import eiss.cube.json.messages.commands.Command;
+import eiss.cube.json.messages.commands.CommandIdRequest;
+import eiss.cube.json.messages.commands.CommandResponse;
 import eiss.cube.service.http.process.api.Api;
-import eiss.models.cubes.CubeProperty;
-import eiss.models.cubes.EISScube;
+import eiss.models.cubes.CubeCommand;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerResponse;
@@ -28,15 +26,15 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 @Slf4j
 @Api
-@Path("/eiss-api/properties/delete")
-public class DeleteRoute implements Handler<RoutingContext> {
+@Path("/eiss-api/commands/id")
+public class OneRoute implements Handler<RoutingContext> {
 
     private Vertx vertx;
     private Datastore datastore;
     private Gson gson;
 
     @Inject
-    public DeleteRoute(Vertx vertx, Datastore datastore, Gson gson) {
+    public OneRoute(Vertx vertx, Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;
@@ -51,11 +49,11 @@ public class DeleteRoute implements Handler<RoutingContext> {
         if (jsonBody != null && !jsonBody.isEmpty()) {
             vertx.executeBlocking(op -> {
                 try {
-                    PropertyIdRequest req = gson.fromJson(jsonBody, PropertyIdRequest.class);
+                    CommandIdRequest req = gson.fromJson(jsonBody, CommandIdRequest.class);
                     if (req == null) {
                         op.fail("Bad request");
                     } else {
-                        PropertyResponse res = deleteProperty(req);
+                        CommandResponse res = getCommand(req);
                         op.complete(gson.toJson(res));
                     }
                 } catch (Exception e) {
@@ -78,37 +76,37 @@ public class DeleteRoute implements Handler<RoutingContext> {
         }
     }
 
-    private PropertyResponse deleteProperty(PropertyIdRequest req) {
-        PropertyResponse rc = new PropertyResponse();
+    private CommandResponse getCommand(CommandIdRequest req) {
+        CommandResponse rc = new CommandResponse();
 
         String id = req.getId();
         if (ObjectId.isValid(id)) {
-            Query<CubeProperty> property = datastore.createQuery(CubeProperty.class);
+            Query<CubeCommand> command = datastore.createQuery(CubeCommand.class);
 
             // filter
-            property.criteria("_id").equal(new ObjectId(id));
+            command.criteria("_id").equal(new ObjectId(id));
 
             // projections
 
             // get
-            CubeProperty p = property.first();
-            if (p != null) {
-                rc.setProperty(
-                    Property.builder()
-                            //.id(p.getId().toString()) // id is not valid after delete
-                            .name(p.getName())
-                            .label(p.getLabel())
-                            .description(p.getDescription())
+            CubeCommand c = command.first();
+            if (c != null) {
+                rc.setCommand(
+                    Command.builder()
+                        .id(c.getId().toString())
+                        .deviceID(c.getCubeID().toString())
+                        .command(c.getCommand())
+                        .completeCycle(c.getCompleteCycle())
+                        .dutyCycle(c.getDutyCycle())
+                        .transition(c.getTransition())
+                        .startTime(c.getStartTime())
+                        .endTime(c.getEndTime())
+                        .sent(c.getSent())
+                        .created(c.getCreated())
+                        .received(c.getReceived())
+                        .status(c.getStatus())
                     .build()
                 );
-
-                // remove the property from all EISSCube records
-                Query<EISScube> qc = datastore.createQuery(EISScube.class);
-                UpdateOperations<EISScube> ops = datastore.createUpdateOperations(EISScube.class);
-                ops.unset("settings." + p.getName());
-                datastore.update(qc, ops);
-
-                datastore.delete(property);
             }
         }
 

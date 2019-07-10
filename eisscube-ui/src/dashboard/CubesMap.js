@@ -30,8 +30,8 @@ class CubesMap extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            lat: 40.2769179,
-            lng: -74.0388226,
+            lat: 40.32444602981903,
+            lng: -74.07683856203221,
             zoom: 10,
             maxZoom: 18,
             data: null

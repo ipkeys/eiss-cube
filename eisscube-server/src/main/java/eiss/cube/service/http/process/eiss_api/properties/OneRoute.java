@@ -81,22 +81,22 @@ public class OneRoute implements Handler<RoutingContext> {
 
         String id = req.getId();
         if (ObjectId.isValid(id)) {
-            Query<CubeProperty> q = datastore.createQuery(CubeProperty.class);
+            Query<CubeProperty> property = datastore.createQuery(CubeProperty.class);
 
             // filter
-            q.criteria("_id").equal(new ObjectId(id));
+            property.criteria("_id").equal(new ObjectId(id));
 
             // projections
 
             // get
-            CubeProperty p = q.first();
+            CubeProperty p = property.first();
             if (p != null) {
                 rc.setProperty(
                     Property.builder()
-                            .id(p.getId().toString())
-                            .name(p.getName())
-                            .label(p.getLabel())
-                            .description(p.getDescription())
+                        .id(p.getId().toString())
+                        .name(p.getName())
+                        .label(p.getLabel())
+                        .description(p.getDescription())
                     .build()
                 );
             }

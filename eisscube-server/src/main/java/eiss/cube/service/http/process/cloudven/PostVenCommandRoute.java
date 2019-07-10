@@ -5,7 +5,7 @@ import dev.morphia.Datastore;
 import dev.morphia.Key;
 import dev.morphia.query.Query;
 import eiss.cube.json.messages.CycleAndDutyCycleExtractor;
-import eiss.cube.json.messages.command.VenCommand;
+import eiss.cube.json.messages.cloudven.VenCommand;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeCommand;
 import eiss.models.cubes.EISScube;
@@ -30,7 +30,7 @@ import static javax.servlet.http.HttpServletResponse.SC_CREATED;
 
 @Slf4j
 @Api
-@Path("/cloudven/command")
+@Path("/cloudven/cloudven")
 public class PostVenCommandRoute implements Handler<RoutingContext> {
 
     private Vertx vertx;
@@ -54,7 +54,7 @@ public class PostVenCommandRoute implements Handler<RoutingContext> {
         VenCommand req = gson.fromJson(json, VenCommand.class);
         if (req == null) {
             response.setStatusCode(SC_BAD_REQUEST)
-                    .setStatusMessage("Unable to create a cube command for VEN")
+                    .setStatusMessage("Unable to create a cube cloudven for VEN")
                     .end();
             return;
         }
@@ -97,11 +97,11 @@ public class PostVenCommandRoute implements Handler<RoutingContext> {
                     cmd.setId((ObjectId)key.getId());
 
                     vertx.eventBus().send("eisscube",
-                            new JsonObject()
-                                    .put("id", cmd.getId().toString())
-                                    .put("to", cube.getDeviceID())
-                                    .put("socket", cube.getSocket())
-                                    .put("cmd", cmd.toString())
+                        new JsonObject()
+                            .put("id", cmd.getId().toString())
+                            .put("to", cube.getDeviceID())
+                            .put("socket", cube.getSocket())
+                            .put("cmd", cmd.toString())
                     );
                 });
                 op.complete();

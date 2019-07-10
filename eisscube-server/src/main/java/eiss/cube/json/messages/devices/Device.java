@@ -11,7 +11,7 @@ import java.time.Instant;
 public class Device {
 
     private String id;
-    private String deviceID;
+    private String ICCID;
     private String name;
     private Boolean online;
     private Instant timeStarted;

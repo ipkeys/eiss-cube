@@ -22,8 +22,8 @@ class CubeMap extends Component {
         super(props);
         this.state = {
             location: {
-                lat: 40.2769179,
-                lng: -74.0388226
+                lat: 40.32444602981903,
+                lng: -74.07683856203221
             },
             draggable: true
         };
@@ -106,7 +106,7 @@ class CubeMap extends Component {
             <Map
                 animate={true}
                 length={4}
-                center={location ? [location.lat, location.lng] : [40.2769179, -74.0388226]}
+                center={[location.lat, location.lng]}
                 minZoom={2}
                 maxZoom={19}
                 zoom={15}

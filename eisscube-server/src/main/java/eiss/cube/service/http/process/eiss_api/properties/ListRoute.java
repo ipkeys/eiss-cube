@@ -2,6 +2,7 @@ package eiss.cube.service.http.process.eiss_api.properties;
 
 import com.google.gson.Gson;
 import dev.morphia.Datastore;
+import dev.morphia.query.FindOptions;
 import dev.morphia.query.Query;
 import eiss.cube.json.messages.properties.Property;
 import eiss.cube.json.messages.properties.PropertyListRequest;
@@ -77,14 +78,22 @@ public class ListRoute implements Handler<RoutingContext> {
     private PropertyListResponse getListOfProperties(PropertyListRequest req) {
         PropertyListResponse rc = new PropertyListResponse();
 
-        Query<CubeProperty> q = datastore.createQuery(CubeProperty.class);
+        Query<CubeProperty> properties = datastore.createQuery(CubeProperty.class);
 
         // filter
 
         // projections
 
+        // skip/limit
+        FindOptions options = new FindOptions();
+        Integer s = req.getStart();
+        Integer l = req.getLimit();
+        if (s != null && l != null) {
+            options.skip(s).limit(l);
+        }
+
         // get & convert
-        q.find().toList().forEach(p ->
+        properties.find(options).toList().forEach(p ->
             rc.getProperties().add(
                 Property.builder()
                         .id(p.getId().toString())
@@ -94,6 +103,9 @@ public class ListRoute implements Handler<RoutingContext> {
                 .build()
             )
         );
+
+        // total number of records
+        rc.setTotal(properties.count());
 
         return rc;
     }

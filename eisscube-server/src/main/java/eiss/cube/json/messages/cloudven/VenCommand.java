@@ -1,4 +1,4 @@
-package eiss.cube.json.messages.command;
+package eiss.cube.json.messages.cloudven;
 
 import lombok.Builder;
 import lombok.Data;
