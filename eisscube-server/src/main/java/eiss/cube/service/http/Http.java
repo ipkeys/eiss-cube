@@ -60,7 +60,7 @@ public class Http extends AbstractVerticle {
 
         HttpServerOptions options = new HttpServerOptions()
             .setPort(port)
-            .setLogActivity(TRUE)
+            .setLogActivity(FALSE)
             .setCompressionSupported(TRUE)
             .setTcpFastOpen(TRUE)
             .setTcpCork(TRUE)

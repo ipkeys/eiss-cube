@@ -82,6 +82,10 @@ public class ListRoute implements Handler<RoutingContext> {
         Query<EISScube> cubes = datastore.createQuery(EISScube.class);
 
         // filter
+        String customerID = req.getCustomerID();
+        if (customerID != null && !customerID.isEmpty()) {
+            cubes.field("customerID").startsWithIgnoreCase(customerID);
+        }
 
         // projections
 
