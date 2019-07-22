@@ -178,7 +178,7 @@ public class Jwt {
     }
 
     //--------------------------------------------------------------------------
-    // Create or decode a token via the cloudven line
+    // Create or decode a token via the cmd line
     //--------------------------------------------------------------------------
     public static void main(String[] args) throws Exception {
         final String usage =
