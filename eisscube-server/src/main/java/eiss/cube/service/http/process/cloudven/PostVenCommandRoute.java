@@ -30,7 +30,7 @@ import static javax.servlet.http.HttpServletResponse.SC_CREATED;
 
 @Slf4j
 @Api
-@Path("/cloudven/cloudven")
+@Path("/cloudven/command")
 public class PostVenCommandRoute implements Handler<RoutingContext> {
 
     private Vertx vertx;
@@ -54,7 +54,7 @@ public class PostVenCommandRoute implements Handler<RoutingContext> {
         VenCommand req = gson.fromJson(json, VenCommand.class);
         if (req == null) {
             response.setStatusCode(SC_BAD_REQUEST)
-                    .setStatusMessage("Unable to create a cube cloudven for VEN")
+                    .setStatusMessage("Unable to create a cube command for VEN")
                     .end();
             return;
         }

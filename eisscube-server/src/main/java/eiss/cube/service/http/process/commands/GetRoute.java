@@ -57,7 +57,7 @@ public class GetRoute implements Handler<RoutingContext> {
             if (result != null) {
                 op.complete(result);
             } else {
-                op.fail(String.format("VenCommand id: %s not found", id));
+                op.fail(String.format("Command id: %s not found", id));
             }
         }, res -> {
             if (res.succeeded()) {
