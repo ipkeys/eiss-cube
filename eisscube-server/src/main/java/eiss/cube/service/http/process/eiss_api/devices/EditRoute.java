@@ -133,6 +133,7 @@ public class EditRoute implements Handler<RoutingContext> {
                     Device.builder()
                         .id(ud.getId().toString())
                         .ICCID(ud.getDeviceID())
+                        .name(ud.getName())
                         .online(ud.getOnline())
                         .timeStarted(ud.getTimeStarted())
                         .lastPing(ud.getLastPing())

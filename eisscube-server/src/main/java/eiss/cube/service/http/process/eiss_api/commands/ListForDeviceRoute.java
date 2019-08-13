@@ -1,20 +1,21 @@
-package eiss.cube.service.http.process.eiss_api.devices;
+package eiss.cube.service.http.process.eiss_api.commands;
 
 import com.google.gson.Gson;
 import dev.morphia.Datastore;
 import dev.morphia.query.FindOptions;
 import dev.morphia.query.Query;
-import eiss.cube.json.messages.devices.Device;
-import eiss.cube.json.messages.devices.DeviceListRequest;
-import eiss.cube.json.messages.devices.DeviceListResponse;
-import eiss.cube.json.messages.devices.Location;
+import eiss.cube.json.messages.commands.Command;
+import eiss.cube.json.messages.commands.CommandListForDeviceRequest;
+import eiss.cube.json.messages.commands.CommandListRequest;
+import eiss.cube.json.messages.commands.CommandListResponse;
 import eiss.cube.service.http.process.api.Api;
-import eiss.models.cubes.EISScube;
+import eiss.models.cubes.CubeCommand;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 
 import javax.inject.Inject;
 import javax.ws.rs.POST;
@@ -26,15 +27,15 @@ import static javax.servlet.http.HttpServletResponse.*;
 
 @Slf4j
 @Api
-@Path("/eiss-api/devices/list")
-public class ListRoute implements Handler<RoutingContext> {
+@Path("/eiss-api/commands/listfordevice")
+public class ListForDeviceRoute implements Handler<RoutingContext> {
 
     private Vertx vertx;
     private Datastore datastore;
     private Gson gson;
 
     @Inject
-    public ListRoute(Vertx vertx, Datastore datastore, Gson gson) {
+    public ListForDeviceRoute(Vertx vertx, Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;
@@ -49,11 +50,11 @@ public class ListRoute implements Handler<RoutingContext> {
         if (jsonBody != null && !jsonBody.isEmpty()) {
             vertx.executeBlocking(op -> {
                 try {
-                    DeviceListRequest req = gson.fromJson(jsonBody, DeviceListRequest.class);
+                    CommandListForDeviceRequest req = gson.fromJson(jsonBody, CommandListForDeviceRequest.class);
                     if (req == null) {
                         op.fail("Bad request");
                     } else {
-                        DeviceListResponse res = getListOfDevices(req);
+                        CommandListResponse res = getListOfCommandsForDevice(req);
                         op.complete(gson.toJson(res));
                     }
                 } catch (Exception e) {
@@ -76,16 +77,13 @@ public class ListRoute implements Handler<RoutingContext> {
         }
     }
 
-    private DeviceListResponse getListOfDevices(DeviceListRequest req) {
-        DeviceListResponse rc = new DeviceListResponse();
+    private CommandListResponse getListOfCommandsForDevice(CommandListForDeviceRequest req) {
+        CommandListResponse rc = new CommandListResponse();
 
-        Query<EISScube> cubes = datastore.createQuery(EISScube.class);
+        Query<CubeCommand> commands = datastore.createQuery(CubeCommand.class);
 
         // filter
-        String customerID = req.getCustomerID();
-        if (customerID != null && !customerID.isEmpty()) {
-            cubes.field("customerID").startsWithIgnoreCase(customerID);
-        }
+        commands.criteria("cubeID").equal(new ObjectId(req.getDeviceID()));
 
         // projections
 
@@ -98,39 +96,28 @@ public class ListRoute implements Handler<RoutingContext> {
         }
 
         // get & convert
-        cubes.find(options).toList().forEach(d -> {
-            Double lat = Location.defaultLat;
-            Double lng = Location.defaultLng;
-
-            // default Location - IPKeys office
-            if (d.getLocation() != null) {
-                lat = d.getLocation().getLat();
-                lng = d.getLocation().getLng();
+        commands.find(options).toList().forEach(c -> {
+            rc.getCommands().add(
+                Command.builder()
+                        .id(c.getId().toString())
+                        .deviceID(c.getCubeID().toString())
+                        .command(c.getCommand())
+                        .completeCycle(c.getCompleteCycle())
+                        .dutyCycle(c.getDutyCycle())
+                        .transition(c.getTransition())
+                        .startTime(c.getStartTime())
+                        .endTime(c.getEndTime())
+                        .sent(c.getSent())
+                        .created(c.getCreated())
+                        .received(c.getReceived())
+                        .status(c.getStatus())
+                    .build()
+                );
             }
-
-            rc.getDevices().add(
-                Device.builder()
-                    .id(d.getId().toString())
-                    .ICCID(d.getDeviceID())
-                    .name(d.getName())
-                    .online(d.getOnline())
-                    .timeStarted(d.getTimeStarted())
-                    .lastPing(d.getLastPing())
-                    .signalStrength(d.getSignalStrength())
-                    .address(d.getAddress())
-                    .city(d.getCity())
-                    .zipCode(d.getZipCode())
-                    .customerID(d.getCustomerID())
-                    .zone(d.getZone())
-                    .subZone(d.getSubZone())
-                    .location(Location.builder().lat(lat).lng(lng).build())
-                    .settings(d.getSettings())
-                .build()
-            );
-        });
+        );
 
         // total number of records
-        rc.setTotal(cubes.count());
+        rc.setTotal(commands.count());
 
         return rc;
     }

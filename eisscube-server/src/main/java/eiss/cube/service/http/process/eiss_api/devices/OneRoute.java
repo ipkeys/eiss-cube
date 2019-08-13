@@ -105,6 +105,7 @@ public class OneRoute implements Handler<RoutingContext> {
                     Device.builder()
                         .id(d.getId().toString())
                         .ICCID(d.getDeviceID())
+                        .name(d.getName())
                         .online(d.getOnline())
                         .timeStarted(d.getTimeStarted())
                         .lastPing(d.getLastPing())

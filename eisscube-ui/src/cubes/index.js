@@ -131,6 +131,9 @@ export const EissCubesShow = withStyles(styles)(
     )
 );
   
+const validateICCID = [maxLength(20)];
+const validateName = [maxLength(50)];
+
 export const EissCubesEdit = withStyles(styles)(
     ({ classes, ...props }) => (
         <Edit  
@@ -139,8 +142,8 @@ export const EissCubesEdit = withStyles(styles)(
         >
             <TabbedForm>
                 <FormTab label='identity'>
-                    <DisabledInput label='ICCID' source='deviceID' className={classes.longText} validate={[ maxLength(20) ]} />
-                    <TextInput label='Name' source='name' />
+                    <DisabledInput label='ICCID' source='deviceID' className={classes.longText} validate={validateICCID} />
+                    <TextInput label='Name' source='name' className={classes.longText} validate={validateName}/>
                 </FormTab>
                 <FormTab label='customer'>
                     <TextInput label='Customer ID' source='customerID' className={classes.longText} />
