@@ -92,7 +92,7 @@ public class CubeHandler implements Handler<NetSocket> {
             }
         }, res -> {
             if (res.succeeded()) {
-                log.info(String.valueOf(res.result()));
+                log.info("{}", res.result());
             } else {
                 log.info(res.cause().getMessage());
             }
@@ -126,7 +126,7 @@ public class CubeHandler implements Handler<NetSocket> {
     }
 
     @Override
-    public void handle(NetSocket netSocket) {
+    public void handle(final NetSocket netSocket) {
 
         final RecordParser parser = RecordParser.newDelimited("\0", h -> {
             String message = h.toString();
@@ -141,12 +141,12 @@ public class CubeHandler implements Handler<NetSocket> {
 
         netSocket
             .handler(parser)
-            .closeHandler(h -> {
-                log.error("Socket closed");
-                goOffline(netSocket);
-            })
+            .closeHandler(h ->
+                log.info("Socket closed")
+            )
             .exceptionHandler(h -> {
-                log.error("Socket problem: {}", h.getMessage());
+                log.info("Socket problem: {}", h.getMessage());
+                goOffline(netSocket.writeHandlerID());
                 netSocket.close();
             });
 
@@ -247,39 +247,56 @@ public class CubeHandler implements Handler<NetSocket> {
             Query<EISScube> q = datastore.createQuery(EISScube.class);
             q.criteria("socket").equal(socket);
 
-            UpdateOperations<EISScube> ops = datastore.createUpdateOperations(EISScube.class)
-                .set("online", Boolean.TRUE)
-                .set("lastPing", Instant.now());
-
-            datastore.update(q, ops);
-
-            Buffer outBuffer = Buffer
-                .buffer()
-                .appendString("O")
-                .appendString("\0");
-
-            eventBus.send(socket, outBuffer);
-
             EISScube cube = q.first();
-            op.complete(cube);
-        }, res -> log.info("DeviceID: {} - Ping...Pong...", ((EISScube)res.result()).getDeviceID()));
+            if (cube != null) {
+                UpdateOperations<EISScube> ops = datastore.createUpdateOperations(EISScube.class)
+                        .set("online", Boolean.TRUE)
+                        .set("lastPing", Instant.now());
+
+                datastore.update(q, ops);
+
+                Buffer outBuffer = Buffer
+                        .buffer()
+                        .appendString("O")
+                        .appendString("\0");
+
+                eventBus.send(socket, outBuffer);
+
+                op.complete(cube.getDeviceID());
+            } else {
+                op.fail(String.format("Socket: %s is not belong to EISSCube", socket));
+            }
+        }, res -> {
+            if (res.succeeded()) {
+                log.info("DeviceID: {} - Ping...Pong...", res.result());
+            } else {
+                log.error(res.cause().getMessage());
+            }
+        });
     }
 
-    private void goOffline(final NetSocket netSocket) {
+    private void goOffline(final String socket) {
         vertx.executeBlocking(op -> {
-            String socket = netSocket.writeHandlerID();
-
             Query<EISScube> q = datastore.createQuery(EISScube.class);
             q.criteria("socket").equal(socket);
 
-            UpdateOperations<EISScube> ops = datastore.createUpdateOperations(EISScube.class)
-                .set("online", Boolean.FALSE);
-
-            datastore.update(q, ops);
-
             EISScube cube = q.first();
-            op.complete(cube);
-        }, res -> log.debug("DeviceID: {} is OFFLINE", ((EISScube)res.result()).getDeviceID()));
+            if (cube != null) {
+                UpdateOperations<EISScube> ops = datastore.createUpdateOperations(EISScube.class)
+                        .set("online", Boolean.FALSE);
+
+                datastore.update(q, ops);
+                op.complete(cube.getDeviceID());
+            } else {
+                op.fail(String.format("Socket: %s is not belong to EISSCube", socket));
+            }
+        }, res -> {
+            if (res.succeeded()) {
+                log.info("DeviceID: {} is OFFLINE", res.result());
+            } else {
+                log.error(res.cause().getMessage());
+            }
+        });
     }
 
     private void parseMessage(final NetSocket netSocket, String message) {
@@ -330,7 +347,7 @@ public class CubeHandler implements Handler<NetSocket> {
                 }
             }, res -> {
                 if (res.succeeded()) {
-                    log.info(String.valueOf(res.result()));
+                    log.info("{}", res.result());
                 } else {
                     log.info(res.cause().getMessage());
                 }
@@ -352,7 +369,7 @@ public class CubeHandler implements Handler<NetSocket> {
                 for (String part : message.split("&")) {
                     if (part.startsWith("rpt-ts=")) {
                         String timestamp = part.replace("rpt-ts=", "");
-                        ts = Instant.ofEpochSecond(Long.valueOf(timestamp));
+                        ts = Instant.ofEpochSecond(Long.parseLong(timestamp));
                     }
                     if (part.startsWith("v=")) {
                         v = part.replace("v=", "");
@@ -404,7 +421,7 @@ public class CubeHandler implements Handler<NetSocket> {
                 for (String part : message.split("&")) {
                     if (part.startsWith("sts-ts=")) {
                         String timestamp = part.replace("sts-ts=", "");
-                        ts = Instant.ofEpochSecond(Long.valueOf(timestamp));
+                        ts = Instant.ofEpochSecond(Long.parseLong(timestamp));
                     }
                     if (part.startsWith("r=")) {
                         r = part.replace("r=", "");

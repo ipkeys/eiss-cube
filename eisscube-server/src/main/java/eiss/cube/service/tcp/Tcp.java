@@ -33,7 +33,7 @@ public class Tcp extends AbstractVerticle {
     @Override
     public void start() throws Exception {
 
-        int port = Integer.valueOf(cfg.getTcpPort());
+        int port = Integer.parseInt(cfg.getTcpPort());
 
         NetServerOptions options = new NetServerOptions()
             .setPort(port)

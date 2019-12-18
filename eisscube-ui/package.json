@@ -30,7 +30,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "postbuild": "rm -rfv ../../eiss-docker/eisscube.ipkeys.com/public/ui/cube ; mkdir -p ../../eiss-docker/eisscube.ipkeys.com/public/ui/cube ; mv ./build/* ../../eiss-docker/eisscube.ipkeys.com/public/ui/cube",
+    "postbuild": "rm -rfv ../../eiss-docker/public/ui/cube ; mkdir -p ../../eiss-docker/public/ui/cube ; mv ./build/* ../../eiss-docker/public/ui/cube",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
