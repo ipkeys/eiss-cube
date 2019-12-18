@@ -1,0 +1,46 @@
+{
+  "name": "eisscube-ui",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@material-ui/lab": "^1.0.0-alpha.12",
+    "axios": "^0.18.0",
+    "leaflet": "^1.5.1",
+    "leaflet-draw": "^1.0.4",
+    "leaflet.awesome-markers": "^2.0.5",
+    "leaflet.markercluster": "^1.4.1",
+    "material-ui-pickers": "1.0.0-rc.17",
+    "moment": "^2.24.0",
+    "pondjs": "^0.8.10",
+    "prop-types": "^15.7.2",
+    "ra-realtime": "^2.8.6",
+    "react": "^16.8",
+    "react-admin": "^2.9.4",
+    "react-dom": "^16.8",
+    "react-leaflet": "^2.3.0",
+    "react-leaflet-draw": "^0.19.0",
+    "react-leaflet-markercluster": "^2.0.0-rc3",
+    "react-router-redux": "^4.0.8",
+    "react-scripts": "3.0.1",
+    "react-timeseries-charts": "^0.16.1",
+    "redux-saga": "^1.0.2",
+    "ringjs": "^0.0.1"
+  },
+  "homepage": "/ui/cube",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "postbuild": "rm -rfv ../../eiss-docker/public/ui/cube ; mkdir -p ../../eiss-docker/public/ui/cube ; mv ./build/* ../../eiss-docker/public/ui/cube",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
+}
