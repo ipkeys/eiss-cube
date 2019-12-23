@@ -1,6 +1,7 @@
 package eiss.cube.service.http.process.test;
 
 import com.google.gson.Gson;
+import eiss.cube.db.Cube;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeTest;
 import io.vertx.core.Handler;
@@ -34,7 +35,7 @@ public class GetRoute implements Handler<RoutingContext> {
     private Gson gson;
 
     @Inject
-    public GetRoute(Vertx vertx, Datastore datastore, Gson gson) {
+    public GetRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;

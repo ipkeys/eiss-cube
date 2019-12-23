@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import dev.morphia.Datastore;
 import dev.morphia.query.Query;
 import dev.morphia.query.UpdateOperations;
+import eiss.cube.db.Cube;
 import eiss.cube.json.messages.properties.Property;
 import eiss.cube.json.messages.properties.PropertyIdRequest;
 import eiss.cube.json.messages.properties.PropertyResponse;
@@ -36,7 +37,7 @@ public class DeleteRoute implements Handler<RoutingContext> {
     private Gson gson;
 
     @Inject
-    public DeleteRoute(Vertx vertx, Datastore datastore, Gson gson) {
+    public DeleteRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;

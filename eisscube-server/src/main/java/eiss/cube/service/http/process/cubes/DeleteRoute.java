@@ -1,6 +1,7 @@
 package eiss.cube.service.http.process.cubes;
 
 import com.google.gson.Gson;
+import eiss.cube.db.Cube;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.EISScube;
 import io.vertx.core.Handler;
@@ -31,7 +32,7 @@ public class DeleteRoute implements Handler<RoutingContext> {
     private Gson gson;
 
     @Inject
-    public DeleteRoute(Vertx vertx, Datastore datastore, Gson gson) {
+    public DeleteRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;

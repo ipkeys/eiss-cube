@@ -1,6 +1,6 @@
 package eiss.cube.config;
 
-public interface DatabaseConfig {
+public interface EissDatabaseConfig {
 
     String getHost();
     String getPort();

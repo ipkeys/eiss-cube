@@ -1,6 +1,7 @@
 package eiss.cube.service.http.process.cubes;
 
 import com.google.gson.Gson;
+import eiss.cube.db.Cube;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubePoint;
 import eiss.models.cubes.EISScube;
@@ -33,7 +34,7 @@ public class PutLocationRoute implements Handler<RoutingContext> {
     private Gson gson;
 
     @Inject
-    public PutLocationRoute(Vertx vertx, Datastore datastore, Gson gson) {
+    public PutLocationRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;

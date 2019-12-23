@@ -3,7 +3,7 @@ import _ from 'lodash';
 import L from 'leaflet';
 import { Map, LayersControl, TileLayer, Marker, Popup } from 'react-leaflet';
 import { GET_LIST } from 'react-admin';
-import { dataProvider } from '../App';
+import { dataProvider } from '../globalExports';
 import { red, green } from '@material-ui/core/colors';
 import Paper from '@material-ui/core/Paper';
 

@@ -7,6 +7,8 @@ import {
     TextField,
     SearchInput,
     TextInput,
+    ReferenceField,
+    ReferenceInput,
     SelectInput,
     ShowButton,
     Show,
@@ -25,7 +27,7 @@ import Icon from '@material-ui/icons/Router';
 import { withStyles } from '@material-ui/core/styles';
 import { green, red } from '@material-ui/core/colors';
 
-import { AppDateTimeFormat, DateTimeMomentFormat } from '../App';
+import { AppDateTimeFormat, DateTimeMomentFormat } from '../globalExports';
 import StatusField from './StatusField';
 import CubeMap from './CubeMap';
 import EissCubesShowActions from './ShowActions';
@@ -108,6 +110,9 @@ export const EissCubesList = withStyles(styles)(
                 medium={
                     <Datagrid classes={{ rowEven: classes.rowEven }} >
                         <TextField source='name' label='Name' />
+                        <ReferenceField source="group_id" label="Group" reference="groups" linkType={false} allowEmpty={true} >
+                            <TextField source="displayName" />
+                        </ReferenceField>
                         <StatusField source='online' label='Status' />
                         <DateField source='timeStarted' label='Started' showTime options={AppDateTimeFormat} />
                         <DateField source='lastPing' label='Last ping' showTime options={AppDateTimeFormat} />
@@ -144,6 +149,13 @@ export const EissCubesEdit = withStyles(styles)(
                 <FormTab label='identity'>
                     <DisabledInput label='ICCID' source='deviceID' className={classes.longText} validate={validateICCID} />
                     <TextInput label='Name' source='name' className={classes.longText} validate={validateName}/>
+                    <ReferenceInput 
+                        sort={{ field: 'displayName', order: 'ASC' }}
+                        source="group_id" 
+                        reference="groups"
+                    >
+                        <SelectInput optionText='displayName' />
+                    </ReferenceInput>
                 </FormTab>
                 <FormTab label='customer'>
                     <TextInput label='Customer ID' source='customerID' className={classes.longText} />

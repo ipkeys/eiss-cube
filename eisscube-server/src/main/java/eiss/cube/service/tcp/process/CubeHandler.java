@@ -1,6 +1,7 @@
 package eiss.cube.service.tcp.process;
 
 import dev.morphia.query.Sort;
+import eiss.cube.db.Cube;
 import eiss.cube.randname.Randname;
 import eiss.models.cubes.CubeCommand;
 import eiss.models.cubes.CubeMeter;
@@ -36,7 +37,7 @@ public class CubeHandler implements Handler<NetSocket> {
     private Randname randname;
 
     @Inject
-    public CubeHandler(Vertx vertx, Datastore datastore, Randname randname) {
+    public CubeHandler(Vertx vertx, @Cube Datastore datastore, Randname randname) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.randname = randname;

@@ -2,6 +2,7 @@ package eiss.cube.service.http.process.cloudven;
 
 import dev.morphia.Datastore;
 import dev.morphia.query.Query;
+import eiss.cube.db.Cube;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.EISScube;
 import io.vertx.core.Handler;
@@ -29,7 +30,7 @@ public class GetVenResourcesRoute implements Handler<RoutingContext> {
     private Datastore datastore;
 
     @Inject
-    public GetVenResourcesRoute(Vertx vertx, Datastore datastore) {
+    public GetVenResourcesRoute(Vertx vertx, @Cube Datastore datastore) {
         this.vertx = vertx;
         this.datastore = datastore;
     }

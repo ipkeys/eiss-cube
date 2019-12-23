@@ -2,7 +2,7 @@ import React, { Component, Fragment } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import FormGroup from '@material-ui/core/FormGroup';
 import { GET_LIST, TextInput, maxLength } from 'react-admin';
-import { dataProvider } from '../App';
+import { dataProvider } from '../globalExports';
 
 const styles = theme => ({
     longText: {

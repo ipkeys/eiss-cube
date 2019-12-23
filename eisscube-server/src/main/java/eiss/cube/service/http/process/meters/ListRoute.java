@@ -2,6 +2,7 @@ package eiss.cube.service.http.process.meters;
 
 import com.google.gson.Gson;
 import dev.morphia.query.Sort;
+import eiss.cube.db.Cube;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeMeter;
 import io.vertx.core.Handler;
@@ -35,7 +36,7 @@ public class ListRoute implements Handler<RoutingContext> {
     private Gson gson;
 
     @Inject
-    public ListRoute(Vertx vertx, Datastore datastore, Gson gson) {
+    public ListRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;

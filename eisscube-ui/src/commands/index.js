@@ -25,7 +25,7 @@ import {
 } from 'react-admin';
 import { withStyles } from '@material-ui/core/styles';
 import Icon from '@material-ui/icons/Message';
-import { AppDateTimeFormat, DateTimeMomentFormat } from '../App';
+import { AppDateTimeFormat, DateTimeMomentFormat } from '../globalExports';
 import CycleField from './CycleField';
 import DutyCycleField from './DutyCycleField';
 import DividerField from './DividerField';

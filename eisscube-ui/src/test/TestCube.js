@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import moment from 'moment';
 import { Button, CREATE, GET_ONE } from 'react-admin';
-import { dataProvider } from '../App';
+import { dataProvider } from '../globalExports';
 import { TimeSeries, TimeRange} from "pondjs";
 import {
   ChartContainer,

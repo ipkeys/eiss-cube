@@ -1,6 +1,7 @@
 package eiss.cube.service.http.process.properties;
 
 import com.google.gson.Gson;
+import eiss.cube.db.Cube;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeProperty;
 import io.vertx.core.Handler;
@@ -31,7 +32,7 @@ public class PostRoute implements Handler<RoutingContext> {
     private Gson gson;
 
     @Inject
-    public PostRoute(Vertx vertx, Datastore datastore, Gson gson) {
+    public PostRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;

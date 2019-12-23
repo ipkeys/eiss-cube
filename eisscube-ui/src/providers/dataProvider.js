@@ -12,6 +12,8 @@ import {
     DELETE_MANY,
 } from 'react-admin';
 
+export const VALIDATE = "VALIDATE";
+
 let http;
 
 /**
@@ -39,8 +41,13 @@ export default (apiUrl, httpService) => {
     const convertDataRequestToHTTP = (type, resource, params) => {
         let url = '';
         const options = {};
+
         switch (type) {
             case GET_LIST: {
+                if (!params) {
+                    url = `${apiUrl}/${resource}`;
+                    break;
+                }
                 const { page, perPage } = params.pagination;
                 const { field, order } = params.sort;
                 const query = {
@@ -71,12 +78,13 @@ export default (apiUrl, httpService) => {
                 break;
             }
             case UPDATE:
-                url = `${apiUrl}/${resource}/${params.id}`;
+                url = `${apiUrl}/${resource.replace('/update/', '')}/${params.id}`;
                 options.method = 'put';
+                // options.body = {data: params.data, previousData: params.previousData};
                 options.body = params.data;
                 break;
             case CREATE:
-                url = `${apiUrl}/${resource}`;
+                url = `${apiUrl}/${resource.replace('/create/', '')}`;
                 options.method = 'post';
                 options.body = params.data;
                 break;
@@ -91,9 +99,16 @@ export default (apiUrl, httpService) => {
                 url = `${apiUrl}/${resource}?${stringify(query)}`;
                 break;
             }
+            case VALIDATE: {
+                url = `${apiUrl}/${resource}/validate`;
+                options.body = params.data;
+                options.method = 'post';
+                break;
+            }
             default:
                 throw new Error(`Unsupported fetch action type ${type}`);
         }
+        // console.log(type, url, options);
         return { url, options };
     };
 
@@ -106,7 +121,10 @@ export default (apiUrl, httpService) => {
      */
     const convertHTTPResponse = (response, type, resource, params) => {
         const { headers, data } = response;
+        // console.log(resource, response, params);
         switch (type) {
+            case GET_MANY:
+                return { data: data };
             case GET_LIST:
             case GET_MANY_REFERENCE:
                 if (!headers['x-total-count']) {
@@ -118,6 +136,8 @@ export default (apiUrl, httpService) => {
                 };
             case CREATE:
                 return { data: { ...params.data, id: data.id } };
+            case VALIDATE:
+                return response;
             default:
                 return { data: data };
         }
@@ -157,21 +177,31 @@ export default (apiUrl, httpService) => {
         }
 
         const { url, options } = convertDataRequestToHTTP(type, resource, params);
-        return httpClient(url, options).then(response =>
-            convertHTTPResponse(response, type, resource, params)
+        return httpClient(url, options)
+        .then(
+            (response) => {
+                return convertHTTPResponse(response, type, resource, params)
+            },
+            (error) => {
+                // Pass validation error handling upstream
+                if (type === VALIDATE) {
+                    return new Error(error.response);
+                }  
+                
+                // Axios error
+                if (error.message) {
+                    console.log(error.message);
+                    return new Error("axios.error");
+                }
+
+                return http.processError(error);
+            }
         );
     };
 };
 
 const httpClient = (url, options = {}) => {
-    if (!options.headers) {
-        options.headers = new Headers({ Accept: 'application/json' });
-    }
-
-    let method = options.method || 'get';
- 
-    return http[method](url, options).then(response => {
-        return response;
-    });
+    const method = options.method || 'get'; 
+    return http[method](url, options);
 };
   

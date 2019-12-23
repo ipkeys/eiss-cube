@@ -28,7 +28,7 @@
   },
   "homepage": "/ui/cube",
   "scripts": {
-    "start": "react-scripts start",
+    "start": "REACT_APP_AUTH_PORT=4002 REACT_APP_CUBE_PORT=5002 react-scripts start",
     "build": "react-scripts build",
     "postbuild": "rm -rfv ../../eiss-docker/public/ui/cube ; mkdir -p ../../eiss-docker/public/ui/cube ; mv ./build/* ../../eiss-docker/public/ui/cube",
     "test": "react-scripts test",

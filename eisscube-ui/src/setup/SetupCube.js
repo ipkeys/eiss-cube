@@ -10,7 +10,7 @@ import SaveIcon from '@material-ui/icons/Save';
 import NextIcon from '@material-ui/icons/ArrowDownward';
 
 import { Button, GET_ONE, CREATE } from 'react-admin';
-import { dataProvider } from '../App';
+import { dataProvider } from '../globalExports';
 
 import RelayForm from './RelayForm';
 import InputForm from './InputForm';

@@ -3,7 +3,7 @@ import { withStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 
 import { Title, GET_LIST } from 'react-admin';
-import { dataProvider } from '../App';
+import { dataProvider } from '../globalExports';
 
 import Welcome from './Welcome';
 import Online from './Online';

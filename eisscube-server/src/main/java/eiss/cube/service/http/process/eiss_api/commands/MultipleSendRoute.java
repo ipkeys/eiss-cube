@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import dev.morphia.Datastore;
 import dev.morphia.Key;
 import dev.morphia.query.Query;
+import eiss.cube.db.Cube;
 import eiss.cube.json.messages.commands.*;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeCommand;
@@ -37,7 +38,7 @@ public class MultipleSendRoute implements Handler<RoutingContext> {
     private Gson gson;
 
     @Inject
-    public MultipleSendRoute(Vertx vertx, Datastore datastore, Gson gson) {
+    public MultipleSendRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;

@@ -1,4 +1,5 @@
 import Promise from 'bluebird';
+import axios from 'axios';
 
 //------------------------------------------------------------------------------
 // token management and processing functions
@@ -175,7 +176,7 @@ export default function TokenManager(opts) {
         }
 
         if (!tokenData) {
-            return Promise.reject(new Error('Your session is expired. Please login!'));
+            return Promise.reject(new Error('expired'));
         }
 
         if (tokenData.tokenExpires.getTime() > new Date().getTime()) {
@@ -184,10 +185,10 @@ export default function TokenManager(opts) {
 
         if (tokenData.refreshExpires.getTime() < new Date().getTime()) {
             removeToken();
-            return Promise.reject(new Error('Your session is expired. Please login!'));
+            return Promise.reject(new Error('expired'));
         }
 
-        return http.post(refreshUrl, {refresh_token: tokenData.refreshToken, device: tokenData.device})
+        return axios.post(refreshUrl, {refresh_token: tokenData.refreshToken, device: tokenData.device})
         .then((response) => {
             if (response && response.data && response.data.access_token) {
                 tokenData.accessToken = response.data.access_token;
@@ -199,41 +200,47 @@ export default function TokenManager(opts) {
                 return tokenData.accessToken;
             } else {
                 removeToken();
-                return Promise.reject(new Error('Your session is expired. Please login!'));
+                return Promise.reject(new Error('expired'));
             }
         })
         .catch((error) => {
             removeToken();
-            return Promise.reject(new Error('Your session is expired. Please login!'));
+            return Promise.reject(new Error('expired'));
         });
     };
 
     this.login = (username, password) => {
         return new Promise((resolve, reject) => {
             let device = guid();
-            http.post(tokenUrl, {username, password, device})
-            .then((response) => {
-                if (response.data) {
-                    if (!processToken(response.data, device)) {
-                        return reject("error processing token");
+            let opts = {
+                headers: new Headers({ Accept: 'application/json' })
+            }
+            axios.post(tokenUrl, {username, password, device}, opts)
+            .then(
+                (response) => {
+                    if (response.data && response.data) {
+                        if (!processToken(response.data, device)) {
+                            return reject(new Error("eiss.auth.process"));
+                        }
+                        return resolve({});
                     }
-                    resolve(username);
-                }
-            })
-            .catch((error) => {
-                if (error.response) {
-                    const response = error.response;
-                    if (response.status === 401) {
-                        return reject(new Error('Invalid credentials'));
-                    } else if (response && response.data) {
-                        reject(new Error('Unable to login at this time'));
+                    return reject(new Error("eiss.no_response"));
+                },
+                (error) => {
+                    if (error.response) {
+                        const response = error.response;
+                        if (response.status === 401) {
+                            return reject(new Error('eiss.auth.invalid'));
+                        } else if (response && response.data) {
+                            reject(new Error('eiss.auth.unable'));
+                        } else {
+                            reject(new Error('eiss.auth.failed'));
+                        }
                     } else {
-                        reject(new Error('Login failed'));
+                        reject(new Error('eiss.no_response'));
                     }
-                } else {
-                    reject(new Error('No response from server'));
                 }
-            });
+            )
         });
     };
 

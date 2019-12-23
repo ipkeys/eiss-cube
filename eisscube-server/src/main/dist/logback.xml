@@ -13,11 +13,11 @@
         <appender-ref ref="STDOUT" />
     </logger>
 
-    <logger name="org.mongodb.driver" level="INFO" additivity="false">
+    <logger name="org.mongodb.*" level="INFO" additivity="false">
         <appender-ref ref="STDOUT" />
     </logger>
 
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
 

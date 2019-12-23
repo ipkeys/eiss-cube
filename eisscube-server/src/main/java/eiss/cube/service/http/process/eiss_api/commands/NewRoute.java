@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import dev.morphia.Datastore;
 import dev.morphia.Key;
 import dev.morphia.query.Query;
+import eiss.cube.db.Cube;
 import eiss.cube.json.messages.commands.Command;
 import eiss.cube.json.messages.commands.CommandRequest;
 import eiss.cube.json.messages.commands.CommandResponse;
@@ -39,7 +40,7 @@ public class NewRoute implements Handler<RoutingContext> {
     private Gson gson;
 
     @Inject
-    public NewRoute(Vertx vertx, Datastore datastore, Gson gson) {
+    public NewRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;
