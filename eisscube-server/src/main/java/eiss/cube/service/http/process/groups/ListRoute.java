@@ -26,6 +26,8 @@ import javax.ws.rs.Path;
 import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Vector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.mongodb.client.model.CollationStrength.SECONDARY;
 import static eiss.utils.reactadmin.ParamName.*;
@@ -71,14 +73,14 @@ public class ListRoute implements Handler<RoutingContext> {
             // ~search
 
             // filters
-            String ids_param = request.getParam("id_like");
-            if (ids_param != null) {
-                Vector<Criteria> id_criteria = new Vector<>();
-                for (String id : ids_param.split("\\|")) {
-                    id_criteria.add(q.criteria("_id").equal(new ObjectId(id)));
+            String id_like = request.getParam("id_like");
+            if (id_like != null && !id_like.isEmpty()) {
+                if (id_like.contains("|")) {
+                    List<ObjectId> ids = Stream.of(id_like.split("\\|")).map(ObjectId::new).collect(Collectors.toList());
+                    q.criteria("_id").in(ids);
+                } else {
+                    q.criteria("_id").equal(new ObjectId(id_like));
                 }
-                q.or(id_criteria.toArray(new Criteria[id_criteria.size()]));
-
             }
             // ~filters
 

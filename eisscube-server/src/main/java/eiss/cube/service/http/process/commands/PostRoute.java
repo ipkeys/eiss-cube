@@ -6,6 +6,7 @@ import eiss.cube.service.http.process.api.Api;
 import eiss.cube.json.messages.CycleAndDutyCycleExtractor;
 import eiss.models.cubes.CubeCommand;
 import eiss.models.cubes.EISScube;
+import eiss.models.eiss.Group;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerResponse;
@@ -71,6 +72,16 @@ public class PostRoute implements Handler<RoutingContext> {
         vertx.executeBlocking(op -> {
             cmd.setStatus("Created");
             cmd.setCreated(Instant.now());
+
+            // put command under cube's group
+            Query<EISScube> q = datastore.createQuery(EISScube.class);
+            q.criteria("id").equal(cmd.getCubeID());
+            EISScube cube = q.first();
+            if (cube != null) {
+                cmd.setGroup(cube.getGroup());
+                cmd.setGroup_id(cube.getGroup_id());
+            }
+            // ~put command under cube's group
 
             try {
                 Key<CubeCommand> key = datastore.save(cmd);

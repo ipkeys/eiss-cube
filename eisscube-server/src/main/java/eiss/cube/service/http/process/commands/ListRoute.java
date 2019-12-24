@@ -10,6 +10,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.Session;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import dev.morphia.Datastore;
@@ -25,6 +26,7 @@ import java.util.List;
 import static eiss.utils.reactadmin.ParamName.*;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
+import static java.lang.Boolean.TRUE;
 import static javax.servlet.http.HttpServletResponse.*;
 
 @Slf4j
@@ -48,8 +50,20 @@ public class ListRoute implements Handler<RoutingContext> {
     public void handle(RoutingContext context) {
         HttpServerRequest request = context.request();
         HttpServerResponse response = context.response();
+        Session session = context.session();
 
         Query<CubeCommand> q = datastore.createQuery(CubeCommand.class);
+
+        if (session.get("role").equals("securityadmin")) {
+            // filters
+            String group_id = request.getParam("group_id");
+            if (group_id != null) {
+                q.criteria("group_id").equal(group_id);
+            }
+            // ~filters
+        } else {
+            q.criteria("group").equal(session.get("group"));
+        }
 
         // search
         String search = request.getParam(FILTER);
@@ -93,12 +107,21 @@ public class ListRoute implements Handler<RoutingContext> {
         }
         // ~sorts
 
+        // projections
+        q.project("cubeID", TRUE)
+            .project("command", TRUE)
+            .project("status", TRUE)
+            .project("created", TRUE)
+            .project("group", TRUE)
+            .project("group_id", TRUE);
+        // ~projections
+
         // skip/limit
         FindOptions o = new FindOptions();
         String s = request.getParam(START);
         String e = request.getParam(END);
         if (s != null && e != null && !s.isEmpty() && !e.isEmpty()) {
-            o.skip(Integer.valueOf(s)).limit(Integer.valueOf(e) - Integer.valueOf(s));
+            o.skip(Integer.parseInt(s)).limit(Integer.parseInt(e) - Integer.parseInt(s));
         }
         // ~skip/limit
 

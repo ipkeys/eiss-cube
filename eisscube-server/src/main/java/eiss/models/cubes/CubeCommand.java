@@ -22,6 +22,12 @@ public class CubeCommand {
 
     @Property ObjectId cubeID; // reference to EISScube.id
 
+    @Indexed(options = @IndexOptions(name="CommanGroupIndex"))
+    @Property String group;
+
+    @Indexed(options = @IndexOptions(name="CommandGroupIdIndex"))
+    @Property String group_id;
+
     @Property String command;
 
     @Property Instant startTime;

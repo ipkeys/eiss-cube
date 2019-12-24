@@ -41,3 +41,8 @@ export const AppDateTimeFormat = { year: 'numeric', month: '2-digit', day: '2-di
 export const DateTimeFormat = 'MM/dd/YYYY, HH:mm:ss';
 export const DateTimeMomentFormat = 'MM/DD/YYYY, HH:mm:ss';
 
+export const SUPER = "securityadmin";
+
+export const isSuperAdmin = permissions => (
+    permissions && permissions.role === SUPER
+);

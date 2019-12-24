@@ -25,7 +25,7 @@ import {
 } from 'react-admin';
 import { withStyles } from '@material-ui/core/styles';
 import Icon from '@material-ui/icons/Message';
-import { AppDateTimeFormat, DateTimeMomentFormat } from '../globalExports';
+import { AppDateTimeFormat, DateTimeMomentFormat, isSuperAdmin } from '../globalExports';
 import CycleField from './CycleField';
 import DutyCycleField from './DutyCycleField';
 import DividerField from './DividerField';
@@ -88,16 +88,26 @@ const CommandFilter = props => (
         <ReferenceInput label='for EISS™Cube' source='cubeID' reference='cubes'>
             <AutocompleteInput optionText='name'/>
         </ReferenceInput>
+        {isSuperAdmin(props.permissions) ? 
+            <ReferenceInput 
+                source="group_id"
+                reference="groups"
+                sort={{ field: 'displayName', order: 'ASC' }}
+                allowEmpty
+            >
+                <SelectInput optionText='displayName' />
+            </ReferenceInput>
+        : null }
         <DateTimeInlineInput label='Created Before' source='timestamp_lte' options={{ format: DateTimeMomentFormat, ampm: false }} />
         <DateTimeInlineInput label='Created Since' source='timestamp_gte' options={{ format: DateTimeMomentFormat, ampm: false }} />
     </Filter>
 );
 
 export const CommandList = withStyles(styles)(
-    ({ classes, ...props }) => (
+    ({ classes, permissions: p, ...props }) => (
         <List  
             title={<CommandTitle title='Commands' />}
-            filters={<CommandFilter />}
+            filters={<CommandFilter permissions={p} />}
             sort={{ field: 'created', order: 'DESC' }}
             perPage={10}
             exporter={false}
