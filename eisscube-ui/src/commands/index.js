@@ -118,6 +118,13 @@ export const CommandList = withStyles(styles)(
                 <ReferenceField label='for EISS™Cube' source='cubeID' reference='cubes' linkType='show'>
                     <TextField source='name' />
                 </ReferenceField>
+                {isSuperAdmin(p)
+                ?   <ReferenceField source="group_id" label="Group" reference="groups" linkType={false} allowEmpty={true} >
+                        <TextField source="displayName" />
+                    </ReferenceField>
+                : 
+                    null
+                }
                 <DateField label='Created' source='created' showTime options={AppDateTimeFormat} />
                 <CommandStatusField source='status' />
                 <ShowButton />
@@ -127,7 +134,7 @@ export const CommandList = withStyles(styles)(
 );
 
 export const CommandShow = withStyles(styles)(
-    ({ classes, ...props }) => (
+    ({ classes, permissions: p, ...props }) => (
         <ShowController 
             title={<CommandTitle title='Command' />} 
             {...props}
@@ -140,6 +147,14 @@ export const CommandShow = withStyles(styles)(
                         <ReferenceField className={classes.inlineField} label='for EISS™Cube' source='cubeID' reference='cubes' linkType='show'>
                             <TextField source='name' />
                         </ReferenceField>
+
+                        {isSuperAdmin(p)
+                        ?   <ReferenceField className={classes.inlineField} source="group_id" label="Group" reference="groups" linkType={false} allowEmpty={true} >
+                                <TextField source="displayName" />
+                            </ReferenceField>
+                        : 
+                            null
+                        }
 
                         {controllerProps.record && controllerProps.record.startTime && 
                             <DateField className={classes.inlineField} label='Start date, time' source='startTime' showTime options={AppDateTimeFormat} />
