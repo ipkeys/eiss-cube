@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import moment from 'moment';
 import { Button, CREATE, GET_ONE } from 'react-admin';
-import { dataProvider } from '../globalExports';
+import { dataProvider } from '../providers';
 import { TimeSeries, TimeRange} from "pondjs";
 import {
   ChartContainer,
@@ -79,24 +79,24 @@ const baselineDownStyle = {
 
 const styles = theme => ({
 	btnPadding: {
-        paddingRight: theme.spacing.unit
+        paddingRight: theme.spacing(1)
     },
     title: {
         display: 'inline-flex',
         alignItems: 'center',
     },
     content: {
-        paddingLeft: theme.spacing.unit * 3,
-        paddingRight: theme.spacing.unit * 3,
+        paddingLeft: theme.spacing(3),
+        paddingRight: theme.spacing(3),
         paddingBottom: 0
     },
     button: {
-        marginTop: theme.spacing.unit,
-        marginBottom: theme.spacing.unit
+        marginTop: theme.spacing(1),
+        marginBottom: theme.spacing(1)
     },
     progress: {
-        marginTop: theme.spacing.unit,
-        marginBottom: theme.spacing.unit * 2
+        marginTop: theme.spacing(1),
+        marginBottom: theme.spacing(2)
     },
     note: {
         display: 'inline-flex',
@@ -104,7 +104,7 @@ const styles = theme => ({
 	},
 	notePanel: {
         backgroundColor: yellow[50],
-        marginBottom: theme.spacing.unit
+        marginBottom: theme.spacing(1)
     },
     panelDetails: {
         paddingTop: 0
@@ -115,11 +115,11 @@ const styles = theme => ({
         color: grey[900]
     },
     divider: {
-        marginTop: theme.spacing.unit,
-        marginBottom: theme.spacing.unit
+        marginTop: theme.spacing(1),
+        marginBottom: theme.spacing(1)
     },
     leftgap: {
-        paddingLeft: theme.spacing.unit * 2
+        paddingLeft: theme.spacing(2)
     }
 });
 

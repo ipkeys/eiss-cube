@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import L from 'leaflet';
 import { Map, LayersControl, TileLayer, Marker, Popup } from 'react-leaflet';
 import { showNotification, UPDATE } from 'react-admin';
-import { dataProvider } from '../globalExports';
+import { dataProvider } from '../providers';
 import { red } from '@material-ui/core/colors';
 
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';

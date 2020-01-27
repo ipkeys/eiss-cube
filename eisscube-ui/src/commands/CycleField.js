@@ -9,10 +9,9 @@ const CycleField = ({ className, label, source, record = {}, suffix }) => {
     const value = get(record, source);
     return (
         <Labeled label={label}>
-            <Typography
-                component="span"
-                body1="body1"
-                className={className}
+            <Typography className={className}
+                component='span'
+                variant='body2'
             >
                 {value && typeof value !== 'string' ? JSON.stringify(value) : value} {suffix}
             </Typography>

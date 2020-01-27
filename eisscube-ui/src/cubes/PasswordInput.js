@@ -9,7 +9,7 @@ import { addField } from 'react-admin';
 
 const styles = theme => ({
     textInput: {
-        minWidth: theme.spacing.unit * 32
+        minWidth: theme.spacing(32)
     }
 });
 

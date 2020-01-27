@@ -1,24 +1,34 @@
 import React, { Component } from 'react';
 import { withStyles } from '@material-ui/core/styles';
-import TextField from '@material-ui/core/TextField';
-import FormGroup from '@material-ui/core/FormGroup';
-import FormControl from '@material-ui/core/FormControl';
-import FormLabel from '@material-ui/core/FormLabel';
-import Slider from '@material-ui/lab/Slider';
-import { green, red, lightBlue } from '@material-ui/core/colors';
+import { Box, TextField, FormGroup, FormControl } from '@material-ui/core';
+import Slider from '@material-ui/core/Slider';
+import { grey, green, red, lightBlue } from '@material-ui/core/colors';
 import { FieldTitle } from 'react-admin';
+import { fade } from '@material-ui/core/styles/colorManipulator';
 
 const styles = theme => ({
     textInput: {
-        minWidth: theme.spacing.unit * 32,
-        marginRight: theme.spacing.unit * 2, 
+        minWidth: theme.spacing(32),
+        marginRight: theme.spacing(2), 
     },
     sliderInput: {
-        marginTop: theme.spacing.unit * 2,
-        width: theme.spacing.unit * 32
+        marginTop: 8,
+        paddingTop: 4,
+        width: theme.spacing(32),
+        height: 42,
+        position: 'relative',
+        backgroundColor: theme.overrides.MuiFilledInput.root.backgroundColor,
+        borderTopLeftRadius: 4,
+        borderTopRightRadius: 4,
+        '&:hover': {
+            backgroundColor: fade(grey[400], 0.4),
+            '@media (hover: none)': {
+                backgroundColor: 'transparent',
+            },
+        }
     },
     slider: {
-        marginTop: 20,
+        marginTop: 13,
         paddingRight: 0,
         paddingLeft: 0 
     },
@@ -32,10 +42,12 @@ const styles = theme => ({
         color: lightBlue[800] 
     },
     grey: { 
-        color: 'rgba(0, 0, 0, 0.54)' 
+        color: grey[600] 
     },
     legend: {
-        fontSize: '0.7em'
+        fontSize: '0.7em',
+        paddingTop: 4,
+        paddingLeft: 12
     }
 });
 
@@ -49,11 +61,10 @@ class CycleAndDutyCycleInput extends Component {
     }
 
     render() {
-        const { classes, input: { onChange }, meta: { touched, error }, options, margin } = this.props;
+        const { classes, input: { onChange }, meta: { touched, error }, options } = this.props;
         const { cycle, duty } = this.state;
-
-        const on = isNaN(cycle) && isNaN(duty) ? 0 :  Math.round(cycle * duty / 100);
-        const off = isNaN(cycle) ? 0 : Math.round(cycle - on);
+        const on = Math.round(cycle * duty / 100);
+        const off = Math.round(cycle - on);
 
         onChange(`${cycle}/${duty}`);
 
@@ -61,26 +72,24 @@ class CycleAndDutyCycleInput extends Component {
             <FormGroup row>
                 <TextField
                     className={classes.textInput}
-                    type="number"
+                    type='number'
                     step={1}
                     error={!!(touched && error)}
                     helperText={touched && error}    
-                    onChange={(event) => {
-                        this.setState({cycle: parseInt(event.target.value)});
+                    onChange={ (event) => {
+                        this.setState({cycle: parseInt(event.target.value)}); 
                     }}
-                    label={<FieldTitle label="Cycle (sec)" />}
-                    margin={margin ? margin : 'normal'}
+                    label={<FieldTitle label='Cycle (sec)' />}
                     {...options}
                 />
-                <FormControl component="fieldset" className={classes.sliderInput} >
-                    <FormLabel component="legend" className={classes.legend} >
+                <FormControl className={classes.sliderInput} >
+                    <Box className={classes.legend} >
                         <span className={classes.grey}>Duty Cycle </span>{duty}% (<span className={classes.green}>{on} sec ON</span> / <span className={classes.red}>{off} sec OFF</span>)
-                    </FormLabel>
-                    <Slider
-                        className={classes.slider}
+                    </Box>
+                    <Slider className={classes.slider}
                         step={1}
                         onChange={(event, value) => {
-                            this.setState({ duty: value });
+                            this.setState({ duty: value }); 
                         }}
                         value={duty}
                     />

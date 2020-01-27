@@ -1,6 +1,7 @@
 package eiss.cube.service.http.process.setup;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import eiss.cube.db.Cube;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeSetup;
@@ -60,7 +61,8 @@ public class GetRoute implements Handler<RoutingContext> {
             if (setup != null) {
                 op.complete(gson.toJson(setup));
             } else {
-                op.fail(String.format("Setup for EISScube id: %s not found", cubeID));
+                //op.fail(String.format("Setup for EISScube id: %s not found", cubeID));
+                op.complete(new JsonObject());
             }
         }, res -> {
             if (res.succeeded()) {

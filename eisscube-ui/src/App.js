@@ -1,20 +1,21 @@
-import React from 'react';
+import React, { Fragment }from 'react';
 import { Admin, Resource } from 'react-admin';
 import { Route } from 'react-router-dom';
 import { createMuiTheme } from '@material-ui/core/styles';
 
-import Login from './auth/Login';
+import cubeLayout from './layout';
+import Login from './layout/Login';
 import { Dashboard } from './dashboard';
 import { EissCubesIcon, EissCubesList, EissCubesShow, EissCubesEdit } from './cubes';
 import { CommandIcon, CommandList, CommandShow, CommandCreate } from './commands';
 import { PropertyIcon, PropertyList, PropertyEdit, PropertyCreate } from './properties';
-import createRealtimeSaga from "./providers/createRealtimeSaga";
 
-import { development, authProvider, dataProvider, profile, redirectLogin, isSuperAdmin } from './globalExports';
-import { i18nProvider } from './providers/i18nProvider';
-import customLayout from './Layout';
+import { development, authProvider, dataProvider,  i18nProvider } from './providers';
 
 const theme = createMuiTheme({
+    sidebar: {
+        width: 150
+    },
 	palette: {
 		primary: {
 			main: '#448ab6'
@@ -22,10 +23,55 @@ const theme = createMuiTheme({
 		secondary: {
 			main: '#448ab6'
 		}
+    },
+    typography: {
+        title: {
+            fontWeight: 400,
+        },
+    },
+    overrides: {
+        MuiFilledInput: {
+            root: {
+                backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                '&$disabled': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.02 )',
+                },
+            },
+        },
     }
 });
 
-const realTimeSaga = createRealtimeSaga(dataProvider);
+export const setApplication = () => (
+    sessionStorage.setItem("application", "/ui/cube/")
+);
+
+export const redirectLogin = () => {
+    setApplication();
+    window.location.href = "/ui/login/";
+    return <Fragment />;
+}
+
+export const redirectHome = () => {
+    sessionStorage.removeItem("application");
+    window.location.href = "/ui/home/";
+    return <Fragment />;
+}
+
+export const profile = () => {
+    window.location.href = '/ui/users/#profile';
+    return <Fragment />;
+}
+
+export const AppDateFormat = { year: 'numeric', month: '2-digit', day: '2-digit' };
+export const AppDateTimeFormat = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+export const DateTimeFormat = 'MM/dd/YYYY, HH:mm:ss';
+export const DateTimeMomentFormat = 'MM/DD/YYYY, HH:mm:ss';
+
+export const SUPER = "securityadmin";
+
+export const isSuperAdmin = permissions => (
+    permissions && permissions.role === SUPER
+);
 
 const customRoutes = [
     <Route path={"/profile"} component={profile} />
@@ -34,12 +80,11 @@ const customRoutes = [
 const App = () => (
 	<Admin
         theme={ theme }
-        locale="en" i18nProvider={i18nProvider}
+        i18nProvider={ i18nProvider }
         authProvider={ authProvider }
         dataProvider={ dataProvider }
-        customRoutes={customRoutes}
-        customSagas={ [realTimeSaga] }
-        appLayout={ customLayout }
+        customRoutes={ customRoutes }
+        layout={ cubeLayout }
         dashboard={ Dashboard }
         /* Prevents infinite loop in development*/
         {...(development ? {loginPage: Login}: {loginPage: redirectLogin} )}

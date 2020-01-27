@@ -3,7 +3,7 @@ import _ from 'lodash';
 import L from 'leaflet';
 import { Map, LayersControl, TileLayer, Marker, Popup } from 'react-leaflet';
 import { GET_LIST } from 'react-admin';
-import { dataProvider } from '../globalExports';
+import { dataProvider } from '../providers';
 import { red, green } from '@material-ui/core/colors';
 import Paper from '@material-ui/core/Paper';
 
@@ -38,7 +38,7 @@ class CubesMap extends Component {
         };
     }
 
-    componentWillMount() {
+    componentDidMount() {
         dataProvider(GET_LIST, 'cubes', {
             sort: { field: 'deviceID', order: 'ASC' },
             pagination: { page: 1, perPage: 100 }

@@ -1,4 +1,4 @@
-import React, { Children, cloneElement, isValidElement } from 'react';
+import React, { Component, Children, cloneElement, isValidElement } from 'react';
 import PropTypes from 'prop-types';
 import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
@@ -6,7 +6,7 @@ import Menu from '@material-ui/core/Menu';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import { translate } from 'ra-core';
 
-class UserMenu extends React.Component {
+class UserMenu extends Component {
     static propTypes = {
         children: PropTypes.node,
         label: PropTypes.string.isRequired,

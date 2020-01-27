@@ -13,7 +13,7 @@ const styles = theme => ({
     card: { 
         borderLeft: `solid 4px ${red[500]}`, 
         flex: 1, 
-        marginBottom: theme.spacing.unit 
+        marginBottom: theme.spacing(1) 
     },
     avatar: {
         color: theme.palette.common.white,

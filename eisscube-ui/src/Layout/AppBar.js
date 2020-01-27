@@ -1,51 +1,42 @@
 import React from 'react';
 import {AppBar, MenuItemLink} from 'react-admin';
 import {Home} from '@material-ui/icons';
-import {Typography, IconButton, Tooltip} from '@material-ui/core';
+import {IconButton, Tooltip} from '@material-ui/core';
 import {withStyles} from '@material-ui/core/styles';
 import {Person} from '@material-ui/icons';
-import {redirectHome} from '../globalExports';
+import {redirectHome} from '../App';
 import UserMenu from './UserMenu';
 
-const appBarStyles = (theme => ({
+const styles = theme => ({
     title: {
         flex: 1,
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
-        overflow: 'hidden',
-        marginLeft: '32px',
-    },
-}));
+        overflow: 'hidden'
+    }
+});
 
-const CustomUserMenu = props => {
+const CubeUserMenu = props => {
     return (
         <UserMenu {...props}>
             <MenuItemLink 
                 to={'/profile'}
-                primaryText="Profile" 
+                primaryText='Profile' 
                 leftIcon={<Person />}
                 onClick={props.onMenuClick} />
         </UserMenu>
     );
 }
 
-const CustomAppBar = ({classes, ...props}) => {
+const CubeAppBar = ({classes, ...props}) => {
     return (
-        <AppBar
-            userMenu={<CustomUserMenu />}
-            classes={classes}
-        {...props} >
-            <Typography
-                variant="title"
-                color="inherit"
-                className={classes.title}
-                id="react-admin-title"
-            />
-            <Tooltip title="Home">
-                <IconButton
-                    color="inherit"
-                    onClick={redirectHome}
-                >
+        <AppBar classes={classes}
+            userMenu={<CubeUserMenu />}
+            {...props} 
+        >
+            <div id='react-admin-title' className={classes.title} />
+            <Tooltip title='Home'>
+                <IconButton color="inherit" onClick={redirectHome}>
                     <Home />
                 </IconButton>
             </Tooltip>
@@ -53,5 +44,5 @@ const CustomAppBar = ({classes, ...props}) => {
     );
 };
 
-export default withStyles(appBarStyles)(CustomAppBar);
+export default withStyles(styles)(CubeAppBar);
 

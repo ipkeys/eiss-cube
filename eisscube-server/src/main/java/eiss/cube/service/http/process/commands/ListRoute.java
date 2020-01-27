@@ -109,6 +109,7 @@ public class ListRoute implements Handler<RoutingContext> {
 
         // projections
         q.project("cubeID", TRUE)
+            .project("cubeName", TRUE)
             .project("command", TRUE)
             .project("status", TRUE)
             .project("created", TRUE)

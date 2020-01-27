@@ -1,11 +1,11 @@
 import React from 'react';
-import CustomAppBar from './AppBar';
+import CubeAppBar from './AppBar';
 import { Layout } from 'react-admin';
 
-const CustomLayout = (props) => (
+const CubeLayout = (props) => (
     <Layout {...props} 
-        appBar={CustomAppBar}
+        appBar={CubeAppBar}
     />
 );
 
-export default CustomLayout;
+export default CubeLayout;

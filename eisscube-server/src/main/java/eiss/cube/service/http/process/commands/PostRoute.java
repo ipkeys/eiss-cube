@@ -78,6 +78,7 @@ public class PostRoute implements Handler<RoutingContext> {
             q.criteria("id").equal(cmd.getCubeID());
             EISScube cube = q.first();
             if (cube != null) {
+                cmd.setCubeName(cube.getName());
                 cmd.setGroup(cube.getGroup());
                 cmd.setGroup_id(cube.getGroup_id());
             }

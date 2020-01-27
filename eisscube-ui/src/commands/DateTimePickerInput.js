@@ -1,15 +1,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { addField, FieldTitle } from 'react-admin';
-import MomentUtils from 'material-ui-pickers/utils/moment-utils';
-
+import MomentUtils from '@date-io/moment';
 import { 
 	MuiPickersUtilsProvider, 
-	DatePicker, 
-	TimePicker, 
-	DateTimePicker,
-	InlineDateTimePicker
-} from 'material-ui-pickers';
+	KeyboardDateTimePicker
+} from '@material-ui/pickers';
 
 const makePicker = (PickerComponent) => {
 	class _makePicker extends Component {
@@ -41,10 +37,8 @@ const makePicker = (PickerComponent) => {
 								isRequired={isRequired}
 							/>
 						}
-						margin="normal"
 						error={!!(touched && error)}
 						helperText={touched && error}
-						ref={(node) => { this.picker = node; }}
 						className={className}
 						value={value ? value : null}
 						onChange={(date) => { 
@@ -68,7 +62,6 @@ const makePicker = (PickerComponent) => {
 		options: PropTypes.object,
 		resource: PropTypes.string,
 		source: PropTypes.string,
-		labelTime: PropTypes.string,
 		className: PropTypes.string,
 		providerOptions: PropTypes.shape({
 			utils: PropTypes.func,
@@ -81,10 +74,9 @@ const makePicker = (PickerComponent) => {
 		isRequired: false,
 		label: '',
 		meta: { touched: false, error: false },
-		options: {},
+		options: { },
 		resource: '',
 		source: '',
-		labelTime: '',
 		className: '',
 		providerOptions: {
 			utils: MomentUtils,
@@ -95,8 +87,6 @@ const makePicker = (PickerComponent) => {
 	return _makePicker;
 };
 
-export const DateInput = addField(makePicker(DatePicker));
-export const TimeInput = addField(makePicker(TimePicker));
-export const DateTimeInput = addField(makePicker(DateTimePicker));
-export const DateTimeInlineInput = addField(makePicker(InlineDateTimePicker));
+export const DateTimeFilterInput = addField(makePicker(KeyboardDateTimePicker));
+export const DateTimeFormInput = addField(makePicker(KeyboardDateTimePicker));
 

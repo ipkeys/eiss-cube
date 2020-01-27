@@ -20,7 +20,7 @@ import { green, red, blue, grey, orange } from '@material-ui/core/colors';
 
 const styles = theme => ({
 	btnPadding: {
-        paddingRight: theme.spacing.unit
+        paddingRight: theme.spacing(1)
     },
     title: {
         display: 'inline-flex',
@@ -32,8 +32,8 @@ const styles = theme => ({
         alignItems: 'center'
     },
     content: {
-        paddingLeft: theme.spacing.unit * 3,
-        paddingRight: theme.spacing.unit * 3,
+        paddingLeft: theme.spacing(3),
+        paddingRight: theme.spacing(3),
         paddingBottom: 0
 	}
 });

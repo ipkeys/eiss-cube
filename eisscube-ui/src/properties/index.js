@@ -16,7 +16,7 @@ import {
     required,
     maxLength
 } from 'react-admin';
-import { unparse as convertToCSV } from 'papaparse/papaparse.min';
+import jsonExport from 'jsonexport/dist';
 import Icon from '@material-ui/icons/LocalOffer';
 import { withStyles } from '@material-ui/core/styles';
 
@@ -30,28 +30,30 @@ const styles = theme => ({
         backgroundColor: theme.palette.grey[100]
     },
     showLayout: {
-        paddingTop: theme.spacing.unit * 2
+        paddingTop: theme.spacing(2)
     },
     inline: { 
         display: 'inline-block', 
-        marginRight: theme.spacing.unit * 2
+        marginRight: theme.spacing(2)
     },
     longText: {
-        minWidth: theme.spacing.unit * 66 
+        minWidth: theme.spacing(66) 
     }
 });
 
-const exporter = records => {
-    const data = records.map(record => ({
-        ...record
+const exporter = data => {
+    const records = data.map(r => ({
+        name: r.name,
+        label: r.label,
+        description: r.description
     }));
 
-    const csv = convertToCSV({
-        data,
-        fields: ['name', 'label', 'description']
-    });
-
-    downloadCSV(csv, 'EISS™Cubes Properties');
+    jsonExport(records, {
+        headers: ['name', 'label', 'description']
+        }, (err, csv) => {
+            downloadCSV(csv, 'EISS™Cubes Properties');
+        }
+    );
 };
 
 const PropertyTitle = withStyles(styles)(

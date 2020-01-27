@@ -103,7 +103,6 @@ public class Http extends AbstractVerticle {
 
         router.route()
                 .handler(BodyHandler.create())
-                .handler(CookieHandler.create())
                 .handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
         router.route("/*").handler(context -> {

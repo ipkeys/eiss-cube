@@ -2,14 +2,14 @@ import React, { Component, Fragment } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import FormGroup from '@material-ui/core/FormGroup';
 import { GET_LIST, TextInput, maxLength } from 'react-admin';
-import { dataProvider } from '../globalExports';
+import { dataProvider } from '../providers';
 
 const styles = theme => ({
     longText: {
-        minWidth: theme.spacing.unit * 66 
+        minWidth: theme.spacing(66) 
     },
     formGroup: {
-        marginTop: theme.spacing.unit
+        marginTop: theme.spacing(1)
     }
 });
 

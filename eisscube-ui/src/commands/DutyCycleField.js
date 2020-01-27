@@ -7,17 +7,16 @@ import Typography from '@material-ui/core/Typography';
 import { green, red } from '@material-ui/core/colors';
 
 const DutyCycleField = ({ className, label, source, record = {} }) => {
-    const value = parseInt(get(record, source), 10);
+    const value = parseInt(get(record, source, 0), 10);
     const duty = value / 100;
-    const cycle = parseInt(get(record, 'completeCycle'), 10);
+    const cycle = parseInt(get(record, 'completeCycle', 0), 10);
     const on = Math.round(cycle * duty);
     const off = Math.round(cycle - on);
     return (
         <Labeled label={label}>
-            <Typography
-                component="span"
-                body1="body1"
-                className={className}
+            <Typography className={className}
+                component='span'
+                variant='body2'                
             >
                 {value}% (<span style={{ color: green[500] }}>{on} sec ON</span> / <span style={{ color: red[500] }}>{off} sec OFF</span>)
             </Typography>

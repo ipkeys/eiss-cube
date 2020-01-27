@@ -57,7 +57,7 @@ public class ListRoute implements Handler<RoutingContext> {
         // search
         String search = request.getParam(FILTER);
         if (search != null && !search.isEmpty()) {
-            q.field("name").containsIgnoreCase(search);
+            q.field("name").contains(search);
         }
         // ~search
 

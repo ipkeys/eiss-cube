@@ -1,34 +1,38 @@
+import polyglotI18nProvider from 'ra-i18n-polyglot';
 import englishMessages from 'ra-language-english';
 
 const messages = {
     en: {
+        ...englishMessages,
         'ra.action.upload': 'Upload',
         'ra.action.send': 'Send',
         'ra.message.request_sent': 'Request sent',
-        ...englishMessages,
         eiss: {
             auth: {
-                expired: "Your session is expired",
-                invalid: "Invalid credentials",
-                failed: "Login failed",
-                unable: "Unable to login at this time",
-                process: "Error processing token"
+                expired: 'Your session is expired',
+                invalid: 'Invalid credentials',
+                failed: 'Login failed',
+                unable: 'Unable to login at this time',
+                process: 'Error processing token'
             },
             mfa: {
-                deactivated: "Deactivated MFA",
+                deactivated: 'Deactivated MFA',
                 fail: {
-                    deactivated: "Could no deactivate MFA",
+                    deactivated: 'Could no deactivate MFA',
                     wrong: 'Failed to activate MFA. Wrong Authentication codes.',
-                    server: '"MFA auth server error'
+                    server: 'MFA auth server error'
                 }
             },
-            server_error: "Internal error",
-            no_response: "No response from server"
+            file: {
+                missing: "Missing file"
+            },
+            server_error: 'Internal error',
+            no_response: 'No response from server'
         },
         axios: {
-            error: "Network Error"
+            error: 'Network Error'
         }
     }
 }
 
-export const i18nProvider = locale => messages[locale];
+export const i18nProvider = polyglotI18nProvider(locale => messages[locale], 'en');

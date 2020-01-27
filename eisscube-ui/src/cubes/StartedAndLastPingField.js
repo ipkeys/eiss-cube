@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import Typography from '@material-ui/core/Typography';
-import { DateTimeMomentFormat } from '../globalExports';
+import { DateTimeMomentFormat } from '../App';
 
 const StartedAndLastPingField = ({ record = {} }) => {
     let started = '---',
@@ -16,7 +16,7 @@ const StartedAndLastPingField = ({ record = {} }) => {
     }
     
     return (
-        <Typography variant="body1">
+        <Typography variant="body2">
             <i>Started:</i> { started }&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>Last ping:</i> { lastping }
         </Typography>
     );

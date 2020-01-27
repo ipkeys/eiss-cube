@@ -1,6 +1,7 @@
 import React, { Fragment } from 'react';
-import { Field } from 'redux-form';
+import { Field } from 'react-final-form';
 import {
+    downloadCSV,
     List,
     Create,
     Filter,
@@ -23,15 +24,18 @@ import {
     SearchInput,
     required
 } from 'react-admin';
+import find from 'lodash/find';
+import jsonExport from 'jsonexport/dist';
+import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
 import Icon from '@material-ui/icons/Message';
-import { AppDateTimeFormat, DateTimeMomentFormat, isSuperAdmin } from '../globalExports';
+import { AppDateTimeFormat, DateTimeMomentFormat, isSuperAdmin } from '../App';
 import CycleField from './CycleField';
 import DutyCycleField from './DutyCycleField';
 import DividerField from './DividerField';
 import CycleAndDutyCycleInput from './CycleAndDutyCycleInput';
 import CommandStatusField from './CommandStatusField';
-import { DateTimeInput, DateTimeInlineInput } from './DateTimePickerInput';
+import { DateTimeFilterInput, DateTimeFormInput } from './DateTimePickerInput';
 import moment from 'moment';
 
 export const CommandIcon = Icon;
@@ -45,18 +49,18 @@ const styles = theme => ({
     },
     inlineField: { 
         display: 'inline-block',
-        minWidth: theme.spacing.unit * 24   
+        minWidth: theme.spacing(24)   
     },
     inline: { 
         display: 'inline-block',
-        marginRight: theme.spacing.unit * 2, 
-        minWidth: theme.spacing.unit * 32   
+        marginRight: theme.spacing(2), 
+        minWidth: theme.spacing(32)   
     },
     normalText: {
-        minWidth: theme.spacing.unit * 32   
+        minWidth: theme.spacing(32)   
     },
     longText: {
-        minWidth: theme.spacing.unit * 64   
+        minWidth: theme.spacing(64)   
     }
 });
   
@@ -76,9 +80,9 @@ const edges = [
 
 const CommandTitle = withStyles(styles)(
     ({classes, title, record}) => (
-        <div className={classes.title}>
+        <Typography className={classes.title} variant="h6">
             {title} {record && record.id && `${record.id}`}
-        </div>
+        </Typography>
     )
 );
 
@@ -98,10 +102,46 @@ const CommandFilter = props => (
                 <SelectInput optionText='displayName' />
             </ReferenceInput>
         : null }
-        <DateTimeInlineInput label='Created Before' source='timestamp_lte' options={{ format: DateTimeMomentFormat, ampm: false }} />
-        <DateTimeInlineInput label='Created Since' source='timestamp_gte' options={{ format: DateTimeMomentFormat, ampm: false }} />
+        <DateTimeFilterInput label='Created Before' source='timestamp_lte' 
+            options={{ 
+                format: DateTimeMomentFormat, 
+                ampm: false, 
+                margin: 'dense', 
+                variant: 'inline', 
+                inputVariant: 'filled' 
+            }} 
+        />
+        <DateTimeFilterInput label='Created Since' source='timestamp_gte' 
+            options={{ 
+                format: DateTimeMomentFormat, 
+                ampm: false, 
+                margin: 'dense', 
+                variant: 'inline', 
+                inputVariant: 'filled' 
+            }} 
+        />
     </Filter>
 );
+
+const exportCommandList = data => {
+    console.log(data);
+    const records = data.map(r => {
+        const cmd = find(cmds, { 'id': r.command });
+        return ({
+            command: cmd.name,
+            'for EISS™Cubes': r.cubeName,
+            created: moment(r.created).format(DateTimeMomentFormat),
+            status: r.status
+        })
+    });
+
+    jsonExport(records, {
+        headers: ['command', 'for EISS™Cubes', 'created', 'status']
+        }, (err, csv) => {
+            downloadCSV(csv, 'EISS™Cubes Commands');
+        }
+    );
+};
 
 export const CommandList = withStyles(styles)(
     ({ classes, permissions: p, ...props }) => (
@@ -110,16 +150,16 @@ export const CommandList = withStyles(styles)(
             filters={<CommandFilter permissions={p} />}
             sort={{ field: 'created', order: 'DESC' }}
             perPage={10}
-            exporter={false}
+            exporter={exportCommandList}
             {...props}
         >
             <Datagrid classes={{ rowEven: classes.rowEven }} >
                 <SelectField label='Command' source='command' choices={cmds} />
-                <ReferenceField label='for EISS™Cube' source='cubeID' reference='cubes' linkType='show'>
+                <ReferenceField label='for EISS™Cube' source='cubeID' reference='cubes' link='show'>
                     <TextField source='name' />
                 </ReferenceField>
                 {isSuperAdmin(p)
-                ?   <ReferenceField source="group_id" label="Group" reference="groups" linkType={false} allowEmpty={true} >
+                ?   <ReferenceField source="group_id" label="Group" reference="groups" link={false} allowEmpty={true} >
                         <TextField source="displayName" />
                     </ReferenceField>
                 : 
@@ -144,12 +184,12 @@ export const CommandShow = withStyles(styles)(
                     <SimpleShowLayout>
                         <SelectField className={classes.inlineField} label='Command' source='command' choices={cmds} />
 
-                        <ReferenceField className={classes.inlineField} label='for EISS™Cube' source='cubeID' reference='cubes' linkType='show'>
+                        <ReferenceField className={classes.inlineField} label='for EISS™Cube' source='cubeID' reference='cubes' link='show'>
                             <TextField source='name' />
                         </ReferenceField>
 
                         {isSuperAdmin(p)
-                        ?   <ReferenceField className={classes.inlineField} source="group_id" label="Group" reference="groups" linkType={false} allowEmpty={true} >
+                        ?   <ReferenceField className={classes.inlineField} source="group_id" label="Group" reference="groups" link={false} allowEmpty={true} >
                                 <TextField source="displayName" />
                             </ReferenceField>
                         : 
@@ -271,7 +311,12 @@ export const CommandCreate = withStyles(styles)(
 
                 <FormDataConsumer>
                 {({ formData, ...rest }) => checkCommandForRelayCycle(formData.command) &&
-                    <Field name='cycleAndDutyCycle' component={CycleAndDutyCycleInput} {...rest} />
+                    <Field name='cycleAndDutyCycle' component={CycleAndDutyCycleInput}
+                        options={{ 
+                            margin: 'dense',
+                            variant: 'filled'
+                        }} 
+                    {...rest} />
                  }
                 </FormDataConsumer>
 
@@ -290,23 +335,27 @@ export const CommandCreate = withStyles(styles)(
                 }
                 </FormDataConsumer>
 
-                <DateTimeInput formClassName={classes.inline}
+                <DateTimeFormInput formClassName={classes.inline}
                     label='Start Date, Time' 
                     source='startTime' 
                     options={{ 
                         format: DateTimeMomentFormat, 
-                        ampm: false, 
+                        ampm: false,
+                        margin: 'dense',
+						inputVariant: 'filled', 
                         clearable: true,
                         disablePast: true
                     }} 
                 />
 
-                <DateTimeInput formClassName={classes.inline}
+                <DateTimeFormInput formClassName={classes.inline}
                     label='End Date, Time' 
                     source='endTime' 
                     options={{ 
                         format: DateTimeMomentFormat, 
-                        ampm: false, 
+                        ampm: false,
+                        margin: 'dense',
+						inputVariant: 'filled', 
                         clearable: true,
                         disablePast: true
                     }} 

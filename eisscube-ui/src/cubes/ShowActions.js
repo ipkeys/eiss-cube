@@ -1,5 +1,5 @@
-import React, { Fragment } from 'react';
-import { EditButton } from 'react-admin';
+import React from 'react';
+import { TopToolbar, EditButton } from 'react-admin';
 import { withStyles } from '@material-ui/core/styles';
 import CardHeader from '@material-ui/core/CardHeader';
 import Avatar from '@material-ui/core/Avatar';
@@ -13,9 +13,9 @@ import StartedAndLastPingField from './StartedAndLastPingField';
 
 const styles = theme => ({
     cardHeader: { 
-        zIndex: 2,
-        padding: 0,
-        marginBottom: theme.spacing.unit 
+        position: 'absolute',
+        left: 0,
+        padding: 0
     },
     onlineAvatar: {
         color: theme.palette.common.white,
@@ -27,8 +27,7 @@ const styles = theme => ({
     }
 });
 
-const ShowActions = withStyles(styles)(
-    ({ classes, basePath, data }) => {
+const ShowActions = ({ classes, basePath, data }) => {
         let avatar;
         if (data && data.online) {
             avatar = <Avatar className={classes.onlineAvatar}><OnlineIcon /></Avatar>;
@@ -37,21 +36,17 @@ const ShowActions = withStyles(styles)(
         }
         
         return (
-            <CardHeader
-                className={classes.cardHeader}
-                avatar={avatar}
-                title={ <StatusField record={data} /> }
-                subheader={ <StartedAndLastPingField record={data} /> }
-                action={
-                    <Fragment>
-                        <TestButton basePath={basePath} record={data} />
-                        <SetupButton basePath={basePath} record={data} />
-                        <EditButton basePath={basePath} record={data} />
-                    </Fragment>
-                }
-            />
+            <TopToolbar >
+                <CardHeader className={classes.cardHeader}
+                    avatar={avatar}
+                    title={ <StatusField record={data} /> }
+                    subheader={ <StartedAndLastPingField record={data} /> }
+                />
+                <TestButton basePath={basePath} record={data} />
+                <SetupButton basePath={basePath} record={data} />
+                <EditButton basePath={basePath} record={data} />
+            </TopToolbar>
         );
-    }
-);
+    };
 
-export default ShowActions;
+export default withStyles(styles)(ShowActions);
