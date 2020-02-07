@@ -20,9 +20,9 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.10'
     annotationProcessor 'org.projectlombok:lombok:1.18.10'
 
-    implementation "io.vertx:vertx-core:3.8.4"
-    implementation "io.vertx:vertx-web:3.8.4"
-    implementation 'io.vertx:vertx-auth-common:3.8.4'
+    implementation "io.vertx:vertx-core:3.8.5"
+    implementation "io.vertx:vertx-web:3.8.5"
+    implementation 'io.vertx:vertx-auth-common:3.8.5'
     implementation 'io.netty:netty-transport-native-epoll:4.1.42.Final:linux-x86_64'
     implementation 'io.netty:netty-transport-native-kqueue:4.1.42.Final:osx-x86_64'
 

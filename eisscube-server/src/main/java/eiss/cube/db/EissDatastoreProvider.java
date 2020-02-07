@@ -6,9 +6,7 @@ import com.mongodb.ServerAddress;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
 import eiss.cube.config.AppConfig;
-import eiss.cube.config.CubeDatabaseConfig;
 import eiss.cube.config.EissDatabaseConfig;
-import eiss.cube.db.converters.JsonObjectConverter;
 
 import javax.inject.Inject;
 
@@ -32,7 +30,7 @@ public class EissDatastoreProvider implements Provider<Datastore> {
             String name = cfg.getName();
 
             // custom converters
-            morphia.getMapper().getConverters().addConverter(JsonObjectConverter.class);
+            // ~custom converters
 
             morphia.mapPackage(cfg.getDataPackage());
 
