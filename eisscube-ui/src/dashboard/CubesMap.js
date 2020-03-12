@@ -33,7 +33,6 @@ class CubesMap extends Component {
             lat: 40.32444602981903,
             lng: -74.07683856203221,
             zoom: 10,
-            maxZoom: 18,
             data: null
         };
     }
@@ -87,7 +86,7 @@ class CubesMap extends Component {
 
         return (
             <Paper elevation={1} >
-                <Map center={position} zoom={this.state.zoom} maxZoom={this.state.maxZoom}>
+                <Map center={position} zoom={this.state.zoom} >
                     <LayersControl position="topright">
                         <BaseLayer checked name="Color">
                             <TileLayer

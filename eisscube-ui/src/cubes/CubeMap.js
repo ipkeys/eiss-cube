@@ -107,8 +107,6 @@ class CubeMap extends Component {
                 animate={true}
                 length={4}
                 center={[location.lat, location.lng]}
-                minZoom={2}
-                maxZoom={19}
                 zoom={15}
                 ref="map"
             >

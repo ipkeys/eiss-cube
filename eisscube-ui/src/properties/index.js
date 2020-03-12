@@ -19,13 +19,11 @@ import {
 import jsonExport from 'jsonexport/dist';
 import Icon from '@material-ui/icons/LocalOffer';
 import { withStyles } from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography';
 
 export const PropertyIcon = Icon;
 
 const styles = theme => ({
-    title: {
-        color: theme.palette.common.white
-    },
     rowEven: {
         backgroundColor: theme.palette.grey[100]
     },
@@ -56,12 +54,10 @@ const exporter = data => {
     );
 };
 
-const PropertyTitle = withStyles(styles)(
-    ({classes, title, record}) => (
-        <div className={classes.title}>
-            {title} {record && record.name && `${record.name}`}
-        </div>
-    )
+const PropertyTitle = ({title, record}) => (
+    <Typography variant="h6">
+        {title} {record && record.name && `${record.name}`}
+    </Typography>
 );
 
 const PropertyListFilter = props => (

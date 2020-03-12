@@ -41,9 +41,6 @@ import moment from 'moment';
 export const CommandIcon = Icon;
 
 const styles = theme => ({
-    title: {
-        color: theme.palette.common.white
-    },
     rowEven: {
         backgroundColor: theme.palette.grey[100]
     },
@@ -78,12 +75,10 @@ const edges = [
     { id: 'f', name: 'Falling edge' }
 ];
 
-const CommandTitle = withStyles(styles)(
-    ({classes, title, record}) => (
-        <Typography className={classes.title} variant="h6">
-            {title} {record && record.id && `${record.id}`}
-        </Typography>
-    )
+const CommandTitle = ({title, record}) => (
+    <Typography variant="h6">
+        {title} {record && record.id && `${record.id}`}
+    </Typography>
 );
 
 const CommandFilter = props => (

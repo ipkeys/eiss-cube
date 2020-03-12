@@ -50,19 +50,14 @@ export default class DataProvider {
                     break;
                 }
                 const { page, perPage } = params.pagination;
-
+                const { field, order } = params.sort;
                 const query = {
                     ...fetchUtils.flattenObject(params.filter),
+                    _sort: field,
+                    _order: order,
                     _start: (page - 1) * perPage,
                     _end: page * perPage,
                 };
-
-                const { field, order } = params.sort;
-                if (resource !== "users" || field !== "name") {
-                    query._sort = field;
-                    query._order = order;
-                }
-
                 url = `${apiUrl}/${resource}?${stringify(query)}`;
                 break;
             }

@@ -9,6 +9,7 @@ import UserMenu from './UserMenu';
 
 const styles = theme => ({
     title: {
+        color: theme.palette.common.white,
         flex: 1,
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',

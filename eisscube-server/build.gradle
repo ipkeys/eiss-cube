@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'eiss-cube'
-version '3.3.7'
+version '3.3.8'
 
 repositories {
     mavenCentral()
@@ -17,8 +17,8 @@ targetCompatibility = JavaVersion.VERSION_1_8
 mainClassName = 'Launcher'
 
 dependencies {
-    compileOnly 'org.projectlombok:lombok:1.18.10'
-    annotationProcessor 'org.projectlombok:lombok:1.18.10'
+    compileOnly 'org.projectlombok:lombok:1.18.12'
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
 
     implementation "io.vertx:vertx-core:3.8.5"
     implementation "io.vertx:vertx-web:3.8.5"

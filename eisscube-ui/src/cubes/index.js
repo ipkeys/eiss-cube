@@ -36,9 +36,6 @@ import Settings from './Settings';
 export const EissCubesIcon = Icon;
 
 const styles = theme => ({
-    title: {
-        color: theme.palette.common.white
-    },
     rowEven: {
         backgroundColor: theme.palette.grey[100]
     },
@@ -73,12 +70,10 @@ const exportCubeList = data => {
     );
 };
 
-const EissCubesTitle = withStyles(styles)(
-    ({classes, title, record}) => (
-        <Typography className={classes.title} variant="h6">
-            {title} {record && record.name && `${record.name}`}
-        </Typography>
-    )
+const EissCubesTitle = ({title, record}) => (
+    <Typography variant="h6">
+        {title} {record && record.name && `${record.name}`}
+    </Typography>
 );
 
 const EissCubesListFilter = props => (
