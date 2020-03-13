@@ -118,6 +118,7 @@ public class CubeHandler implements Handler<NetSocket> {
         vertx.executeBlocking(op -> {
             Query<EISScube> q = datastore.createQuery(EISScube.class);
             UpdateOperations<EISScube> ops = datastore.createUpdateOperations(EISScube.class)
+                .set("socket", "")
                 .set("online", Boolean.FALSE);
 
             datastore.update(q, ops);

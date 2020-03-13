@@ -67,7 +67,8 @@ const cmds = [
     { id: 'rcyc', name: 'Relay CYCLE' },
     { id: 'icp', name: 'Counting PULSE' },
     { id: 'icc', name: 'Counting CYCLE' },
-    { id: 'ioff', name: 'Counting STOP' }
+    { id: 'ioff', name: 'Counting STOP' },
+    { id: 'reboot', name: 'REBOOT' }
 ];
 
 const edges = [
@@ -302,7 +303,7 @@ export const CommandCreate = withStyles(styles)(
                     <AutocompleteInput optionText='name'/>
                 </ReferenceInput>
 
-                <SelectInput label='Command' source='command' choices={cmds} validate={[ required() ]} />
+                <SelectInput label='Command' source='command' choices={cmds.filter(function(value, index, arr){ return value.id !== 'reboot';})} validate={[ required() ]} />
 
                 <FormDataConsumer>
                 {({ formData, ...rest }) => checkCommandForRelayCycle(formData.command) &&

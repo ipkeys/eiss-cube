@@ -340,7 +340,7 @@ class TestCube extends Component {
             <div>
                 <ExpansionPanel className={classes.notePanel} expanded={expanded === 'test_note'} onChange={this.handleNote('test_note')}>
                     <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
-                        <i style={{color: red[800]}}>Note!</i>
+                        <i style={{color: red[800], marginRight: '8px'}}>Note!</i>
                         Testing process will take from 2 to 5 minutes (depends on network speed). Press [START...] to run.
                     </ExpansionPanelSummary>
                     <ExpansionPanelDetails className={classes.panelDetails}>
