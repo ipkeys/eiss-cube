@@ -80,6 +80,13 @@ public class PostVenCommandRoute implements Handler<RoutingContext> {
                 cubes.forEach(cube -> {
                     CubeCommand cmd = new CubeCommand();
                     cmd.setCubeID(cube.getId());
+
+                    // put command under cube's group
+                    cmd.setCubeName(cube.getName());
+                    cmd.setGroup(cube.getGroup());
+                    cmd.setGroup_id(cube.getGroup_id());
+                    // ~put command under cube's group
+
                     cmd.setCommand(req.getCommand());
 
                     CycleAndDutyCycleExtractor cdc = gson.fromJson(json, CycleAndDutyCycleExtractor.class);
