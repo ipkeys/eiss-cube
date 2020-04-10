@@ -11,6 +11,7 @@ const {
 } = require('react-admin');
 
 export const VALIDATE = "VALIDATE";
+export const USAGE = "USAGE";
 
 /**
  * Maps react-admin queries to a json-server powered REST API
@@ -106,6 +107,11 @@ export default class DataProvider {
                 method = 'post';
                 break;
             }
+            case USAGE:
+                url = `${apiUrl}/${resource}`;
+                method = 'post';
+                options.body = params.data;
+                break;
             default:
                 throw new Error(`Unsupported fetch action type ${type}`);
         }

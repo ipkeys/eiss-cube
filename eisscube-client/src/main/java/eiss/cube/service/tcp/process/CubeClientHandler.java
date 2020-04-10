@@ -81,6 +81,12 @@ public class CubeClientHandler {
             startReportingPulses(message);
         }
 
+        if (message.contains("c=icc")) {
+            StringBuilder sb = new StringBuilder().append("Input count CYCLES");
+            logInfo(message, sb);
+            startReportingCycles(message);
+        }
+
         if (message.contains("c=ioff")) {
             StringBuilder sb = new StringBuilder().append("Input STOP count");
             logInfo(message, sb);
@@ -92,7 +98,7 @@ public class CubeClientHandler {
         for (String part : message.split("&")) {
             if (part.contains("st=")) {
                 String st = part.replace("st=", "");
-                sb.append(" start time: ").append(Instant.ofEpochSecond(Long.valueOf(st)));
+                sb.append(" start time: ").append(Instant.ofEpochSecond(Long.parseLong(st)));
             }
             if (part.contains("dur=")) {
                 String dur = part.replace("dur=", "");
@@ -126,14 +132,42 @@ public class CubeClientHandler {
             }
         }
 
+        // stop previous timer
+        stopReporting();
         // Will report in "each" seconds
         String idString = String.format("id=%s\0", id);
-        reportTimerID = vertx.setPeriodic(Integer.valueOf(each) * 1000, v -> {
+        reportTimerID = vertx.setPeriodic(Integer.parseInt(each) * 1000, v -> {
             double value = Math.random() * 100;
             String response = String.format("rpt-ts=%s&v=%4.2f&%s", Instant.now().truncatedTo(ChronoUnit.MINUTES).getEpochSecond(), value, idString);
             socket.write(response);
         });
     }
+
+    private void startReportingCycles(String message) {
+        String id = "";
+        String edge = "r";
+
+        for (String part : message.split("&")) {
+            if (part.contains("id=")) {
+                id = part.replace("id=", "");
+            }
+            if (part.contains("edge=")) {
+                edge = part.replace("edge=", "");
+            }
+        }
+
+        // stop previous timer
+        stopReporting();
+        // Will report in "each" seconds
+        String idString = String.format("id=%s\0", id);
+        String each = "600"; // each 10 min
+        reportTimerID = vertx.setPeriodic(Integer.parseInt(each) * 1000, v -> {
+            double value = 300; // 5 min ON, 5 min OFF
+            String response = String.format("rpt-ts=%s&dur=%4.2f&%s", Instant.now().truncatedTo(ChronoUnit.MINUTES).getEpochSecond(), value, idString);
+            socket.write(response);
+        });
+    }
+
 
     private void stopReporting() {
         vertx.cancelTimer(reportTimerID);

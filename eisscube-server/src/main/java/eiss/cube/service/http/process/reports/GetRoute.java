@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import eiss.cube.db.Cube;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeReport;
+import eiss.models.cubes.EISScube;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
@@ -56,6 +57,10 @@ public class GetRoute implements Handler<RoutingContext> {
         vertx.executeBlocking(op -> {
             CubeReport report = q.first();
             if (report != null) {
+                EISScube cube = datastore.createQuery(EISScube.class).field("_id").equal(report.getCubeID()).first();
+                if (cube != null) {
+                    report.setCubeName(cube.getName());
+                }
                 op.complete(gson.toJson(report));
             } else {
                 op.fail(String.format("CubeReport: %s not found", id));

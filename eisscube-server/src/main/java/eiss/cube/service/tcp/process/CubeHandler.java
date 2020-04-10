@@ -366,7 +366,7 @@ public class CubeHandler implements Handler<NetSocket> {
             if (cube != null) {
                 Instant ts = null;
                 String v = null;
-                String type = "pulse"; // default
+                String type = "p"; // pulse - default
 
                 for (String part : message.split("&")) {
                     if (part.startsWith("rpt-ts=")) {
@@ -377,7 +377,7 @@ public class CubeHandler implements Handler<NetSocket> {
                         v = part.replace("v=", "");
                     }
                     if (part.startsWith("dur=")) {
-                        type = "cycle";
+                        type = "c"; // cycle
                         v = part.replace("dur=", "");
                     }
                 }

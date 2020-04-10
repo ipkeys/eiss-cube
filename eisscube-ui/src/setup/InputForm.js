@@ -16,22 +16,26 @@ import { SetupFormButton } from './SetupCube';
 const styles = theme => ({
 });
 
-const InputSettings = ({ formData, ...rest }) => {
+const InputSettings = ({ formData }) => {
     return (
         formData && formData.input && formData.input.connected ?
         <Fragment>
             <SelectInput label='Signal type' source="input.signal" choices={[
-                { id: 'P', name: 'Pulses' },
-                { id: 'C', name: 'Cycles' }
+                { id: 'p', name: 'Pulses' },
+                { id: 'c', name: 'Cycles' }
             ]} fullWidth />
-            {formData.input.signal && formData.input.signal === "P" &&
-                <NumberInput label='Pulse factor (pulses per kWh)' source='input.factor' fullWidth />
+            {formData.input.signal && formData.input.signal === "p" &&
+                <NumberInput label='Factor (Pulses per kWh)' source='input.factor' fullWidth />
             }
-            {formData.input.signal && formData.input.signal === "C" &&
-                <SelectInput label='Watch' source="input.watch" choices={[
-                    { id: 'r', name: 'Raising edge' },
-                    { id: 'f', name: 'Falling edge' }
-                ]} fullWidth />
+            {formData.input.signal && formData.input.signal === "c" &&
+                <Fragment>
+                    <SelectInput label='Watch' source="input.watch" choices={[
+                        { id: 'r', name: 'Raising edge' },
+                        { id: 'f', name: 'Falling edge' }
+                    ]} fullWidth />
+
+                    <NumberInput label='Load value (kW)' source='input.load' fullWidth />
+                </Fragment>
             }
             <TextInput label='Label' source='input.label' fullWidth />
             <TextInput label='Description' source='input.description' fullWidth/>
@@ -69,7 +73,7 @@ class InputForm extends Component {
                 save={onSubmit}
                 toolbar={null}
             >
-                <BooleanInput label='Connected' source='input.connected' margin='dense'/>
+                <BooleanInput label='Connected' source='input.connected' />
                 <FormDataConsumer>
                     {formDataProps => <InputSettings {...formDataProps} /> }
                 </FormDataConsumer>

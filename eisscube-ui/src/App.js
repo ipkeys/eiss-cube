@@ -3,12 +3,13 @@ import { Admin, Resource } from 'react-admin';
 import { Route } from 'react-router-dom';
 import { createMuiTheme } from '@material-ui/core/styles';
 
-import cubeLayout from './layout';
-import Login from './layout/Login';
+import cubeLayout from './Layout';
+import Login from './Layout/Login';
 import { Dashboard } from './dashboard';
 import { EissCubesIcon, EissCubesList, EissCubesShow, EissCubesEdit } from './cubes';
 import { CommandIcon, CommandList, CommandShow, CommandCreate } from './commands';
 import { PropertyIcon, PropertyList, PropertyEdit, PropertyCreate } from './properties';
+import { ReportIcon, ReportList, ReportShow } from './reports';
 
 import { development, authProvider, dataProvider,  i18nProvider } from './providers';
 
@@ -90,7 +91,8 @@ const App = () => (
         {...(development ? {loginPage: Login}: {loginPage: redirectLogin} )}
     >
         {permissions => [
-		<Resource name="groups" />,
+        <Resource name="groups" />,
+        <Resource name="meters" />,
 		<Resource options={{ label: 'EISS™Cubes' }}
 			name="cubes"
 			icon={ EissCubesIcon }
@@ -105,6 +107,12 @@ const App = () => (
             show={ CommandShow }
             create={ CommandCreate }
 		/>,
+        <Resource options={{ label: 'Reports' }}
+            name="reports"
+            icon={ ReportIcon }
+            list={ ReportList }
+            show={ ReportShow }
+        />,
         isSuperAdmin(permissions) 
         ?   <Resource options={{ label: 'Properties' }}
                 name="properties"

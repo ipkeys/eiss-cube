@@ -10,7 +10,6 @@ public class CubeRelay {
     @Property Boolean connected;
     @Property String contacts;
     @Property String label;
-    @Property Integer load;
     @Property String description;
 
 }

@@ -5,7 +5,6 @@ import {
     SimpleForm,
     BooleanInput,
     SelectInput,
-    NumberInput,
     TextInput,
     FormDataConsumer
 } from 'react-admin';
@@ -16,7 +15,7 @@ import { SetupFormButton } from './SetupCube';
 const styles = theme => ({
 });
 
-const RelaySettings = ({ formData, ...rest }) => {
+const RelaySettings = ({ formData }) => {
     return (
         formData && formData.relay && formData.relay.connected ?
         <Fragment>
@@ -24,7 +23,6 @@ const RelaySettings = ({ formData, ...rest }) => {
                 { id: 'NO', name: 'Normal Open' },
                 { id: 'NC', name: 'Normal Close' }
             ]} fullWidth />
-            <NumberInput label='Load value (W)' source='relay.load' fullWidth />
             <TextInput label='Label' source='relay.label' fullWidth />
             <TextInput label='Description' source='relay.description' fullWidth />
         </Fragment>

@@ -1,10 +1,14 @@
 package eiss.cube.service.http.process.commands;
 
 import com.google.gson.Gson;
+import dev.morphia.InsertOptions;
+import dev.morphia.UpdateOptions;
+import dev.morphia.query.UpdateOperations;
 import eiss.cube.db.Cube;
 import eiss.cube.service.http.process.api.Api;
 import eiss.cube.json.messages.CycleAndDutyCycleExtractor;
 import eiss.models.cubes.CubeCommand;
+import eiss.models.cubes.CubeReport;
 import eiss.models.cubes.EISScube;
 import eiss.models.eiss.Group;
 import io.vertx.core.Handler;
@@ -96,8 +100,6 @@ public class PostRoute implements Handler<RoutingContext> {
             if (res.succeeded()) {
                 // send cmd to EISScube device
                 sendIt(cmd);
-                // prepare report record
-                //recordIt(cmd);
 
                 response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .setStatusCode(SC_CREATED)
@@ -117,6 +119,7 @@ public class PostRoute implements Handler<RoutingContext> {
         vertx.executeBlocking(op -> {
             EISScube cube = q.first();
             if (cube != null) {
+                // send command to device
                 vertx.eventBus().send("eisscube",
                     new JsonObject()
                         .put("id", cmd.getId().toString())
@@ -124,6 +127,19 @@ public class PostRoute implements Handler<RoutingContext> {
                         .put("socket", cube.getSocket())
                         .put("cmd", cmd.toString())
                 );
+
+                // prepare report record
+                if (cmd.getCommand().startsWith("ic")) {
+                    Query<CubeReport> qR = datastore.createQuery(CubeReport.class);
+                    qR.criteria("cubeID").equal(cube.getId());
+
+                    UpdateOperations<CubeReport> ops = datastore.createUpdateOperations(CubeReport.class);
+                    ops.setOnInsert("cubeID", cube.getId());
+                    ops.set("type", cmd.getCommand().replace("ic", "")); // leave just "p" or "c"
+
+                    datastore.update(qR, ops, new UpdateOptions().upsert(true));
+                }
+
                 op.complete();
             } else {
                 op.fail(String.format("Cannot find EISSCube for id: %s", cmd.getCubeID().toString()));
@@ -136,32 +152,5 @@ public class PostRoute implements Handler<RoutingContext> {
             }
         });
     }
-
-/*
-    private void recordIt(CubeCommand cmd) {
-        if (cmd.getCommand().startsWith("i")) {
-            saveReportRecord(cmd.getCubeID(), "_Meter");
-        }
-    }
-
-    private void saveReportRecord(String cubeID, String reportID) {
-        CubeReport report = new CubeReport();
-        report.setCubeID(cubeID);
-        report.setReportID(cubeID + reportID);
-
-        vertx.executeBlocking(op -> {
-            try {
-                Key<CubeReport> key = datastore.save(report);
-                op.complete(key);
-            } catch (DuplicateKeyException dup) {
-                log.error(dup.getMessage());
-                op.fail("ReportID already exists");
-            } catch (Exception e) {
-                log.error(e.getMessage());
-                op.fail("Unable to add ReportID");
-            }
-        }, res -> log.info("Prepare report record for: {}", cubeID + reportID));
-    }
-*/
 
 }

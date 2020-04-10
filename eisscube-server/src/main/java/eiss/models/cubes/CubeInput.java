@@ -10,8 +10,9 @@ public class CubeInput {
 
     @Property Boolean connected;
     @Property String signal;
-    @Property Integer factor;
+    @Property Float factor;
     @Property String watch;
+    @Property Float load;
     @Property String label;
     @Property String description;
 
