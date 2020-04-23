@@ -31,9 +31,9 @@ import static javax.servlet.http.HttpServletResponse.*;
 @Path("/eiss-api/commands/listfordevice")
 public class ListForDeviceRoute implements Handler<RoutingContext> {
 
-    private Vertx vertx;
-    private Datastore datastore;
-    private Gson gson;
+    private final Vertx vertx;
+    private final Datastore datastore;
+    private final Gson gson;
 
     @Inject
     public ListForDeviceRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {

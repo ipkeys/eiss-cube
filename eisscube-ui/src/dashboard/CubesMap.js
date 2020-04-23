@@ -77,7 +77,7 @@ class CubesMap extends Component {
                             <br/>
                             <a href={`#/commands?filter={"cubeID":"${cube.id}"}&page=1&perPage=10&sort=created&order=DESC`}>Commands</a>
                             <br/>
-                            <a href={`#/reports?filter={"cubeID":"${cube.id}"}&page=1&perPage=10&sort=reportID&order=ASC`}>Reports</a>
+                            <a href={`#/reports?displayedFilters={"cubeID":true}&filter={"cubeID":"${cube.id}"}&order=ASC&page=1&perPage=10&sort=cubeID`}>Report</a>
                         </span>
                     </Popup>
                 </Marker>               

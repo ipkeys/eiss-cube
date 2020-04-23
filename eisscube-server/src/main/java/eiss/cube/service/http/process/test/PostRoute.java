@@ -31,8 +31,8 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 @Path("/test")
 public class PostRoute implements Handler<RoutingContext> {
 
-    private Vertx vertx;
-    private Datastore datastore;
+    private final Vertx vertx;
+    private final Datastore datastore;
 
     @Inject
     public PostRoute(Vertx vertx, @Cube Datastore datastore) {

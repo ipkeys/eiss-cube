@@ -1,8 +1,8 @@
 import React from 'react';
 import {
-	useShowController,
 	List,
 	Filter,
+	FunctionField,
 	Datagrid,
 	ReferenceField,
 	TextField,
@@ -17,8 +17,7 @@ import { withStyles } from '@material-ui/core/styles';
 
 import Icon from '@material-ui/icons/BarChart';
 
-import PulseChart from './PulseChart';
-import CycleChart from './CycleChart';
+import PowerChart from './PowerChart';
 
 export const ReportIcon = Icon;
 
@@ -28,6 +27,11 @@ const styles = theme => ({
     }
 });
 
+const types = [
+    { id: 'p', name: 'Pulses' },
+    { id: 'c', name: 'Cycles' }
+];
+
 const ReportListTitle = ({title, record}) => (
 	<Typography variant="h6">
 		{title} { record && record.cubeName && `${record.cubeName}` }
@@ -36,7 +40,7 @@ const ReportListTitle = ({title, record}) => (
 
 const ReportListFilter = props => (
 	<Filter {...props}>
-		<ReferenceInput alwaysOn label='from EISS™Cube' source='cubeID' reference='cubes'>
+		<ReferenceInput label='from EISS™Cube' source='cubeID' reference='cubes'>
 			<AutocompleteInput optionText='name'/>
 		</ReferenceInput>
 	</Filter>
@@ -56,6 +60,9 @@ export const ReportList = withStyles(styles)(
 				<ReferenceField label='EISS™Cube' source='cubeID' reference='cubes' link='show'>
                     <TextField source='name' />
                 </ReferenceField>
+				<FunctionField label='Report type' sortBy='type'
+					render={ rd => types.find(r => r.id === rd.type).name }
+				/>
 				<ShowButton />
 			</Datagrid>
 		</List>
@@ -64,25 +71,13 @@ export const ReportList = withStyles(styles)(
 	
 
 export const ReportShow = withStyles(styles)(
-    ({ classes, permissions: p, ...props }) => {
-		const { record } = useShowController(props);
-
-		return (
-			<Show {...props}
-				title={<ReportListTitle title='Report from' />} 
-			>
-				<SimpleShowLayout>
-					<PulseChart {...props} />
-{/*}
-					{record && record.type === 'p' &&
-						<PulseChart {...props} />
-					}
-					{record && record.type === 'c' &&
-						<CycleChart {...props} />
-					}
-*/}
-					</SimpleShowLayout>
-			</Show>
-		);
-	}
+    ({ classes, permissions: p, ...props }) => (
+		<Show {...props}
+			title={<ReportListTitle title='Report from' />} 
+		>
+			<SimpleShowLayout>
+				<PowerChart {...props} />
+			</SimpleShowLayout>
+		</Show>
+	)
 );

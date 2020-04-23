@@ -35,10 +35,10 @@ import static javax.servlet.http.HttpServletResponse.*;
 @Path("/cubes/{id}")
 public class PutRoute implements Handler<RoutingContext> {
 
-    private Vertx vertx;
-    private Datastore eissDatastore;
-    private Datastore cubeDatastore;
-    private Gson gson;
+    private final Vertx vertx;
+    private final Datastore eissDatastore;
+    private final Datastore cubeDatastore;
+    private final Gson gson;
 
     @Inject
     public PutRoute(Vertx vertx, @Eiss Datastore eissDatastore, @Cube Datastore cubeDatastore, Gson gson) {

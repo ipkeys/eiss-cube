@@ -76,11 +76,14 @@ const edges = [
     { id: 'f', name: 'Falling edge' }
 ];
 
-const CommandTitle = ({title, record}) => (
-    <Typography variant="h6">
-        {title} {record && record.id && `${record.id}`}
-    </Typography>
-);
+const CommandTitle = ({title, record}) => {
+    const cmd = record && record.command && find(cmds, { 'id': record.command });
+    return (
+        <Typography variant="h6">
+            {title} {cmd && cmd.name && `${cmd.name}`}
+        </Typography>
+    )
+};
 
 const CommandFilter = props => (
     <Filter {...props}>
@@ -120,7 +123,6 @@ const CommandFilter = props => (
 );
 
 const exportCommandList = data => {
-    console.log(data);
     const records = data.map(r => {
         const cmd = find(cmds, { 'id': r.command });
         return ({
@@ -171,12 +173,15 @@ export const CommandList = withStyles(styles)(
 
 export const CommandShow = withStyles(styles)(
     ({ classes, permissions: p, ...props }) => (
-        <ShowController 
-            title={<CommandTitle title='Command' />} 
+        <ShowController
             {...props}
         >
             {controllerProps => 
-                <ShowView {...props} {...controllerProps}>
+                <ShowView 
+                    title={<CommandTitle title='Command' />}
+                    {...props} 
+                    {...controllerProps}
+                >
                     <SimpleShowLayout>
                         <SelectField className={classes.inlineField} label='Command' source='command' choices={cmds} />
 

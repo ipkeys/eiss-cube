@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import moment from 'moment';
@@ -7,7 +7,7 @@ import { GET_ONE, Button } from 'react-admin';
 import { USAGE } from '../providers/dataProvider';
 import { dataProvider } from '../providers';
 
-import { TimeSeries, TimeRange, Index } from "pondjs";
+import { TimeSeries, Index } from "pondjs";
 import { Charts, ChartContainer, ChartRow, YAxis, AreaChart, BarChart, Resizable, Brush } from "react-timeseries-charts";
 
 import { Toolbar } from '@material-ui/core';
@@ -50,39 +50,21 @@ const chartstyle = {
 		}
 	},
 	infoBox: {
-		textStyle: {
-			fill: 'rgba(0, 0, 0, 0.87)',
-			'font-size': 12
+		markerStyle: {
+			fill: red[500]
 		},
-		line: { 
-			stroke: red[500], 
-			cursor: 'crosshair', 
-			pointerEvents: 'none' 
-		}, 
+		stemStyle : {
+			stroke: red[500]
+		},
 		box: { 
-			fill: red[50], 
-			opacity: 0.5, 
 			stroke: red[500], 
-			pointerEvents: 'none' 
-		}, 
-		dot: { 
-			fill: "#000" 
+			fill: red[50], 
+			opacity: 0.5
 		} 
 	},
 	tracker: { 
 		line: { 
-			stroke: red[500], 
-			cursor: 'crosshair', 
-			pointerEvents: 'none' 
-		}, 
-		box: { 
-			fill: red[50], 
-			opacity: 0.5, 
-			stroke: red[500], 
-			pointerEvents: 'none' 
-		}, 
-		dot: { 
-			fill: red[500] 
+			stroke: red[500] 
 		} 
 	}
 };
@@ -126,16 +108,20 @@ const styles = theme => ({
 	}
 });
 
-class PulseChart extends Component {
+class PowerChart extends Component {
 	constructor(props) {
 		super(props);
-		const d = moment(); 
-		const day = moment([d.year(), d.month(), d.date(), 0, 0, 0]); // remove h:m:s
+		// now, from & to must be 3 different objects
+		const now = moment([moment().year(), moment().month(), moment().date(), 0, 0, 0]);
+		const from = moment(now);
+		const to = moment(from).add(1440, 'minutes');
 
 		this.state = {
 			ready: false,
-			now: day.date(),
-			day: day,
+			future: true,
+			now: now,
+			from: from,
+			to: to,
 			utcOffset: moment().utcOffset(),
 			series: null,
 			brushseries: null,
@@ -148,24 +134,18 @@ class PulseChart extends Component {
 			load: 1,
 			watch: 'r'
 		};
-
-		this.handleTrackerChanged = this.handleTrackerChanged.bind(this);
-		this.handleTimeRangeChange = this.handleTimeRangeChange.bind(this);
-		this.handleAggregation = this.handleAggregation.bind(this);
-		this.handleDateChange = this.handleDateChange.bind(this);
-		this.handleNextDay = this.handleNextDay.bind(this);
-		this.handlePrevDay = this.handlePrevDay.bind(this);
 	}
 
 	getData = () => {
 		const { record } = this.props;
-		const { day, utcOffset, aggregation, factor, load, watch } = this.state;
+		const { from, to, utcOffset, aggregation, factor, load, watch } = this.state;
 		
 		dataProvider(USAGE, 'meters', {
 			data: { 
 				cubeID: record.cubeID, 
 				type: record.type,
-				day,
+				from,
+				to,
 				utcOffset,
 				aggregation,
 				factor,
@@ -177,7 +157,6 @@ class PulseChart extends Component {
 		.then(usage => {
 			const points = [];
 			const brushPoints = [];
-			let lastReportTime = moment();
 
 			if (usage.length === 0) {
 				this.setState({ 
@@ -185,47 +164,12 @@ class PulseChart extends Component {
 				});
 			} else {
 				for (let i = 0; i < usage.length; i += 1) {
-					const time = moment(usage[i].timestamp); //new Date(usage[i].timestamp);
+					const time = moment(usage[i].t);
+					const value = usage[i].v;
+					const index = Index.getIndexString(aggregation, time); 
 
-					points.push([Index.getIndexString(aggregation, time), usage[i].value]);
-					
-					if (i > 0) {
-						// insert "null" to break the line chart
-						const deltaTime = moment.duration(time.diff(moment(usage[i-1].timestamp))).asMinutes(); //   time -  new Date(usage[i - 1].timestamp);
-						switch(aggregation) {
-							case "1m":
-								if (deltaTime > 1) {
-									brushPoints.push([time, null]);
-								}
-								break;
-							case "5m":
-								if (deltaTime > 5) {
-									brushPoints.push([time, null]);
-								}
-								break;
-							case "15m":
-								if (deltaTime > 15) {
-									brushPoints.push([time, null]);
-								}
-								break;
-							case "30m":
-								if (deltaTime > 30) {
-									brushPoints.push([time, null]);
-								}
-								break;
-							case "1h":
-							default:
-								if (deltaTime > 60) {
-									brushPoints.push([time, null]);
-								}
-								break;
-						}
-					}
-					brushPoints.push([time, usage[i].value]);
-
-					if (i === usage.length-1) {
-						lastReportTime = time;
-					}
+					points.push([index, value]);					
+					brushPoints.push([time, value]);
 				}
 
 				const series = new TimeSeries({
@@ -240,33 +184,9 @@ class PulseChart extends Component {
 					points: brushPoints
 				});
 
-				let timebefore = moment(lastReportTime).subtract(1439, 'minute');
-				let timeafter = moment(lastReportTime).add(59, 'minute');
-				switch(aggregation) {
-					case "1m":
-						timebefore = moment(lastReportTime).subtract(24, 'minute');
-						timeafter = moment(lastReportTime).add(1, 'minute');
-						break;
-					case "5m":
-						timebefore = moment(lastReportTime).subtract(2, 'hour');
-						timeafter = moment(lastReportTime).add(5, 'minute');
-						break;
-					case "15m":
-						timebefore = moment(lastReportTime).subtract(6, 'hour');
-						timeafter = moment(lastReportTime).add(15, 'minute');
-						break;
-					case "30m":
-						timebefore = moment(lastReportTime).subtract(12, 'hour');
-						timeafter = moment(lastReportTime).add(30, 'minute');
-						break;
-					case "1h":
-					default:
-						break;
-				}
-				
-				const initialRange = new TimeRange([timebefore, timeafter]);
-				const minTime = series && series.range() && series.range().begin();
-				const maxTime = series && series.range() && series.range().end();
+				const initialRange = series && series.range();
+				const minTime = initialRange && initialRange.begin();
+				const maxTime = initialRange && initialRange.end();
 				const minDuration = 3600000;
 				
 				this.setState({
@@ -323,18 +243,18 @@ class PulseChart extends Component {
 	}
 
 	componentDidUpdate(prevProps, prevState, snapshot) {
-		const { aggregation, day } = this.state;
+		const { aggregation, from } = this.state;
 		
-		if (aggregation !== prevState.aggregation || moment(day).date() !== moment(prevState.day).date()) {
+		if (aggregation !== prevState.aggregation || from.diff(prevState.from, 'days') !== 0) {
 			this.getData();
 		}
 	}
-
-	handleTrackerChanged(tracker) {
+		
+	handleTrackerChanged = tracker => {
 		this.setState({ tracker });
 	}
 
-	handleTimeRangeChange(timerange) {
+	handleTimeRangeChange = timerange => {
 		if (timerange) {
 			this.setState({ timerange, brushrange: timerange });
 		} else {
@@ -343,37 +263,39 @@ class PulseChart extends Component {
 		}
 	}
 
-	handleAggregation(aggregation) {
+	handleAggregation = aggregation => {
 		this.setState({ aggregation });
 	}
 		
-	handleDateChange(d) {
-		const day = moment([d.year(), d.month(), d.date(), 0, 0, 0]); // remove h:m:s
-		this.setState({ day });
+	handleDateChange = d => {
+		const { now } = this.state;
+		const from = moment([d.year(), d.month(), d.date(), 0, 0, 0]); // remove h:m:s
+		const to = moment(from).add(1440, 'minutes');
+		
+		this.setState({ 
+			future: now.diff(from, 'days') === 0,
+			from,
+			to
+		});
 	}
 	
-	handlePrevDay(day) {
-		this.setState({ 
-			day: day.subtract(1, 'd') 
-		});
+	handleSwitchDay = from => {
+		const { now } = this.state;
+		const to = moment(from).add(1440, 'minutes');
 
-		this.getData();
-	}
-	
-	handleNextDay(day) {
 		this.setState({ 
-			day: day.add(1, 'd')
-		});
-
-		this.getData();
+			future: now.diff(from, 'days') === 0,
+			from,
+			to 
+		},() => this.getData());
 	}
 
 	render() {
 		const { classes } = this.props;
 		const { 
 			ready,
-			day,
-			now,
+			from,
+			future,
 			series,
 			brushseries,
 			brushrange,
@@ -390,9 +312,7 @@ class PulseChart extends Component {
 		let selectedValue = '--';
 		let renderCharts = <div className={classes.chart}>Loading.....</div>;
 
-		if (!ready) {
-			renderCharts = <div className={classes.chart}>Data not available...</div>;
-		} else if (series && timerange) {
+		if (ready && series && timerange) {
 			selectedDate = selection &&
 				`${moment(selection.event.index().begin()).format('MM/DD/YYYY, HH:mm')}`;
 
@@ -423,30 +343,33 @@ class PulseChart extends Component {
 						onTimeRangeChanged={this.handleTimeRangeChange}
 						onTrackerChanged={this.handleTrackerChanged}
 					>
-						<ChartRow height="400">
+						<ChartRow height='400'>
 							<YAxis
-								id="axis"
-								label="Power (kW)"
+								id='axis'
+								label='Power (kW)'
 								min={0}
 								max={series.max() + series.max() * 0.1}
 								width={60}
 								valWidth={40}
-								format = ",.2f"
-								type="linear"
+								format=',.2f'
+								type='linear'
 								style={chartstyle.axis}
 							/>
 							<Charts>
 								<BarChart
-									axis="axis"
+									axis='axis'
 									style={chartstyle}
-									columns={["value"]}
+									columns={['value']}
 									series={seriesCropped}
+									minBarHeight={1}
 									breakLine
 									info={infoValues}
 									infoWidth={100}
 									infoOffsetY={5}
-									infoTimeFormat={index => moment(index.begin()).format("MM/DD/YYYY, HH:mm")}
+									infoTimeFormat={index => moment(index.begin()).format('MM/DD/YYYY, HH:mm')}
 									infoStyle={chartstyle.infoBox}
+									stemStyle={chartstyle.infoBox.stemStyle}
+									markerStyle={chartstyle.infoBox.markerStyle}
 									highlighted={highlight}
 									onHighlightChange={h => this.setState({ highlight: h })}
 									selected={selection}
@@ -468,26 +391,26 @@ class PulseChart extends Component {
 						minTime={minTime}
 						minDuration={minDuration}
 					>
-						<ChartRow height="80">
+						<ChartRow height='80'>
 							<Brush
 								timeRange={brushrange}
 								allowSelectionClear
 								onTimeRangeChanged={this.handleTimeRangeChange}
 							/>
 							<YAxis
-								id="axis1"
+								id='axis1'
 								min={0}
-								max={brushseries.max("brush") + brushseries.max("brush") * 0.1}
+								max={brushseries.max('brush') + brushseries.max('brush') * 0.1}
 								width={60}
 								valWidth={40}
-								format = ",.2f"
+								format = ',.2f'
 								style={chartstyle.axis}		
 							/>
 							<Charts>
 								<AreaChart
-									axis="axis1"
+									axis='axis1'
 									style={chartstyle}
-									columns={{ up: ["brush"], down: [] }}
+									columns={{ up: ['brush'], down: [] }}
 									series={brushseries}
 								/>
 							</Charts>
@@ -508,7 +431,7 @@ class PulseChart extends Component {
 							variant='outlined'
 							label={null}
 							disabled={false}
-							onClick={() => this.handlePrevDay(day)}
+							onClick={() => this.handleSwitchDay(from.subtract(1, 'd'))}
 						>
 							<PrevIcon />
 						</Button>
@@ -519,7 +442,7 @@ class PulseChart extends Component {
 								variant='inline'
 								label={false}
 								format='MM/DD/YYYY'
-								value={day}
+								value={from}
 								disableFuture={true}
 								onChange={date => this.handleDateChange(date)}
 							/>
@@ -528,8 +451,8 @@ class PulseChart extends Component {
 							variant='outlined'
 							label={null}
 							alignIcon='right'
-							disabled={now === day.date()}
-							onClick={() => this.handleNextDay(day)}
+							disabled={future}
+							onClick={() => this.handleSwitchDay(from.add(1, 'd'))}
 						>
 							<NextIcon />
 						</Button>
@@ -562,9 +485,9 @@ class PulseChart extends Component {
 	}
 }
 
-PulseChart.propTypes = {
+PowerChart.propTypes = {
 	classes: PropTypes.object.isRequired,
 	record: PropTypes.object
 };
 
-export default withStyles(styles)(PulseChart);
+export default withStyles(styles)(PowerChart);

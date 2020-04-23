@@ -15,7 +15,7 @@ import java.lang.reflect.Method;
 @Slf4j
 public class ApiBuilder {
 
-    private Injector injector;
+    private final Injector injector;
 
     @Inject @Named("api_package")
     private String API_PACKAGE;

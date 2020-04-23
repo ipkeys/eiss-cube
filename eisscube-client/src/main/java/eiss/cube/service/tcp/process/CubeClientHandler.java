@@ -160,9 +160,9 @@ public class CubeClientHandler {
         stopReporting();
         // Will report in "each" seconds
         String idString = String.format("id=%s\0", id);
-        String each = "600"; // each 10 min
+        String each = "360"; // each 6 min
         reportTimerID = vertx.setPeriodic(Integer.parseInt(each) * 1000, v -> {
-            double value = 300; // 5 min ON, 5 min OFF
+            double value = 180; // 3 min ON, 3 min OFF
             String response = String.format("rpt-ts=%s&dur=%4.2f&%s", Instant.now().truncatedTo(ChronoUnit.MINUTES).getEpochSecond(), value, idString);
             socket.write(response);
         });

@@ -1,7 +1,6 @@
 package eiss.cube.service.http.process.commands;
 
 import com.google.gson.Gson;
-import dev.morphia.InsertOptions;
 import dev.morphia.UpdateOptions;
 import dev.morphia.query.UpdateOperations;
 import eiss.cube.db.Cube;
@@ -10,7 +9,6 @@ import eiss.cube.json.messages.CycleAndDutyCycleExtractor;
 import eiss.models.cubes.CubeCommand;
 import eiss.models.cubes.CubeReport;
 import eiss.models.cubes.EISScube;
-import eiss.models.eiss.Group;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerResponse;
@@ -36,9 +34,9 @@ import static javax.servlet.http.HttpServletResponse.*;
 @Path("/commands")
 public class PostRoute implements Handler<RoutingContext> {
 
-    private Vertx vertx;
-    private Datastore datastore;
-    private Gson gson;
+    private final Vertx vertx;
+    private final Datastore datastore;
+    private final Gson gson;
 
     @Inject
     public PostRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {

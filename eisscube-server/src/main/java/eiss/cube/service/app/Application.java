@@ -1,6 +1,5 @@
 package eiss.cube.service.app;
 
-//import eiss.cube.service.client.VEN;
 import eiss.cube.service.http.Http;
 import eiss.cube.service.tcp.Tcp;
 import io.vertx.core.Vertx;
@@ -11,21 +10,18 @@ import javax.inject.Inject;
 @Slf4j
 public class Application {
 
-    private Vertx vertx;
-    private Http httpServer;
-    private Tcp tcpServer;
-    //private VEN ven;
+    private final Vertx vertx;
+    private final Http httpServer;
+    private final Tcp tcpServer;
 
     private String httpDeploymentID = null;
     private String tcpDeploymentID = null;
-    //private String venDeploymentID = null;
 
     @Inject
-    public Application(Vertx vertx, Http httpServer, Tcp tcpServer) { //, VEN ven) {
+    public Application(Vertx vertx, Http httpServer, Tcp tcpServer) {
         this.vertx = vertx;
         this.httpServer = httpServer;
         this.tcpServer = tcpServer;
-        //this.ven = ven;
     }
 
     public void start() throws Exception {
@@ -40,14 +36,6 @@ public class Application {
                 tcpDeploymentID = res.result();
             }
         });
-
-/*
-        vertx.deployVerticle(ven, res -> {
-            if (res.succeeded()) {
-                venDeploymentID = res.result();
-            }
-        });
-*/
     }
 
     public void stop() throws Exception {
@@ -59,13 +47,7 @@ public class Application {
             vertx.undeploy(tcpDeploymentID);
         }
 
-
         vertx.close();
-/*
-        if (venDeploymentID != null) {
-            vertx.undeploy(venDeploymentID);
-        }
-*/
     }
 
 }

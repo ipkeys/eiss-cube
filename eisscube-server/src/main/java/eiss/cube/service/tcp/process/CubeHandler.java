@@ -29,12 +29,12 @@ import java.util.*;
 @Slf4j
 public class CubeHandler implements Handler<NetSocket> {
 
-    private static DateTimeFormatter df = DateTimeFormatter.ofPattern("z MM/dd/yyyy HH:mm:ss").withZone(ZoneId.of("UTC"));
+    private static final DateTimeFormatter df = DateTimeFormatter.ofPattern("z MM/dd/yyyy HH:mm:ss").withZone(ZoneId.of("UTC"));
 
-    private Vertx vertx;
-    private EventBus eventBus;
-    private Datastore datastore;
-    private Randname randname;
+    private final Vertx vertx;
+    private final EventBus eventBus;
+    private final Datastore datastore;
+    private final Randname randname;
 
     @Inject
     public CubeHandler(Vertx vertx, @Cube Datastore datastore, Randname randname) {

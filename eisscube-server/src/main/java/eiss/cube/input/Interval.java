@@ -1,4 +1,4 @@
-package eiss.cube.service.http.process.meters;
+package eiss.cube.input;
 
 import lombok.Data;
 import lombok.NonNull;

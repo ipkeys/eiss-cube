@@ -33,9 +33,9 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 @Path("/eiss-api/properties/edit")
 public class EditRoute implements Handler<RoutingContext> {
 
-    private Vertx vertx;
-    private Datastore datastore;
-    private Gson gson;
+    private final Vertx vertx;
+    private final Datastore datastore;
+    private final Gson gson;
 
     @Inject
     public EditRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {

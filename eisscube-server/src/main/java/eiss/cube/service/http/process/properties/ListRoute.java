@@ -35,9 +35,9 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 @Path("/properties")
 public class ListRoute implements Handler<RoutingContext> {
 
-    private Vertx vertx;
-    private Datastore datastore;
-    private Gson gson;
+    private final Vertx vertx;
+    private final Datastore datastore;
+    private final Gson gson;
 
     @Inject
     public ListRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {

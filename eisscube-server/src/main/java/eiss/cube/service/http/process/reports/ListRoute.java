@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import dev.morphia.Datastore;
 import dev.morphia.query.FindOptions;
 import dev.morphia.query.Query;
+import org.bson.types.ObjectId;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -30,9 +31,9 @@ import static javax.servlet.http.HttpServletResponse.*;
 @Path("/reports")
 public class ListRoute implements Handler<RoutingContext> {
 
-    private Vertx vertx;
-    private Datastore datastore;
-    private Gson gson;
+    private final Vertx vertx;
+    private final Datastore datastore;
+    private final Gson gson;
 
     @Inject
     public ListRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {
@@ -50,9 +51,11 @@ public class ListRoute implements Handler<RoutingContext> {
         Query<CubeReport> q = datastore.createQuery(CubeReport.class);
 
         // filters
-        String filter = request.getParam(FILTER);
-        if (filter != null && !filter.isEmpty()) {
-            q.field("cubeID").startsWithIgnoreCase(filter);
+        String cubeID = request.getParam("cubeID");
+        if (cubeID != null && !cubeID.isEmpty()) {
+            if (ObjectId.isValid(cubeID)) {
+                q.field("cubeID").equal(new ObjectId(cubeID));
+            }
         }
         // ~filters
 

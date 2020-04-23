@@ -24,13 +24,13 @@ import static javax.servlet.http.HttpServletResponse.*;
 @Slf4j
 @Api
 @Path("/cloudven/resources/{ven}")
-public class GetVenResourcesRoute implements Handler<RoutingContext> {
+public class VenResourcesGetRoute implements Handler<RoutingContext> {
 
-    private Vertx vertx;
-    private Datastore datastore;
+    private final Vertx vertx;
+    private final Datastore datastore;
 
     @Inject
-    public GetVenResourcesRoute(Vertx vertx, @Cube Datastore datastore) {
+    public VenResourcesGetRoute(Vertx vertx, @Cube Datastore datastore) {
         this.vertx = vertx;
         this.datastore = datastore;
     }

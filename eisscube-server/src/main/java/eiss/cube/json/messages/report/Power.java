@@ -8,7 +8,7 @@ import java.time.Instant;
 @Data(staticConstructor="of")
 public class Power {
 
-    @NonNull private Instant timestamp;
-    @NonNull private Double value;
+    @NonNull private Instant t;
+    @NonNull private Double v;
 
 }

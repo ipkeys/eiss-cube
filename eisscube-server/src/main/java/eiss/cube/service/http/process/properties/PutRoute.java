@@ -31,9 +31,9 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 @Path("/properties/{id}")
 public class PutRoute implements Handler<RoutingContext> {
 
-    private Vertx vertx;
-    private Datastore datastore;
-    private Gson gson;
+    private final Vertx vertx;
+    private final Datastore datastore;
+    private final Gson gson;
 
     @Inject
     public PutRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {

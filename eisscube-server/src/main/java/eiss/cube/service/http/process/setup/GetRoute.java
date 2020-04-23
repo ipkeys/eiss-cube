@@ -28,9 +28,9 @@ import static javax.servlet.http.HttpServletResponse.*;
 @Path("/setup/{cubeID}")
 public class GetRoute implements Handler<RoutingContext> {
 
-    private Vertx vertx;
-    private Datastore datastore;
-    private Gson gson;
+    private final Vertx vertx;
+    private final Datastore datastore;
+    private final Gson gson;
 
     @Inject
     public GetRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {

@@ -12,7 +12,7 @@ import javax.inject.Inject;
 
 public class EissDatastoreProvider implements Provider<Datastore> {
 
-    private EissDatabaseConfig cfg;
+    private final EissDatabaseConfig cfg;
 
     private final Morphia morphia = new Morphia();
     private static Datastore datastore;

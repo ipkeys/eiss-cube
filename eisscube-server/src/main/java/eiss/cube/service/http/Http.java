@@ -31,13 +31,13 @@ import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 @Slf4j
 public class Http extends AbstractVerticle {
 
-    private EissCubeConfig cfg;
-    private ApiUserConfig apiUser;
-    private Router router;
-    private ApiBuilder builder;
-    private Jwt jwt;
+    private final EissCubeConfig cfg;
+    private final ApiUserConfig apiUser;
+    private final Router router;
+    private final ApiBuilder builder;
+    private final Jwt jwt;
 
-    private Vertx vertx;
+    private final Vertx vertx;
     private HttpServer server;
 
     @Inject
@@ -56,7 +56,7 @@ public class Http extends AbstractVerticle {
     @Override
     public void start() throws Exception {
 
-        int port = Integer.valueOf(cfg.getHttpPort());
+        int port = Integer.parseInt(cfg.getHttpPort());
 
         HttpServerOptions options = new HttpServerOptions()
             .setPort(port)

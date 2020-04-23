@@ -9,7 +9,8 @@ public class ReportRequest {
 
     private String cubeID;
     private String type;
-    private Instant day;
+    private Instant from;
+    private Instant to;
     private Long utcOffset;
     private String aggregation;
     private Float factor;

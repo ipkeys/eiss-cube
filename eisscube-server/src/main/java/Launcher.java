@@ -2,6 +2,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import eiss.cube.config.ConfigModule;
 import eiss.cube.db.DatastoreModule;
+import eiss.cube.input.ConversionModule;
 import eiss.cube.json.GsonModule;
 import eiss.cube.randname.RandnameModule;
 import eiss.cube.service.app.Application;
@@ -25,7 +26,8 @@ public class Launcher {
             new TcpModule(),
             new DatastoreModule(),
             new GsonModule(),
-            new RandnameModule()
+            new RandnameModule(),
+            new ConversionModule()
         );
 
         final Application app = injector.getInstance(Application.class);

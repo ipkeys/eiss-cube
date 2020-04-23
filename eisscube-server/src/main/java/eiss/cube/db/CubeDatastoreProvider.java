@@ -12,7 +12,7 @@ import javax.inject.Inject;
 
 public class CubeDatastoreProvider implements Provider<Datastore> {
 
-    private CubeDatabaseConfig cfg;
+    private final CubeDatabaseConfig cfg;
 
     private final Morphia morphia = new Morphia();
     private static Datastore datastore;

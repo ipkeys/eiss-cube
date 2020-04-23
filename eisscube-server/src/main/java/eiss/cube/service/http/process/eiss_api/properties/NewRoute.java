@@ -30,9 +30,9 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 @Path("/eiss-api/properties/new")
 public class NewRoute implements Handler<RoutingContext> {
 
-    private Vertx vertx;
-    private Datastore datastore;
-    private Gson gson;
+    private final Vertx vertx;
+    private final Datastore datastore;
+    private final Gson gson;
 
     @Inject
     public NewRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {

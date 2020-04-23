@@ -91,7 +91,7 @@ class CubeMap extends Component {
                     <br/>
                     <a href={`#/commands?filter={"cubeID":"${record.id}"}&page=1&perPage=10&sort=created&order=DESC`}>Commands</a>
                     <br/>
-                    <a href={`#/reports?filter={"cubeID":"${record.deviceID}"}&page=1&perPage=10&sort=reportID&order=ASC`}>Reports</a>
+                    <a href={`#/reports?displayedFilters={"cubeID":true}&filter={"cubeID":"${record.id}"}&order=ASC&page=1&perPage=10&sort=cubeID`}>Report</a>
                     <br/>
                     <br/>
                     <i style={{color: red[500]}}>Note! Hold and move to change location</i>

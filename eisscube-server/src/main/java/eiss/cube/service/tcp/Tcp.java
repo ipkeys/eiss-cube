@@ -17,10 +17,10 @@ import static java.lang.Boolean.TRUE;
 @Slf4j
 public class Tcp extends AbstractVerticle {
 
-    private EissCubeConfig cfg;
-    private CubeHandler handler;
+    private final EissCubeConfig cfg;
+    private final CubeHandler handler;
 
-    private Vertx vertx;
+    private final Vertx vertx;
     private NetServer server;
 
     @Inject
