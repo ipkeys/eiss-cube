@@ -9,6 +9,7 @@ import eiss.cube.input.Conversion;
 import eiss.cube.json.messages.CycleAndDutyCycleExtractor;
 import eiss.cube.json.messages.cloudven.VenCommand;
 import eiss.cube.json.messages.cloudven.VenReport;
+import eiss.cube.json.messages.report.Power;
 import eiss.cube.json.messages.report.ReportRequest;
 import eiss.cube.json.messages.report.ReportResponse;
 import eiss.cube.service.http.process.api.Api;
@@ -28,7 +29,9 @@ import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
@@ -96,11 +99,27 @@ public class VenMeterReportPostRoute implements Handler<RoutingContext> {
                             report_req.setLoad(setup.getInput().getLoad());
                             report_req.setWatch(setup.getInput().getWatch());
                         }
-                        report_req.setFrom(req.getFrom());
-                        report_req.setTo(req.getTo());
+                        Instant beginOfDay = req.getFrom().truncatedTo(ChronoUnit.DAYS);
+                        Instant endOfDay =  beginOfDay.plus(1440, ChronoUnit.MINUTES);
+                        report_req.setFrom(beginOfDay);
+                        report_req.setTo(endOfDay);
                         report_req.setAggregation(req.getAggregation());
 
-                        conversion.process(report_req, report_res);
+                        conversion.process(report_req, report_res); // whole day
+                        // crop for specified time period
+                        List<Power> usage = report_res.getUsage().stream().filter(power -> {
+                            Instant t = power.getT();
+                            if (t.isBefore(req.getFrom())) {
+                                return false;
+                            } else if (t.isAfter(req.getTo())) {
+                                return false;
+                            } else {
+                                return (t.equals(req.getFrom()) ||
+                                        t.isAfter(req.getFrom()) && t.isBefore(req.getTo())
+                                );
+                            }
+                        }).collect(Collectors.toList());
+                        report_res.setUsage(usage);
 
                         op.complete(gson.toJson(report_res));
                     }

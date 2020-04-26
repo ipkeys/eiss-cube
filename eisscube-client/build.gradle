@@ -20,12 +20,12 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.12'
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
 
-    implementation "io.vertx:vertx-core:3.8.5"
-    implementation "io.vertx:vertx-web:3.8.5"
-    implementation 'io.vertx:vertx-auth-common:3.8.5'
+    implementation "io.vertx:vertx-core:3.9.0"
+    implementation "io.vertx:vertx-web:3.9.0"
+    implementation 'io.vertx:vertx-auth-common:3.9.0'
 
-    implementation 'com.google.inject:guice:4.2.2'
-    implementation 'com.google.guava:guava:28.1-jre'
+    implementation 'com.google.inject:guice:4.2.3'
+    implementation 'com.google.guava:guava:29.0-jre'
     implementation 'com.google.code.gson:gson:2.8.6'
 
     implementation 'net.jmob:guice.conf:1.4.1'

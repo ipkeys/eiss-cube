@@ -294,7 +294,10 @@ public class Conversion {
 				if (m.isAfter(i.getStop())) {
 					continue;
 				}
-				if (m.isAfter(i.getStart()) && m.isBefore(i.getStop())) {
+				if (m.equals(i.getStart()) ||
+					//m.equals(i.getStop())  ||
+					(m.isAfter(i.getStart()) && m.isBefore(i.getStop()))
+				) {
 					Instant timestamp = roundTimeToMinute(m, roundToMin);
 					usagePerMinute.add(Power.of(timestamp, power));
 					find = true;

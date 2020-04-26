@@ -3,7 +3,9 @@ package eiss.cube.service.http.process.cloudven;
 import com.google.gson.Gson;
 import dev.morphia.Datastore;
 import dev.morphia.Key;
+import dev.morphia.UpdateOptions;
 import dev.morphia.query.Query;
+import dev.morphia.query.UpdateOperations;
 import eiss.cube.db.Cube;
 import eiss.cube.json.messages.CycleAndDutyCycleExtractor;
 import eiss.cube.json.messages.cloudven.StartReport;
@@ -11,6 +13,7 @@ import eiss.cube.json.messages.cloudven.VenCommand;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeCommand;
 import eiss.models.cubes.CubeInput;
+import eiss.models.cubes.CubeReport;
 import eiss.models.cubes.CubeSetup;
 import eiss.models.cubes.EISScube;
 import io.vertx.core.Handler;
@@ -122,6 +125,19 @@ public class StartReportPostRoute implements Handler<RoutingContext> {
                                     .put("socket", cube.getSocket())
                                     .put("cmd", cmd.toString())
                             );
+
+                            // prepare report record
+                            if (cmd.getCommand().startsWith("ic")) {
+                                Query<CubeReport> qR = datastore.createQuery(CubeReport.class);
+                                qR.criteria("cubeID").equal(cube.getId());
+
+                                UpdateOperations<CubeReport> ops = datastore.createUpdateOperations(CubeReport.class);
+                                ops.setOnInsert("cubeID", cube.getId());
+                                ops.set("type", cmd.getCommand().replace("ic", "")); // leave just "p" or "c"
+
+                                datastore.update(qR, ops, new UpdateOptions().upsert(true));
+                            }
+
                         }
                     } else {
                         String msg = String.format("Setup not exists for EISScube for CloudVEN: %s and Name: %s", ven, resource);
