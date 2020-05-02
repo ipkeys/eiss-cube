@@ -6,7 +6,7 @@ import Avatar from '@material-ui/core/Avatar';
 import OnlineIcon from '@material-ui/icons/ThumbUp';
 import OfflineIcon from '@material-ui/icons/ThumbDown';
 import { red, green } from '@material-ui/core/colors';
-//import RebootButton from './RebootButton';
+import RebootButton from './RebootButton';
 import TestButton from './TestButton';
 import SetupButton from './SetupButton';
 import StatusField from './StatusField';
@@ -43,9 +43,7 @@ const ShowActions = ({ classes, basePath, data }) => {
                     title={ <StatusField record={data} /> }
                     subheader={ <StartedAndLastPingField record={data} /> }
                 />
-                
-                {/* <RebootButton basePath={basePath} record={data} /> disable until new firmware */}
-                
+                <RebootButton basePath={basePath} record={data} />              
                 <TestButton basePath={basePath} record={data} />
                 <SetupButton basePath={basePath} record={data} />
                 <EditButton basePath={basePath} record={data} />

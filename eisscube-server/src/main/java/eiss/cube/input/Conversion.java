@@ -260,7 +260,6 @@ public class Conversion {
 		q.and(
 			q.criteria("cubeID").equal(new ObjectId(req.getCubeID())),
 			q.criteria("type").equalIgnoreCase(req.getType()),
-			q.criteria("value").notEqual(Double.NaN),
 			q.criteria("timestamp").greaterThanOrEq(from),
 			q.criteria("timestamp").lessThan(to)
 		);
@@ -273,7 +272,11 @@ public class Conversion {
 
 		List<CubeMeter> rc = q.find().toList();
 		rc.forEach(o -> {
-			intervals.add(Interval.of(o.getTimestamp(), o.getTimestamp().plusSeconds(o.getValue().longValue())));
+			if (o.getValue() == null) { // cycle in progress - duration is empty
+				intervals.add(Interval.of(o.getTimestamp(), Instant.now())); // up to current moment
+			} else {
+				intervals.add(Interval.of(o.getTimestamp(), o.getTimestamp().plusSeconds(o.getValue().longValue())));
+			}
 		});
 		// ~Step 2 - Convert result of query into array of working intervals
 
@@ -295,7 +298,6 @@ public class Conversion {
 					continue;
 				}
 				if (m.equals(i.getStart()) ||
-					//m.equals(i.getStop())  ||
 					(m.isAfter(i.getStart()) && m.isBefore(i.getStop()))
 				) {
 					Instant timestamp = roundTimeToMinute(m, roundToMin);

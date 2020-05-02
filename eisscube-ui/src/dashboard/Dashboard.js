@@ -30,7 +30,10 @@ const DashboardTitle = withStyles(styles)(
 );
 
 class Dashboard extends Component {
-    state = {};
+    state = {
+        online: 0,
+        offline: 0
+    };
 
     componentDidMount() {
         dataProvider(GET_LIST, 'cubes', {
