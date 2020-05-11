@@ -1,5 +1,4 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+import React, { useState, useEffect } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
@@ -21,63 +20,88 @@ const styles = theme => ({
 	}
 });
 
-const aggregations = [
+const day_aggregations = [
 	{ value: '1m',  label: '1 minute'},
 	{ value: '5m',  label: '5 minutes'},
 	{ value: '15m', label: '15 minutes'},
 	{ value: '30m', label: '30 minutes'},
 	{ value: '1h',  label: '1 hour'}
 ];
+const week_aggregations = [
+	{ value: '1h',  label: '1 hour'}
+];
+const month_aggregations = [
+	{ value: '1h',  label: '1 hour'}
+];
+const year_aggregations = [
+	{ value: '1h',  label: '1 hour'}
+];
 
-class SelectAggregation extends Component {
-	state = {
-		aggregation: '1h',
-	};
+function SelectAggregation({classes, aggregation, daterange, onChange}) {
+	const [value, setValue] = useState(aggregation);
 
-	handleChange = event => {
-		const { onChange } = this.props;
+	useEffect(() => {
+		setValue(aggregation);
+	}, [aggregation]);
 
+	const handleChange = event => {
+		setValue(event.target.value);
 		onChange(event.target.value);
-		
-		this.setState({
-			aggregation: event.target.value,
-		});
 	};
-
-	render() {
-		const { classes } = this.props;
-		const { aggregation } = this.state;
-
-		return (
-			<form className={classes.container} noValidate autoComplete='off'>
-				<TextField
-					id='select-aggregation'
-					select
-					label={false}
-					className={classes.textField}
-					value={aggregation}
-					onChange={this.handleChange}
-					SelectProps={{
-						MenuProps: {
-							className: classes.menu,
-						},
-					}}
-					margin='dense'
-				>
-					{aggregations.map(option => (
-						<MenuItem key={option.value} value={option.value}>
-							{option.label}
-						</MenuItem>
-					))}
-				</TextField>
-			</form>
-		);
+	
+	let renderDropDown;
+	switch(daterange) {
+		case 'w':
+			renderDropDown = week_aggregations.map(option => (
+				<MenuItem key={option.value} value={option.value}>
+					{option.label}
+				</MenuItem>
+			));
+			break;
+		case 'm':
+			renderDropDown = month_aggregations.map(option => (
+				<MenuItem key={option.value} value={option.value}>
+					{option.label}
+				</MenuItem>
+			));
+			break;
+		case 'y':
+			renderDropDown = year_aggregations.map(option => (
+				<MenuItem key={option.value} value={option.value}>
+					{option.label}
+				</MenuItem>
+			));
+			break;
+		case 'd':
+		default:
+			renderDropDown = day_aggregations.map(option => (
+				<MenuItem key={option.value} value={option.value}>
+					{option.label}
+				</MenuItem>
+			));
+			break;
 	}
-}
 
-SelectAggregation.propTypes = {
-	classes: PropTypes.object.isRequired,
-	onChange: PropTypes.func
-};
+	return (
+		<form className={classes.container} noValidate autoComplete='off'>
+			<TextField
+				id='select-aggregation'
+				select
+				label={false}
+				className={classes.textField}
+				value={value}
+				onChange={handleChange}
+				SelectProps={{
+					MenuProps: {
+						className: classes.menu,
+					},
+				}}
+				margin='dense'
+			>
+				{renderDropDown}
+			</TextField>
+		</form>
+	);
+}
 
 export default withStyles(styles)(SelectAggregation);

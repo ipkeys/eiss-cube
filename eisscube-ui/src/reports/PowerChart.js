@@ -18,8 +18,13 @@ import NextIcon from '@material-ui/icons/ArrowForwardIos';
 import { grey, red, teal } from '@material-ui/core/colors';
 import DividerFiled from '../Layout/DividerField';
 import SelectAggregation from './SelectAggregation';
+import SelectDateRange from './SelectDateRange';
 import MomentUtils from '@date-io/moment';
-import { DatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
+import { MuiPickersUtilsProvider } from '@material-ui/pickers';
+import DayPicker from './DayPicker';
+import WeekPicker from './WeekPicker';
+import MonthPicker from './MonthPicker';
+import YearPicker from './YearPicker';
 import async from 'async';
 
 const chartstyle = {
@@ -75,10 +80,11 @@ const styles = theme => ({
 		paddingRight: 0,
 		flex: 1,
 		display: 'flex',
-		justifyContent: 'space-between'
+		justifyContent: 'flex-end'
 	},
 	calendar: {
 		alignContent: 'center',
+		paddingBottom: theme.spacing(1)
 	},
 	prevbtn: {
 		marginTop: theme.spacing(1.5),
@@ -130,6 +136,7 @@ class PowerChart extends Component {
 			tracker: null,
 			selection: null,
 			aggregation: '1h',
+			daterange: 'd',
 			factor: 1000,
 			load: 1,
 			watch: 'r'
@@ -202,7 +209,7 @@ class PowerChart extends Component {
 			}
 		});
 	}
-	
+		
 	componentDidMount() {
 		const { record } = this.props;
 
@@ -242,14 +249,6 @@ class PowerChart extends Component {
 		});
 	}
 
-	componentDidUpdate(prevProps, prevState, snapshot) {
-		const { aggregation, from } = this.state;
-		
-		if (aggregation !== prevState.aggregation || from.diff(prevState.from, 'days') !== 0) {
-			this.getData();
-		}
-	}
-		
 	handleTrackerChanged = tracker => {
 		this.setState({ tracker });
 	}
@@ -264,28 +263,134 @@ class PowerChart extends Component {
 	}
 
 	handleAggregation = aggregation => {
-		this.setState({ aggregation });
-	}
-		
-	handleDateChange = d => {
-		const { now } = this.state;
-		const from = moment([d.year(), d.month(), d.date(), 0, 0, 0]); // remove h:m:s
-		const to = moment(from).add(1440, 'minutes');
-		
 		this.setState({ 
-			future: now.diff(from, 'days') === 0,
-			from,
-			to
-		});
+			aggregation
+		},() => this.getData());
 	}
-	
-	handleSwitchDay = from => {
+
+	handleDateRange = daterange => {
 		const { now } = this.state;
-		const to = moment(from).add(1440, 'minutes');
+		let new_from, to, aggregation;
+
+		switch(daterange) {
+			case 'w':
+				new_from = moment().startOf('week');
+				to = moment(new_from).add(1, 'weeks');
+				aggregation = '1h';
+				break;
+			case 'm':
+				new_from = moment().startOf('month');
+				to = moment(new_from).add(1, 'months');
+				aggregation = '1h';
+				break;
+			case 'y':
+				new_from = moment().startOf('year');
+				to = moment(new_from).add(1, 'years');
+				aggregation = '1h';
+				break;
+			case 'd':
+			default:
+				new_from = moment().startOf('day');
+				to = moment(new_from).add(1, 'days');
+				aggregation = '1h';
+				break;
+		}
 
 		this.setState({ 
-			future: now.diff(from, 'days') === 0,
-			from,
+			future: now.diff(new_from, 'days') === 0,
+			from: new_from,
+			to,
+			daterange,
+			aggregation
+		},() => this.getData());
+	}
+		
+	handleDateChange = from => {
+		const { now, daterange } = this.state;
+		let new_from, to;
+		switch(daterange) {
+			case 'w':
+				new_from = moment(from).startOf('week');
+				to = moment(new_from).add(1, 'weeks');
+				break;
+			case 'm':
+				new_from = moment(from).startOf('month');
+				to = moment(new_from).add(1, 'months');
+				break;
+			case 'y':
+				new_from = moment(from).startOf('year');
+				to = moment(new_from).add(1, 'years');
+				break;
+			case 'd':
+			default:
+				new_from = moment(from).startOf('day');
+				to = moment(new_from).add(1, 'days');
+				break;
+		}
+		
+		this.setState({ 
+			future: now.diff(new_from, 'days') === 0,
+			from: new_from,
+			to 
+		},() => this.getData());
+	}
+	
+	handleStepBack = from => {
+		const { now, daterange } = this.state;
+		let new_from, to;
+		switch(daterange) {
+			case 'w':
+				new_from = moment(from).subtract(1, 'weeks');
+				to = moment(new_from).add(1, 'weeks');
+				break;
+			case 'm':
+				new_from = moment(from).subtract(1, 'months');
+				to = moment(new_from).add(1, 'months');
+				break;
+			case 'y':
+				new_from = moment(from).subtract(1, 'years');
+				to = moment(new_from).add(1, 'years');
+				break;
+			case 'd':
+			default:
+				new_from = moment(from).subtract(1, 'days');
+				to = moment(new_from).add(1, 'days');
+				break;
+		}
+
+		this.setState({ 
+			future: now.diff(new_from, 'days') === 0,
+			from: new_from,
+			to 
+		},() => this.getData());
+	}
+
+	handleStepForward = from => {
+		const { now, daterange } = this.state;
+		let new_from, to;
+		switch(daterange) {
+			case 'w':
+				new_from = moment(from).add(1, 'weeks');
+				to = moment(new_from).add(1, 'weeks');
+				break;
+			case 'm':
+				new_from = moment(from).add(1, 'months');
+				to = moment(new_from).add(1, 'months');
+				break;
+			case 'y':
+				new_from = moment(from).add(1, 'years');
+				to = moment(new_from).add(1, 'years');
+				break;
+			case 'd':
+			default:
+				new_from = moment(from).add(1, 'days');
+				to = moment(new_from).add(1, 'days');
+				break;
+		}
+
+		this.setState({ 
+			future: now.diff(new_from, 'days') === 0,
+			from: new_from,
 			to 
 		},() => this.getData());
 	}
@@ -305,7 +410,9 @@ class PowerChart extends Component {
 			tracker,
 			maxTime,
 			minTime,
-			minDuration
+			minDuration,
+			daterange,
+			aggregation
 		} = this.state;
 
 		let selectedDate = '--';
@@ -417,42 +524,53 @@ class PowerChart extends Component {
 						</ChartRow>
 					</ChartContainer>
 				</Resizable>
-			</div>;
+			</div>
 		}
 
+		let renderCalendar;
+		switch(daterange) {
+			case 'w':
+				renderCalendar = <WeekPicker date={from} onChange={this.handleDateChange} />
+				break;
+			case 'm':
+				renderCalendar = <MonthPicker date={from} onChange={this.handleDateChange} />
+				break;
+			case 'y':
+				renderCalendar = <YearPicker date={from} onChange={this.handleDateChange} />
+				break;
+			case 'd':
+			default:
+				renderCalendar = <DayPicker date={from} onChange={this.handleDateChange} />
+				break;
+		}
+		
 		return (
 			<div>
 				<Toolbar className={classes.toolbar} >
 					<Typography variant="body2" component='span'>
-						Aggregate by: <SelectAggregation onChange={this.handleAggregation} />
+						Date range: <SelectDateRange daterange={daterange} onChange={this.handleDateRange} />
+					</Typography>
+					<Typography variant="body2" component='span'>
+						Aggregate by: <SelectAggregation aggregation={aggregation} daterange={daterange} onChange={this.handleAggregation} />
 					</Typography>
 					<div className={classes.calendar}>
 						<Button className={classes.prevbtn}
 							variant='outlined'
 							label={null}
 							disabled={false}
-							onClick={() => this.handleSwitchDay(from.subtract(1, 'd'))}
+							onClick={() => this.handleStepBack(from)}
 						>
 							<PrevIcon />
 						</Button>
 						<MuiPickersUtilsProvider utils={MomentUtils}>
-							<DatePicker
-								className={classes.date}
-								autoOk
-								variant='inline'
-								label={false}
-								format='MM/DD/YYYY'
-								value={from}
-								disableFuture={true}
-								onChange={date => this.handleDateChange(date)}
-							/>
+							{renderCalendar}
 						</MuiPickersUtilsProvider>
 						<Button className={classes.nextbtn}
 							variant='outlined'
 							label={null}
 							alignIcon='right'
 							disabled={future}
-							onClick={() => this.handleSwitchDay(from.add(1, 'd'))}
+							onClick={() => this.handleStepForward(from)}
 						>
 							<NextIcon />
 						</Button>

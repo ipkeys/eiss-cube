@@ -58,7 +58,7 @@ public class Conversion {
 					break;
 				case "1h":
 				default:
-					getHourlyReport(req, res, 1);
+					getHourlyReport(req, res);
 					break;
 			}
 		}
@@ -175,7 +175,7 @@ public class Conversion {
 		res.setUsage(usagePerRoundToMin);
 	}
 
-	private void getHourlyReport(ReportRequest req, ReportResponse res, final int periodsPerHour) {
+	private void getHourlyReport(ReportRequest req, ReportResponse res) {
 		final double factor = req.getFactor() != null ? req.getFactor() : 1000; // by default - 1000 pulses per 1kWh
 
 		// Step 1 - Prepare query params
@@ -216,7 +216,7 @@ public class Conversion {
 
 		List<Power> usage = new ArrayList<>();
 		aggregation.forEachRemaining(o -> {
-			double power = (o.getPower() * periodsPerHour) / factor;
+			double power = o.getPower() / factor;
 			usage.add(Power.of(o.getId(), Math.round(power * 100.0) / 100.0));
 		});
 		// ~Step 2 - aggregated Meter data by timestamp to hour

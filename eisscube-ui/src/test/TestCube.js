@@ -14,7 +14,6 @@ import {
   Baseline,
   Resizable
 } from "react-timeseries-charts";
-
 import {
     Divider,
     Typography,
@@ -26,7 +25,6 @@ import {
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import StartTestIcon from '@material-ui/icons/PlayCircleOutline';
 import { green, red, blue, amber, yellow, grey } from '@material-ui/core/colors';
-
 import SelectDuration from './SelectDuration';
 import SelectCycle from './SelectCycle';
 
