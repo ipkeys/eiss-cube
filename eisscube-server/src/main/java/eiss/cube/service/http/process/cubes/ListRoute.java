@@ -85,7 +85,7 @@ public class ListRoute implements Handler<RoutingContext> {
                 q.criteria("_id").equal(new ObjectId(id_like));
             }
         }
-        String online = context.request().getParam("online");
+        String online = request.getParam("online");
         if (online != null && !online.isEmpty()) {
             q.field("online").equal(Boolean.valueOf(online));
         }
