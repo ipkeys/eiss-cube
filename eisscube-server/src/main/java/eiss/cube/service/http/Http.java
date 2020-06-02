@@ -143,11 +143,19 @@ public class Http extends AbstractVerticle {
                     try {
                         jwt.decodeAuthHeader(Config.INSTANCE.getKey(), auth);
 
-                        // allow access only for roles - "admin", "securityadmin" & "operator"ß
+                    /* allow access only for roles:
+                            export const SYSADMIN = "securityadmin";
+                            export const ADMIN = "admin";
+                            export const MANAGER = "manager";
+                            export const OPERATOR = "operator";
+                            export const VIEWER = "viewer";
+                    */
                         String role = jwt.getRole();
-                        if (role.equalsIgnoreCase("admin") ||
-                                role.equalsIgnoreCase("securityadmin") ||
-                                role.equalsIgnoreCase("operator"))
+                        if (role.equalsIgnoreCase("securityadmin") ||
+                                role.equalsIgnoreCase("admin") ||
+                                role.equalsIgnoreCase("manager") ||
+                                role.equalsIgnoreCase("operator") ||
+                                role.equalsIgnoreCase("viewer"))
                         {
                             // store user and role in session
                             Session s = context.session();
