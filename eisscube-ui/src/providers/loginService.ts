@@ -34,5 +34,9 @@ export default class LoginService {
         }
     };
 
+    getToken = () => {
+        return this.tokenManager.getToken();
+    }
+
 }
 

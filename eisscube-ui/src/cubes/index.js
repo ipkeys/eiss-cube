@@ -23,7 +23,6 @@ import {
 import jsonExport from 'jsonexport/dist';
 import moment from 'moment';
 import Icon from '@material-ui/icons/Router';
-import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
 import { green, red } from '@material-ui/core/colors';
 
@@ -71,20 +70,20 @@ const exportCubeList = data => {
 };
 
 const EissCubesTitle = ({title, record}) => (
-    <Typography variant="h6">
-        {title} {record && record.name && `${record.name}`}
-    </Typography>
+    <>
+    {title} {record && record.name && `${record.name}`}
+    </>
 );
 
 const EissCubesListFilter = props => (
     <Filter {...props}>
         <SearchInput source='q' alwaysOn />
-        <SelectInput source='online' label='Status' choices={[
+        <SelectInput source='online' label='Status' margin='dense' choices={[
             { id: true, name: 'ONLINE' },
             { id: false, name: 'OFFLINE' }
         ]} />
         {isSuperAdmin(props.permissions) ? 
-            <ReferenceInput 
+            <ReferenceInput
                 source="group_id"
                 reference="groups"
                 sort={{ field: 'displayName', order: 'ASC' }}
@@ -118,8 +117,8 @@ export const EissCubesList = withStyles(styles)(
                 medium={
                     <Datagrid classes={{ rowEven: classes.rowEven }} >
                         <TextField source='name' label='Name' />
-                        {isSuperAdmin(p)
-                        ?   <ReferenceField source="group_id" label="Group" reference="groups" link={false} allowEmpty={true} >
+                        {isSuperAdmin(p) ?
+                            <ReferenceField source="group_id" label="Group" reference="groups" link={false} allowEmpty={true} >
                                 <TextField source="displayName" />
                             </ReferenceField>
                         : 
@@ -159,8 +158,8 @@ export const EissCubesEdit = withStyles(styles)(
         >
             <TabbedForm>
                 <FormTab label='identity'>
-                    {isSuperAdmin(p)
-                    ?   <ReferenceInput 
+                    {isSuperAdmin(p) ?
+                        <ReferenceInput 
                             sort={{ field: 'displayName', order: 'ASC' }}
                             source="group_id" 
                             reference="groups"

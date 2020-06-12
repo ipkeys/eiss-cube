@@ -11,7 +11,7 @@ import { CommandIcon, CommandList, CommandShow, CommandCreate } from './commands
 import { PropertyIcon, PropertyList, PropertyEdit, PropertyCreate } from './properties';
 import { ReportIcon, ReportList, ReportShow } from './reports';
 
-import { development, authProvider, dataProvider,  i18nProvider } from './providers';
+import { development, authProvider, dataProvider, i18nProvider } from './providers';
 
 const theme = createMuiTheme({
     sidebar: {

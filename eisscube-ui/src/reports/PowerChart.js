@@ -9,12 +9,9 @@ import { dataProvider } from '../providers';
 
 import { TimeSeries, Index } from "pondjs";
 import { Charts, ChartContainer, ChartRow, YAxis, AreaChart, BarChart, Resizable, Brush } from "react-timeseries-charts";
-
-import { Toolbar } from '@material-ui/core';
-import Typography from '@material-ui/core/Typography';
+import { Toolbar, Typography } from '@material-ui/core';
 import PrevIcon from '@material-ui/icons/ArrowBackIos';
 import NextIcon from '@material-ui/icons/ArrowForwardIos';
-
 import { grey, red, teal } from '@material-ui/core/colors';
 import DividerFiled from '../Layout/DividerField';
 import SelectAggregation from './SelectAggregation';

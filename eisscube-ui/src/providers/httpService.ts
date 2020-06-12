@@ -1,23 +1,20 @@
 import axios from 'axios';
 import { cfgObj, method } from './definitions';
 import LoginService from './loginService';
-import TokenManager from './tokenManager';
 
 //----------------------------------------------------------------------------
 // HTTP methods which insert Authorization header with JWT.
 // All errors are processed and checked for authorization issues.
 //----------------------------------------------------------------------------
 export default class HttpService {
-    tokenManager: TokenManager;
     loginService: LoginService;
 
-    constructor(tokenManager: TokenManager, loginService: LoginService) {
-        this.tokenManager = tokenManager;
+    constructor(loginService: LoginService) {
         this.loginService = loginService;
     }
 
     private request = (type: method, url: string, cfg?: cfgObj) => {
-        return this.tokenManager.getToken()
+        return this.loginService.getToken()
         .then(
             (token: any) => {
                 if (cfg === undefined) {

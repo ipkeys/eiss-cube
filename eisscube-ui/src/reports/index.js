@@ -12,7 +12,6 @@ import {
 	Show,
 	SimpleShowLayout,
 } from 'react-admin';
-import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
 
 import Icon from '@material-ui/icons/BarChart';
@@ -33,9 +32,9 @@ const types = [
 ];
 
 const ReportListTitle = ({title, record}) => (
-	<Typography variant="h6">
+	<>
 		{title} { record && record.cubeName && `${record.cubeName}` }
-	</Typography>
+	</>
 );
 
 const ReportListFilter = props => (

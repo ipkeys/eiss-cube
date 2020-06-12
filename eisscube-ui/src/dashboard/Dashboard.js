@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 
@@ -23,9 +22,9 @@ const styles = theme => ({
 
 const DashboardTitle = withStyles(styles)(
     ({classes, title}) => (
-        <Typography className={classes.title} variant="h6">
-            {title}
-        </Typography>
+        <>
+        {title}
+        </>
     )
 );
 

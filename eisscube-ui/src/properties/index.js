@@ -19,7 +19,6 @@ import {
 import jsonExport from 'jsonexport/dist';
 import Icon from '@material-ui/icons/LocalOffer';
 import { withStyles } from '@material-ui/core/styles';
-import Typography from '@material-ui/core/Typography';
 
 export const PropertyIcon = Icon;
 
@@ -55,9 +54,9 @@ const exporter = data => {
 };
 
 const PropertyTitle = ({title, record}) => (
-    <Typography variant="h6">
+    <>
         {title} {record && record.name && `${record.name}`}
-    </Typography>
+    </>
 );
 
 const PropertyListFilter = props => (

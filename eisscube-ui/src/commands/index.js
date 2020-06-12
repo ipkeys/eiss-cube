@@ -26,7 +26,6 @@ import {
 } from 'react-admin';
 import find from 'lodash/find';
 import jsonExport from 'jsonexport/dist';
-import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
 import Icon from '@material-ui/icons/Message';
 import { AppDateTimeFormat, DateTimeMomentFormat, isSuperAdmin } from '../App';
@@ -79,9 +78,9 @@ const edges = [
 const CommandTitle = ({title, record}) => {
     const cmd = record && record.command && find(cmds, { 'id': record.command });
     return (
-        <Typography variant="h6">
-            {title} {cmd && cmd.name && `${cmd.name}`}
-        </Typography>
+        <>
+        {title} {cmd && cmd.name && `${cmd.name}`}
+        </>
     )
 };
 
