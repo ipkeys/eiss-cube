@@ -1,6 +1,8 @@
 package eiss.cube.service.http.process.setup;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import eiss.cube.db.Cube;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeSetup;
 import io.vertx.core.Handler;
@@ -26,12 +28,12 @@ import static javax.servlet.http.HttpServletResponse.*;
 @Path("/setup/{cubeID}")
 public class GetRoute implements Handler<RoutingContext> {
 
-    private Vertx vertx;
-    private Datastore datastore;
-    private Gson gson;
+    private final Vertx vertx;
+    private final Datastore datastore;
+    private final Gson gson;
 
     @Inject
-    public GetRoute(Vertx vertx, Datastore datastore, Gson gson) {
+    public GetRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;
@@ -59,7 +61,8 @@ public class GetRoute implements Handler<RoutingContext> {
             if (setup != null) {
                 op.complete(gson.toJson(setup));
             } else {
-                op.fail(String.format("Setup for EISScube id: %s not found", cubeID));
+                //op.fail(String.format("Setup for EISScube id: %s not found", cubeID));
+                op.complete(new JsonObject());
             }
         }, res -> {
             if (res.succeeded()) {

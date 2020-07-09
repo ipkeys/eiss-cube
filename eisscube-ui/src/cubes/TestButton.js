@@ -20,7 +20,10 @@ import { green, red, blue, grey, orange } from '@material-ui/core/colors';
 
 const styles = theme => ({
 	btnPadding: {
-        paddingRight: theme.spacing.unit
+        paddingRight: theme.spacing(1)
+    },
+	signalPadding: {
+        paddingLeft: theme.spacing(1)
     },
     title: {
         display: 'inline-flex',
@@ -32,8 +35,8 @@ const styles = theme => ({
         alignItems: 'center'
     },
     content: {
-        paddingLeft: theme.spacing.unit * 3,
-        paddingRight: theme.spacing.unit * 3,
+        paddingLeft: theme.spacing(3),
+        paddingRight: theme.spacing(3),
         paddingBottom: 0
 	}
 });
@@ -41,17 +44,17 @@ const styles = theme => ({
 const getCellIcon = (classes, ss) => {
     switch (ss) {
         case 1:
-            return <CellSignal0Icon className={classes.btnPadding} nativeColor={grey[500]} />;
+            return <CellSignal0Icon className={classes.signalPadding} style={{color: grey[500]}} />;
         case 2:
-            return <CellSignal1Icon className={classes.btnPadding} nativeColor={red[500]} />;
+            return <CellSignal1Icon className={classes.signalPadding} style={{color: red[500]}} />;
         case 3:
-            return <CellSignal2Icon className={classes.btnPadding} nativeColor={orange[500]} />;
+            return <CellSignal2Icon className={classes.signalPadding} style={{color: orange[500]}} />;
         case 4:
-            return <CellSignal3Icon className={classes.btnPadding} nativeColor={blue[500]} />;
+            return <CellSignal3Icon className={classes.signalPadding} style={{color: blue[500]}} />;
         case 5:
-            return <CellSignal4Icon className={classes.btnPadding} nativeColor={green[500]} />;
+            return <CellSignal4Icon className={classes.signalPadding} style={{color: green[500]}} />;
         default:
-            return <CellIcon className={classes.btnPadding} />
+            return <CellIcon className={classes.signalPadding} />
     }
 };
 

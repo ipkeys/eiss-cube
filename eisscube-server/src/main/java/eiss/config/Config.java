@@ -19,9 +19,18 @@ public enum Config {
     private final static String keyFileName = "serverkey.txt";
     private final static String authFileName = "auth.json";
 
-    @Getter private String key;
-    @Getter private Long accessExpiration;
-    @Getter private Long refreshExpiration;
+    @Getter
+    private String key;
+    @Getter
+    private Long accessExpiration;
+    @Getter
+    private Long refreshExpiration;
+    @Getter
+    private Integer minimumResetDays;
+    @Getter
+    private Integer expirePasswordDays;
+    @Getter
+    private Integer inactivityLogoutMinutes;
 
     Config() {
         Path keyFile = Paths.get(HomeDir.getFolderPath(configDir).toString(), keyFileName);
@@ -38,12 +47,17 @@ public enum Config {
             Files.readAllLines(authFile, UTF_8).forEach(lines::append);
 
             JsonObject authCfg = new JsonObject(lines.toString());
-            accessExpiration = authCfg.getLong("accessExpiration");
-            refreshExpiration = authCfg.getLong("refreshExpiration");
-
+            accessExpiration = authCfg.getLong("accessExpiration", 600L);
+            refreshExpiration = authCfg.getLong("refreshExpiration", 86400L);
+            minimumResetDays = authCfg.getInteger("minimumResetDays", 1);
+            expirePasswordDays = authCfg.getInteger("expirePasswordDays", 90);
+            inactivityLogoutMinutes = authCfg.getInteger("inactivityLogoutMinutes", 20);
         } catch (IOException e) {
             accessExpiration = 600L; // 10 min
             refreshExpiration = 86400L; // 1 day
+            minimumResetDays = 1;
+            expirePasswordDays = 90;
+            inactivityLogoutMinutes = 20;
         }
     }
 

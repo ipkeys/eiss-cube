@@ -1,5 +1,6 @@
 package eiss.cube.service.http.process.test;
 
+import eiss.cube.db.Cube;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeTest;
 import eiss.models.cubes.EISScube;
@@ -30,11 +31,11 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 @Path("/test")
 public class PostRoute implements Handler<RoutingContext> {
 
-    private Vertx vertx;
-    private Datastore datastore;
+    private final Vertx vertx;
+    private final Datastore datastore;
 
     @Inject
-    public PostRoute(Vertx vertx, Datastore datastore) {
+    public PostRoute(Vertx vertx, @Cube Datastore datastore) {
         this.vertx = vertx;
         this.datastore = datastore;
     }

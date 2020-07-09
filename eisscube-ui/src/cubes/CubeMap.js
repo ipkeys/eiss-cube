@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import L from 'leaflet';
 import { Map, LayersControl, TileLayer, Marker, Popup } from 'react-leaflet';
 import { showNotification, UPDATE } from 'react-admin';
-import { dataProvider } from '../App';
+import { dataProvider } from '../providers';
 import { red } from '@material-ui/core/colors';
 
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
@@ -91,7 +91,7 @@ class CubeMap extends Component {
                     <br/>
                     <a href={`#/commands?filter={"cubeID":"${record.id}"}&page=1&perPage=10&sort=created&order=DESC`}>Commands</a>
                     <br/>
-                    <a href={`#/reports?filter={"cubeID":"${record.deviceID}"}&page=1&perPage=10&sort=reportID&order=ASC`}>Reports</a>
+                    <a href={`#/reports?displayedFilters={"cubeID":true}&filter={"cubeID":"${record.id}"}&order=ASC&page=1&perPage=10&sort=cubeID`}>Report</a>
                     <br/>
                     <br/>
                     <i style={{color: red[500]}}>Note! Hold and move to change location</i>
@@ -107,8 +107,6 @@ class CubeMap extends Component {
                 animate={true}
                 length={4}
                 center={[location.lat, location.lng]}
-                minZoom={2}
-                maxZoom={19}
                 zoom={15}
                 ref="map"
             >

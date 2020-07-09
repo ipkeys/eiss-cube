@@ -8,7 +8,7 @@ import javax.inject.Inject;
 public class Randname {
 
     private int pos;
-    private Dictionary dictionary;
+    private final Dictionary dictionary;
 
     @Inject
     public Randname(Dictionary dictionary) {

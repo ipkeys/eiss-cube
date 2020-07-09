@@ -3,6 +3,7 @@ package eiss.cube.service.http.process.eiss_api.devices;
 import com.google.gson.Gson;
 import dev.morphia.Datastore;
 import dev.morphia.query.Query;
+import eiss.cube.db.Cube;
 import eiss.cube.json.messages.devices.Device;
 import eiss.cube.json.messages.devices.DeviceIdRequest;
 import eiss.cube.json.messages.devices.DeviceResponse;
@@ -30,12 +31,12 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 @Path("/eiss-api/devices/id")
 public class OneRoute implements Handler<RoutingContext> {
 
-    private Vertx vertx;
-    private Datastore datastore;
-    private Gson gson;
+    private final Vertx vertx;
+    private final Datastore datastore;
+    private final Gson gson;
 
     @Inject
-    public OneRoute(Vertx vertx, Datastore datastore, Gson gson) {
+    public OneRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;

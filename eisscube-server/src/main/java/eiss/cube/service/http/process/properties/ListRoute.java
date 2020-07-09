@@ -2,6 +2,7 @@ package eiss.cube.service.http.process.properties;
 
 import com.google.gson.Gson;
 import dev.morphia.query.Sort;
+import eiss.cube.db.Cube;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeProperty;
 import io.vertx.core.Handler;
@@ -34,12 +35,12 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 @Path("/properties")
 public class ListRoute implements Handler<RoutingContext> {
 
-    private Vertx vertx;
-    private Datastore datastore;
-    private Gson gson;
+    private final Vertx vertx;
+    private final Datastore datastore;
+    private final Gson gson;
 
     @Inject
-    public ListRoute(Vertx vertx, Datastore datastore, Gson gson) {
+    public ListRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;
@@ -56,7 +57,7 @@ public class ListRoute implements Handler<RoutingContext> {
         // search
         String search = request.getParam(FILTER);
         if (search != null && !search.isEmpty()) {
-            q.field("name").containsIgnoreCase(search);
+            q.field("name").contains(search);
         }
         // ~search
 

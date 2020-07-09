@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import dev.morphia.Datastore;
 import dev.morphia.query.Query;
 import dev.morphia.query.UpdateOperations;
+import eiss.cube.db.Cube;
 import eiss.cube.json.messages.commands.Command;
 import eiss.cube.json.messages.commands.CommandIdRequest;
 import eiss.cube.json.messages.commands.CommandResponse;
@@ -35,12 +36,12 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 @Path("/eiss-api/commands/delete")
 public class DeleteRoute implements Handler<RoutingContext> {
 
-    private Vertx vertx;
-    private Datastore datastore;
-    private Gson gson;
+    private final Vertx vertx;
+    private final Datastore datastore;
+    private final Gson gson;
 
     @Inject
-    public DeleteRoute(Vertx vertx, Datastore datastore, Gson gson) {
+    public DeleteRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;

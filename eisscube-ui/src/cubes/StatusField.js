@@ -11,7 +11,7 @@ const StatusField = ({ record = {} }) => {
 			dur = moment.duration(moment() - moment(new Date(record.timeStarted))).humanize();
 		}
 		return (
-			<Typography variant="body1">
+			<Typography variant="body2">
 				<span style={{ color: green[500] }}><b>ONLINE</b></span> { dur !== 'Invalid date' ? dur : '' }
 			</Typography>
 		);
@@ -20,7 +20,7 @@ const StatusField = ({ record = {} }) => {
 			dur = moment.duration(moment() - moment(new Date(record.lastPing))).humanize();
 		}
 		return (
-			<Typography variant="body1">
+			<Typography variant="body2">
  				<span style={{ color: red[500] }}><b>OFFLINE</b></span> { dur !== 'Invalid date' ? dur : '' }
 			</Typography>
 		);

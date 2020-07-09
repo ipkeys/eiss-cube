@@ -3,6 +3,7 @@ package eiss.cube.service.http.process.cubes;
 import com.google.gson.Gson;
 import com.mongodb.DuplicateKeyException;
 import eiss.cube.config.AppConfig;
+import eiss.cube.db.Cube;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubePoint;
 import eiss.models.cubes.EISScube;
@@ -30,12 +31,12 @@ import static javax.servlet.http.HttpServletResponse.*;
 @Path("/cubes")
 public class PostRoute implements Handler<RoutingContext> {
 
-    private Vertx vertx;
-    private Datastore datastore;
-    private Gson gson;
+    private final Vertx vertx;
+    private final Datastore datastore;
+    private final Gson gson;
 
     @Inject
-    public PostRoute(Vertx vertx, Datastore datastore, Gson gson) {
+    public PostRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;

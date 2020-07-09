@@ -20,7 +20,15 @@ public class CubeCommand {
     @Property Instant sent;
     @Property Instant received;
 
+    @Indexed(options = @IndexOptions(name = "CubeIDIndex"))
     @Property ObjectId cubeID; // reference to EISScube.id
+    @Property String cubeName;
+
+    @Indexed(options = @IndexOptions(name="CommanGroupIndex"))
+    @Property String group;
+
+    @Indexed(options = @IndexOptions(name="CommandGroupIdIndex"))
+    @Property String group_id;
 
     @Property String command;
 

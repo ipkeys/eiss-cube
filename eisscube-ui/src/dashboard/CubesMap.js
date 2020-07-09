@@ -3,7 +3,7 @@ import _ from 'lodash';
 import L from 'leaflet';
 import { Map, LayersControl, TileLayer, Marker, Popup } from 'react-leaflet';
 import { GET_LIST } from 'react-admin';
-import { dataProvider } from '../App';
+import { dataProvider } from '../providers';
 import { red, green } from '@material-ui/core/colors';
 import Paper from '@material-ui/core/Paper';
 
@@ -33,12 +33,11 @@ class CubesMap extends Component {
             lat: 40.32444602981903,
             lng: -74.07683856203221,
             zoom: 10,
-            maxZoom: 18,
             data: null
         };
     }
 
-    componentWillMount() {
+    componentDidMount() {
         dataProvider(GET_LIST, 'cubes', {
             sort: { field: 'deviceID', order: 'ASC' },
             pagination: { page: 1, perPage: 100 }
@@ -78,7 +77,7 @@ class CubesMap extends Component {
                             <br/>
                             <a href={`#/commands?filter={"cubeID":"${cube.id}"}&page=1&perPage=10&sort=created&order=DESC`}>Commands</a>
                             <br/>
-                            <a href={`#/reports?filter={"cubeID":"${cube.id}"}&page=1&perPage=10&sort=reportID&order=ASC`}>Reports</a>
+                            <a href={`#/reports?displayedFilters={"cubeID":true}&filter={"cubeID":"${cube.id}"}&order=ASC&page=1&perPage=10&sort=cubeID`}>Report</a>
                         </span>
                     </Popup>
                 </Marker>               
@@ -87,7 +86,7 @@ class CubesMap extends Component {
 
         return (
             <Paper elevation={1} >
-                <Map center={position} zoom={this.state.zoom} maxZoom={this.state.maxZoom}>
+                <Map center={position} zoom={this.state.zoom} >
                     <LayersControl position="topright">
                         <BaseLayer checked name="Color">
                             <TileLayer

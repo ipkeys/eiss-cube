@@ -12,6 +12,7 @@ public class CubeMeter {
 
     @Id ObjectId id;
 
+    @Indexed(options = @IndexOptions(name = "CubeIDIndex"))
     @Property ObjectId cubeID; // reference to EISScube.id
 
     @Indexed(options = @IndexOptions(name = "CubeMeterTimestampIndex"))

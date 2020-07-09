@@ -2,6 +2,7 @@ package eiss.cube.service.http.process.reports;
 
 import com.google.gson.Gson;
 import dev.morphia.query.Sort;
+import eiss.cube.db.Cube;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeReport;
 import io.vertx.core.Handler;
@@ -13,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import dev.morphia.Datastore;
 import dev.morphia.query.FindOptions;
 import dev.morphia.query.Query;
+import org.bson.types.ObjectId;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -29,12 +31,12 @@ import static javax.servlet.http.HttpServletResponse.*;
 @Path("/reports")
 public class ListRoute implements Handler<RoutingContext> {
 
-    private Vertx vertx;
-    private Datastore datastore;
-    private Gson gson;
+    private final Vertx vertx;
+    private final Datastore datastore;
+    private final Gson gson;
 
     @Inject
-    public ListRoute(Vertx vertx, Datastore datastore, Gson gson) {
+    public ListRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;
@@ -49,9 +51,11 @@ public class ListRoute implements Handler<RoutingContext> {
         Query<CubeReport> q = datastore.createQuery(CubeReport.class);
 
         // filters
-        String filter = request.getParam(FILTER);
-        if (filter != null && !filter.isEmpty()) {
-            q.field("cubeID").startsWithIgnoreCase(filter);
+        String cubeID = request.getParam("cubeID");
+        if (cubeID != null && !cubeID.isEmpty()) {
+            if (ObjectId.isValid(cubeID)) {
+                q.field("cubeID").equal(new ObjectId(cubeID));
+            }
         }
         // ~filters
 
@@ -70,7 +74,7 @@ public class ListRoute implements Handler<RoutingContext> {
         String s = request.getParam(START);
         String e = request.getParam(END);
         if (s != null && e != null && !s.isEmpty() && !e.isEmpty()) {
-            o.skip(Integer.valueOf(s)).limit(Integer.valueOf(e) - Integer.valueOf(s));
+            o.skip(Integer.parseInt(s)).limit(Integer.parseInt(e) - Integer.parseInt(s));
         }
         // ~skip/limit
 

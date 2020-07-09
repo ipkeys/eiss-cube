@@ -10,9 +10,10 @@ public class CubeReport {
 
     @Id ObjectId id;
 
+    @Indexed(options = @IndexOptions(name = "CubeIDIndex"))
     @Property ObjectId cubeID; // reference to EISScube.id
 
-    @Indexed(options = @IndexOptions(name = "CubeReportIndex", unique = true))
-    @Property String reportID;
+    String cubeName;
+    @Property String type;
 
 }

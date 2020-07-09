@@ -1,9 +1,12 @@
 package eiss.cube.service.tcp.process;
 
+import dev.morphia.UpdateOptions;
 import dev.morphia.query.Sort;
+import eiss.cube.db.Cube;
 import eiss.cube.randname.Randname;
 import eiss.models.cubes.CubeCommand;
 import eiss.models.cubes.CubeMeter;
+import eiss.models.cubes.CubeReport;
 import eiss.models.cubes.CubeTest;
 import eiss.models.cubes.EISScube;
 import io.vertx.core.Handler;
@@ -28,15 +31,15 @@ import java.util.*;
 @Slf4j
 public class CubeHandler implements Handler<NetSocket> {
 
-    private static DateTimeFormatter df = DateTimeFormatter.ofPattern("z MM/dd/yyyy HH:mm:ss").withZone(ZoneId.of("UTC"));
+    private static final DateTimeFormatter df = DateTimeFormatter.ofPattern("z MM/dd/yyyy HH:mm:ss").withZone(ZoneId.of("UTC"));
 
-    private Vertx vertx;
-    private EventBus eventBus;
-    private Datastore datastore;
-    private Randname randname;
+    private final Vertx vertx;
+    private final EventBus eventBus;
+    private final Datastore datastore;
+    private final Randname randname;
 
     @Inject
-    public CubeHandler(Vertx vertx, Datastore datastore, Randname randname) {
+    public CubeHandler(Vertx vertx, @Cube Datastore datastore, Randname randname) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.randname = randname;
@@ -117,6 +120,7 @@ public class CubeHandler implements Handler<NetSocket> {
         vertx.executeBlocking(op -> {
             Query<EISScube> q = datastore.createQuery(EISScube.class);
             UpdateOperations<EISScube> ops = datastore.createUpdateOperations(EISScube.class)
+                .set("socket", "")
                 .set("online", Boolean.FALSE);
 
             datastore.update(q, ops);
@@ -364,7 +368,7 @@ public class CubeHandler implements Handler<NetSocket> {
             if (cube != null) {
                 Instant ts = null;
                 String v = null;
-                String type = "pulse"; // default
+                String type = "p"; // pulse - default
 
                 for (String part : message.split("&")) {
                     if (part.startsWith("rpt-ts=")) {
@@ -375,7 +379,7 @@ public class CubeHandler implements Handler<NetSocket> {
                         v = part.replace("v=", "");
                     }
                     if (part.startsWith("dur=")) {
-                        type = "cycle";
+                        type = "c"; // cycle
                         v = part.replace("dur=", "");
                     }
                 }
@@ -383,13 +387,25 @@ public class CubeHandler implements Handler<NetSocket> {
                 String deviceID = cube.getDeviceID();
 
                 if (ts != null && v != null) {
-                    CubeMeter cubeMeter = new CubeMeter();
-                    cubeMeter.setCubeID(cube.getId());
-                    cubeMeter.setType(type);
-                    cubeMeter.setTimestamp(ts);
-                    cubeMeter.setValue(Double.valueOf(v));
+                    Query<CubeMeter> q = datastore.createQuery(CubeMeter.class);
+                    q.and(
+                        q.criteria("cubeID").equal(cube.getId()),
+                        q.criteria("timestamp").equal(ts)
+                    );
 
-                    datastore.save(cubeMeter);
+                    UpdateOperations<CubeMeter> ops = datastore.createUpdateOperations(CubeMeter.class);
+                    ops.setOnInsert("cubeID", cube.getId());
+                    ops.setOnInsert("timestamp", ts);
+                    ops.set("type", type);
+                    if (!v.equalsIgnoreCase("z")) { // interval is finished - set value = dur
+                        ops.set("value", Double.valueOf(v));
+                    }
+
+                    datastore.update(q, ops, new UpdateOptions().upsert(true));
+
+                    if (!v.equalsIgnoreCase("z")) { // after update of interval - fix the previous record
+                        fixNotFinishedCycleReport(cube.getId()); // finish unfinished interval - set to 1 minute
+                    }
                     op.complete(String.format("DeviceID: %s report saved", deviceID));
                 } else {
                     op.fail(String.format("DeviceID: %s report NOT saved", deviceID));
@@ -401,7 +417,30 @@ public class CubeHandler implements Handler<NetSocket> {
             if (res.succeeded()) {
                 log.info(String.valueOf(res.result()));
             } else {
-                log.info(res.cause().getMessage());
+                log.error(res.cause().getMessage());
+            }
+        });
+    }
+
+    private void fixNotFinishedCycleReport(ObjectId cubeID) {
+        vertx.executeBlocking(op -> {
+            Query<CubeMeter> q = datastore.createQuery(CubeMeter.class);
+            q.and(
+                q.criteria("cubeID").equal(cubeID),
+                q.criteria("type").equal("c"),
+                q.criteria("value").doesNotExist()
+            );
+
+            UpdateOperations<CubeMeter> ops = datastore.createUpdateOperations(CubeMeter.class);
+            ops.set("value", 60);
+
+            datastore.update(q, ops);
+            op.complete();
+        }, res -> {
+            if (res.succeeded()) {
+                log.info("DeviceID: {} is OFFLINE", res.result());
+            } else {
+                log.error(res.cause().getMessage());
             }
         });
     }
@@ -452,7 +491,7 @@ public class CubeHandler implements Handler<NetSocket> {
             if (res.succeeded()) {
                 log.info(String.valueOf(res.result()));
             } else {
-                log.info(res.cause().getMessage());
+                log.error(res.cause().getMessage());
             }
         });
     }

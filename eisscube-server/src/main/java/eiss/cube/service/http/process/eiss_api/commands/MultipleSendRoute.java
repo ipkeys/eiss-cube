@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import dev.morphia.Datastore;
 import dev.morphia.Key;
 import dev.morphia.query.Query;
+import eiss.cube.db.Cube;
 import eiss.cube.json.messages.commands.*;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeCommand;
@@ -32,12 +33,12 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 @Path("/eiss-api/commands/send")
 public class MultipleSendRoute implements Handler<RoutingContext> {
 
-    private Vertx vertx;
-    private Datastore datastore;
-    private Gson gson;
+    private final Vertx vertx;
+    private final Datastore datastore;
+    private final Gson gson;
 
     @Inject
-    public MultipleSendRoute(Vertx vertx, Datastore datastore, Gson gson) {
+    public MultipleSendRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;
@@ -87,6 +88,18 @@ public class MultipleSendRoute implements Handler<RoutingContext> {
             if (c != null && ObjectId.isValid(c.getDeviceID())) {
                 CubeCommand cmd = new CubeCommand();
                 cmd.setCubeID(new ObjectId(c.getDeviceID()));
+
+                // put command under cube's group
+                Query<EISScube> q = datastore.createQuery(EISScube.class);
+                q.criteria("id").equal(cmd.getCubeID());
+                EISScube cube = q.first();
+                if (cube != null) {
+                    cmd.setCubeName(cube.getName());
+                    cmd.setGroup(cube.getGroup());
+                    cmd.setGroup_id(cube.getGroup_id());
+                }
+                // ~put command under cube's group
+
                 cmd.setCommand(c.getCommand());
 
                 cmd.setCompleteCycle(c.getCompleteCycle());

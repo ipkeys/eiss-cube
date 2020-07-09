@@ -11,9 +11,13 @@ public class AppConfig {
     @Getter
     private EissCubeConfig eissCubeConfig;
 
-    @InjectConfig(value = "database")
+    @InjectConfig(value = "cubeDatabase")
     @Getter
-    private DatabaseConfig databaseConfig;
+    private CubeDatabaseConfig cubeDatabaseConfig;
+
+    @InjectConfig(value = "eissDatabase")
+    @Getter
+    private EissDatabaseConfig eissDatabaseConfig;
 
     @InjectConfig(value = "randName")
     @Getter

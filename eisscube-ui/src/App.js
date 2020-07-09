@@ -1,36 +1,22 @@
-import React from 'react';
+import React, { Fragment }from 'react';
 import { Admin, Resource } from 'react-admin';
+import { Route } from 'react-router-dom';
 import { createMuiTheme } from '@material-ui/core/styles';
-import englishMessages from 'ra-language-english';
 
-import Login from './auth/Login';
-import AppLayout from './AppLayout';
+import cubeLayout from './Layout';
+import Login from './Layout/Login';
 import { Dashboard } from './dashboard';
 import { EissCubesIcon, EissCubesList, EissCubesShow, EissCubesEdit } from './cubes';
 import { CommandIcon, CommandList, CommandShow, CommandCreate } from './commands';
 import { PropertyIcon, PropertyList, PropertyEdit, PropertyCreate } from './properties';
-import createRealtimeSaga from "./rest/createRealtimeSaga";
+import { ReportIcon, ReportList, ReportShow } from './reports';
 
-import HttpService from './rest/HttpService';
-import RestAdapter from './rest/restAdapter';
-import AuthProvider from './rest/AuthProvider';
-import addUploadFeature from './rest/addUploadFeature';
-
-const apiUrl = (process.env.NODE_ENV === 'development') ? 'http://localhost:5002' : '/cube';
-const tokenUrl = (process.env.NODE_ENV === 'development') ? 'http://localhost:4002/auth/token' : '/auth/token';
-const refreshUrl = (process.env.NODE_ENV === 'development') ? 'http://localhost:4002/auth/refresh' :'/auth/refresh';
-
-const http = new HttpService({ tokenUrl, refreshUrl });
-const authProvider = new AuthProvider(http).authenticate;
-
-export const dataProvider = addUploadFeature(new RestAdapter(apiUrl, http));
-
-export const AppDateFormat = { year: 'numeric', month: '2-digit', day: '2-digit' };
-export const AppDateTimeFormat = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-export const DateTimeFormat = 'MM/dd/YYYY, HH:mm:ss';
-export const DateTimeMomentFormat = 'MM/DD/YYYY, HH:mm:ss';
+import { development, authProvider, dataProvider, i18nProvider } from './providers';
 
 const theme = createMuiTheme({
+    sidebar: {
+        width: 150
+    },
 	palette: {
 		primary: {
 			main: '#448ab6'
@@ -38,54 +24,106 @@ const theme = createMuiTheme({
 		secondary: {
 			main: '#448ab6'
 		}
+    },
+    typography: {
+        title: {
+            fontWeight: 400,
+        },
+    },
+    overrides: {
+        MuiFilledInput: {
+            root: {
+                backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                '&$disabled': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.02 )',
+                },
+            },
+        },
     }
 });
 
-const messages = {
-    en: {
-        'ra.action.upload': 'Upload',
-        'ra.action.send': 'Send',
-        'ra.message.request_sent': 'Request sent',
-        ...englishMessages
-    }
+export const setApplication = () => (
+    sessionStorage.setItem("application", "/ui/cube/")
+);
+
+export const redirectLogin = () => {
+    setApplication();
+    window.location.href = "/ui/login/";
+    return <Fragment />;
 }
 
-const i18nProvider = locale => messages[locale];
-const realTimeSaga = createRealtimeSaga(dataProvider);
+export const redirectHome = () => {
+    sessionStorage.removeItem("application");
+    window.location.href = "/ui/home/";
+    return <Fragment />;
+}
 
+export const profile = () => {
+    window.location.href = '/ui/users/#profile';
+    return <Fragment />;
+}
+
+export const AppDateFormat = { year: 'numeric', month: '2-digit', day: '2-digit' };
+export const AppDateTimeFormat = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+export const DateTimeFormat = 'MM/dd/YYYY, HH:mm:ss';
+export const DateTimeMomentFormat = 'MM/DD/YYYY, HH:mm:ss';
+
+export const SUPER = "securityadmin";
+
+export const isSuperAdmin = permissions => (
+    permissions && permissions.role === SUPER
+);
+
+const customRoutes = [
+    <Route path={"/profile"} component={profile} />
+];
+  
 const App = () => (
 	<Admin
-		theme={ theme }
-        appLayout={ AppLayout }
-        dashboard={ Dashboard }
-        loginPage={ Login }
+        theme={ theme }
+        i18nProvider={ i18nProvider }
         authProvider={ authProvider }
         dataProvider={ dataProvider }
-        customSagas={ [realTimeSaga] }
-        locale="en" 
-        i18nProvider={i18nProvider}
+        customRoutes={ customRoutes }
+        layout={ cubeLayout }
+        dashboard={ Dashboard }
+        /* Prevents infinite loop in development*/
+        {...(development ? {loginPage: Login}: {loginPage: redirectLogin} )}
     >
+        {permissions => [
+        <Resource name="groups" />,
+        <Resource name="meters" />,
 		<Resource options={{ label: 'EISS™Cubes' }}
 			name="cubes"
 			icon={ EissCubesIcon }
             list={ EissCubesList }
             show={ EissCubesShow }
             edit={ EissCubesEdit }
-		/>
+		/>,
 		<Resource options={{ label: 'Commands' }}
 			name="commands"
 			icon={ CommandIcon }
             list={ CommandList }
             show={ CommandShow }
             create={ CommandCreate }
-		/>
-		<Resource options={{ label: 'Properties' }}
-			name="properties"
-			icon={ PropertyIcon }
-            list={ PropertyList }
-            edit={ PropertyEdit }
-            create={ PropertyCreate }
-		/>
+		/>,
+        <Resource options={{ label: 'Reports' }}
+            name="reports"
+            icon={ ReportIcon }
+            list={ ReportList }
+            show={ ReportShow }
+        />,
+        isSuperAdmin(permissions) 
+        ?   <Resource options={{ label: 'Properties' }}
+                name="properties"
+                icon={ PropertyIcon }
+                list={ PropertyList }
+                edit={ PropertyEdit }
+                create={ PropertyCreate }
+            />
+        : 
+            null
+        ]}
 	</Admin>
 );
 

@@ -31,13 +31,13 @@ import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 @Slf4j
 public class Http extends AbstractVerticle {
 
-    private EissCubeConfig cfg;
-    private ApiUserConfig apiUser;
-    private Router router;
-    private ApiBuilder builder;
-    private Jwt jwt;
+    private final EissCubeConfig cfg;
+    private final ApiUserConfig apiUser;
+    private final Router router;
+    private final ApiBuilder builder;
+    private final Jwt jwt;
 
-    private Vertx vertx;
+    private final Vertx vertx;
     private HttpServer server;
 
     @Inject
@@ -56,7 +56,7 @@ public class Http extends AbstractVerticle {
     @Override
     public void start() throws Exception {
 
-        int port = Integer.valueOf(cfg.getHttpPort());
+        int port = Integer.parseInt(cfg.getHttpPort());
 
         HttpServerOptions options = new HttpServerOptions()
             .setPort(port)
@@ -88,6 +88,8 @@ public class Http extends AbstractVerticle {
 
     private void setupRoutes() {
         router.route()
+            .handler(BodyHandler.create())
+            .handler(SessionHandler.create(LocalSessionStore.create(vertx)))
             .handler(CorsHandler.create("*")
                 .allowedMethod(HttpMethod.GET)
                 .allowedMethod(HttpMethod.POST)
@@ -100,11 +102,6 @@ public class Http extends AbstractVerticle {
 
                 .exposedHeader("X-Total-Count")
             );
-
-        router.route()
-                .handler(BodyHandler.create())
-                .handler(CookieHandler.create())
-                .handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
         router.route("/*").handler(context -> {
             HttpServerResponse response = context.response();
@@ -144,11 +141,19 @@ public class Http extends AbstractVerticle {
                     try {
                         jwt.decodeAuthHeader(Config.INSTANCE.getKey(), auth);
 
-                        // allow access only for roles - "admin", "securityadmin" & "operator"ß
+                    /* allow access only for roles:
+                            export const SYSADMIN = "securityadmin";
+                            export const ADMIN = "admin";
+                            export const MANAGER = "manager";
+                            export const OPERATOR = "operator";
+                            export const VIEWER = "viewer";
+                    */
                         String role = jwt.getRole();
-                        if (role.equalsIgnoreCase("admin") ||
-                                role.equalsIgnoreCase("securityadmin") ||
-                                role.equalsIgnoreCase("operator"))
+                        if (role.equalsIgnoreCase("securityadmin") ||
+                                role.equalsIgnoreCase("admin") ||
+                                role.equalsIgnoreCase("manager") ||
+                                role.equalsIgnoreCase("operator") ||
+                                role.equalsIgnoreCase("viewer"))
                         {
                             // store user and role in session
                             Session s = context.session();

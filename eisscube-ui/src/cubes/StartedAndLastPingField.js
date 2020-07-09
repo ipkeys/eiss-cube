@@ -16,7 +16,7 @@ const StartedAndLastPingField = ({ record = {} }) => {
     }
     
     return (
-        <Typography variant="body1">
+        <Typography variant="body2">
             <i>Started:</i> { started }&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>Last ping:</i> { lastping }
         </Typography>
     );

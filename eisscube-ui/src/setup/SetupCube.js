@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Stepper from '@material-ui/core/Stepper';
@@ -8,19 +8,20 @@ import StepContent from '@material-ui/core/StepContent';
 import BackIcon from '@material-ui/icons/ArrowUpward';
 import SaveIcon from '@material-ui/icons/Save';
 import NextIcon from '@material-ui/icons/ArrowDownward';
+import { useForm } from 'react-final-form';
 
 import { Button, GET_ONE, CREATE } from 'react-admin';
-import { dataProvider } from '../App';
+import { dataProvider } from '../providers';
 
 import RelayForm from './RelayForm';
 import InputForm from './InputForm';
 
 const styles = theme => ({
     btnRoot: {
-        marginTop: theme.spacing.unit
+        marginTop: theme.spacing(1)
     },
     btnPadding: {
-        marginRight: theme.spacing.unit
+        marginRight: theme.spacing(1)
     },
     stepContent: {
         padding: 0
@@ -40,7 +41,7 @@ class SetupEissCube extends Component {
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
-    componentWillMount() {
+    componentDidMount() {
         dataProvider(GET_ONE, `setup`, {
             id: this.props.cubeID
         })
@@ -130,33 +131,43 @@ SetupEissCube.propTypes = {
 export default withStyles(styles)(SetupEissCube);
 
 export const SetupFormButton = withStyles(styles)(
-        ({ classes, step, onNext, onBack, onSave, pristine, submitting }) => (
-        <div className={classes.btnRoot}>
-            <Button
-                label='Back'
-                disabled={step === 0}
-                onClick={onBack}
-                className={classes.btnPadding}
-            >
-                <BackIcon />
-            </Button>
-            <Button
-                label='Save'
-                variant="contained"
-                disabled={pristine || submitting}
-                onClick={onSave}
-                className={classes.btnPadding}
-            >
-                <SaveIcon />
-            </Button>
-            <Button
-                label='Next'
-                disabled={step === 1}
-                onClick={onNext}
-                className={classes.btnPadding}
-            >
-                <NextIcon />
-            </Button>
-        </div>
-    )
+        ({ classes, step, onNext, onBack, pristine, submitting }) => {
+
+            const form = useForm();
+
+            const handleClick = useCallback(() => {
+                form.submit();
+            }, [form]);
+
+            return (
+            <div className={classes.btnRoot}>
+                <Button
+                    label='Back'
+                    disabled={step === 0 || !(pristine || submitting)}
+                    onClick={onBack}
+                    className={classes.btnPadding}
+                >
+                    <BackIcon />
+                </Button>
+                <Button
+                    label='Save'
+                    variant="contained"
+                    disabled={pristine || submitting}
+                    onClick={handleClick}
+                    className={classes.btnPadding}
+                >
+                    <SaveIcon />
+                </Button>
+                <Button
+                    label='Next'
+                    disabled={step === 1 || !(pristine || submitting)}
+                    onClick={onNext}
+                    className={classes.btnPadding}
+                >
+                    <NextIcon />
+                </Button>
+            </div>
+        );
+    }
 )
+

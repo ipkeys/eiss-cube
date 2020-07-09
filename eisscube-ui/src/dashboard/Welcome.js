@@ -3,13 +3,13 @@ import { withStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import Avatar from '@material-ui/core/Avatar';
-import LightBulbIcon from '@material-ui/icons/LightbulbOutline';
+import LightBulbIcon from '@material-ui/icons/EmojiObjectsOutlined';
 
 const styles = theme => ({
     card: { 
         borderLeft: `solid 4px ${theme.palette.primary.main}`, 
         flex: 1, 
-        marginBottom: theme.spacing.unit 
+        marginBottom: theme.spacing(1) 
     },
     avatar: {
         color: theme.palette.common.white,

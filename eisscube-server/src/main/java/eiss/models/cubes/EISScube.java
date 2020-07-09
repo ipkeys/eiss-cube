@@ -20,6 +20,12 @@ public class EISScube {
     @Property String name;
     @Property String socket;
 
+    @Indexed(options = @IndexOptions(name="CubeGroupIndex"))
+    @Property String group;
+
+    @Indexed(options = @IndexOptions(name="CubeGroupIdIndex"))
+    @Property String group_id;
+
     @Property String address;
     @Property String city;
     @Property String zipCode;

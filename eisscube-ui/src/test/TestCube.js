@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import moment from 'moment';
 import { Button, CREATE, GET_ONE } from 'react-admin';
-import { dataProvider } from '../App';
+import { dataProvider } from '../providers';
 import { TimeSeries, TimeRange} from "pondjs";
 import {
   ChartContainer,
@@ -14,18 +14,17 @@ import {
   Baseline,
   Resizable
 } from "react-timeseries-charts";
-
-import LinearProgress from '@material-ui/core/LinearProgress';
-import ExpansionPanel from '@material-ui/core/ExpansionPanel';
-import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
-import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
-import Typography from '@material-ui/core/Typography';
+import {
+    Divider,
+    Typography,
+    LinearProgress,
+    ExpansionPanel,
+    ExpansionPanelDetails,
+    ExpansionPanelSummary
+} from '@material-ui/core';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import Divider from '@material-ui/core/Divider';
-
 import StartTestIcon from '@material-ui/icons/PlayCircleOutline';
 import { green, red, blue, amber, yellow, grey } from '@material-ui/core/colors';
-
 import SelectDuration from './SelectDuration';
 import SelectCycle from './SelectCycle';
 
@@ -79,24 +78,24 @@ const baselineDownStyle = {
 
 const styles = theme => ({
 	btnPadding: {
-        paddingRight: theme.spacing.unit
+        paddingRight: theme.spacing(1)
     },
     title: {
         display: 'inline-flex',
         alignItems: 'center',
     },
     content: {
-        paddingLeft: theme.spacing.unit * 3,
-        paddingRight: theme.spacing.unit * 3,
+        paddingLeft: theme.spacing(3),
+        paddingRight: theme.spacing(3),
         paddingBottom: 0
     },
     button: {
-        marginTop: theme.spacing.unit,
-        marginBottom: theme.spacing.unit
+        marginTop: theme.spacing(1),
+        marginBottom: theme.spacing(1)
     },
     progress: {
-        marginTop: theme.spacing.unit,
-        marginBottom: theme.spacing.unit * 2
+        marginTop: theme.spacing(1),
+        marginBottom: theme.spacing(2)
     },
     note: {
         display: 'inline-flex',
@@ -104,7 +103,7 @@ const styles = theme => ({
 	},
 	notePanel: {
         backgroundColor: yellow[50],
-        marginBottom: theme.spacing.unit
+        marginBottom: theme.spacing(1)
     },
     panelDetails: {
         paddingTop: 0
@@ -115,11 +114,11 @@ const styles = theme => ({
         color: grey[900]
     },
     divider: {
-        marginTop: theme.spacing.unit,
-        marginBottom: theme.spacing.unit
+        marginTop: theme.spacing(1),
+        marginBottom: theme.spacing(1)
     },
     leftgap: {
-        paddingLeft: theme.spacing.unit * 2
+        paddingLeft: theme.spacing(2)
     }
 });
 
@@ -339,7 +338,7 @@ class TestCube extends Component {
             <div>
                 <ExpansionPanel className={classes.notePanel} expanded={expanded === 'test_note'} onChange={this.handleNote('test_note')}>
                     <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
-                        <i style={{color: red[800]}}>Note!</i>
+                        <i style={{color: red[800], marginRight: '8px'}}>Note!</i>
                         Testing process will take from 2 to 5 minutes (depends on network speed). Press [START...] to run.
                     </ExpansionPanelSummary>
                     <ExpansionPanelDetails className={classes.panelDetails}>

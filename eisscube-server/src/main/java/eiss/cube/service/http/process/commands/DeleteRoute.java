@@ -1,6 +1,7 @@
 package eiss.cube.service.http.process.commands;
 
 import com.google.gson.Gson;
+import eiss.cube.db.Cube;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.CubeCommand;
 import io.vertx.core.Handler;
@@ -26,12 +27,12 @@ import static javax.servlet.http.HttpServletResponse.*;
 @Path("/commands/{id}")
 public class DeleteRoute implements Handler<RoutingContext> {
 
-    private Vertx vertx;
-    private Datastore datastore;
-    private Gson gson;
+    private final Vertx vertx;
+    private final Datastore datastore;
+    private final Gson gson;
 
     @Inject
-    public DeleteRoute(Vertx vertx, Datastore datastore, Gson gson) {
+    public DeleteRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;

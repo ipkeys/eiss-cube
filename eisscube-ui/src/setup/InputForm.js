@@ -1,7 +1,4 @@
 import React, { Component, Fragment } from 'react';
-import compose from 'recompose/compose';
-import { connect } from 'react-redux';
-import { reset, submit, isPristine, isSubmitting, formValueSelector } from 'redux-form';
 import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import {
@@ -9,13 +6,43 @@ import {
     BooleanInput,
     SelectInput,
     NumberInput,
-    TextInput
+    TextInput,
+    FormDataConsumer
 } from 'react-admin';
+import { FormSpy } from 'react-final-form';
 
 import { SetupFormButton } from './SetupCube';
 
 const styles = theme => ({
 });
+
+const InputSettings = ({ formData }) => {
+    return (
+        formData && formData.input && formData.input.connected ?
+        <Fragment>
+            <SelectInput label='Signal type' source="input.signal" choices={[
+                { id: 'p', name: 'Pulses' },
+                { id: 'c', name: 'Cycles' }
+            ]} fullWidth />
+            {formData.input.signal && formData.input.signal === "p" &&
+                <NumberInput label='Factor (Pulses per kWh)' source='input.factor' fullWidth />
+            }
+            {formData.input.signal && formData.input.signal === "c" &&
+                <Fragment>
+                    <SelectInput label='Watch' source="input.watch" choices={[
+                        { id: 'r', name: 'Raising edge' },
+                        { id: 'f', name: 'Falling edge' }
+                    ]} fullWidth />
+
+                    <NumberInput label='Load value (kW)' source='input.load' fullWidth />
+                </Fragment>
+            }
+            <TextInput label='Label' source='input.label' fullWidth />
+            <TextInput label='Description' source='input.description' fullWidth/>
+        </Fragment>
+        : null
+    );
+};
 
 class InputForm extends Component {
 
@@ -24,8 +51,6 @@ class InputForm extends Component {
         this.state = {
             data: props.data
         };
-
-        this.handleSave = this.handleSave.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -38,43 +63,26 @@ class InputForm extends Component {
 		}
 	}
 
-    handleSave = () => {
-        const { submit } = this.props;
-        submit('SetupCubeWizard');
-    };
-
     render() {
-        const { onSubmit, isPristine, isSubmitting, step, back, next, isInputConnected, inputSignalType } = this.props
+        const { onSubmit, step, back, next } = this.props
         const { data } = this.state;
 
         return (
             <SimpleForm
-                form='SetupCubeWizard'
-                defaultValue={data}
-                onSubmit={onSubmit}
+                initialValues={data}
+                save={onSubmit}
                 toolbar={null}
             >
-                <BooleanInput label='Connected' source='input.connected' margin='dense'/>
-                {isInputConnected &&
-                    <Fragment>
-                        <SelectInput label='Signal type' source="input.signal" choices={[
-                            { id: 'P', name: 'Pulses' },
-                            { id: 'C', name: 'Cycles' }
-                        ]} margin='dense' fullWidth />
-                        {inputSignalType && inputSignalType === "P" &&
-                            <NumberInput label='Pulse factor (pulses per kWh)' source='input.factor' margin='dense' fullWidth />
-                        }
-                        {inputSignalType && inputSignalType === "C" &&
-                            <SelectInput label='Watch' source="input.watch" choices={[
-                                { id: 'r', name: 'Raising edge' },
-                                { id: 'f', name: 'Falling edge' }
-                            ]} margin='dense' fullWidth />
-                        }
-                        <TextInput label='Label' source='input.label' margin='dense' fullWidth />
-                        <TextInput label='Description' source='input.description' margin='dense' fullWidth/>
-                    </Fragment>
-                }
-                <SetupFormButton step={step} onSave={this.handleSave} onNext={next} onBack={back} pristine={isPristine} submitting={isSubmitting}/>
+                <BooleanInput label='Connected' source='input.connected' />
+                <FormDataConsumer>
+                    {formDataProps => <InputSettings {...formDataProps} /> }
+                </FormDataConsumer>
+
+                <FormSpy subscription={{ pristine: true, submitting: true }}>
+                {props => (
+                    <SetupFormButton step={step} onNext={next} onBack={back} pristine={props.pristine} submitting={props.submitting}/>
+                )}
+                </FormSpy>
             </SimpleForm>
         );
     }
@@ -85,26 +93,4 @@ InputForm.propTypes = {
     data: PropTypes.object
 };
 
-const selector = formValueSelector('SetupCubeWizard');
-
-const mapStateToProps = state => ({
-	isInputConnected: selector(state, 'input.connected'),
-	inputSignalType: selector(state, 'input.signal'),
-    isSubmitting: isSubmitting('SetupCubeWizard')(state),
-    isPristine: isPristine('SetupCubeWizard')(state)
-});
-
-const mapDispatchToProps = {
-	reset,
-    submit
-};
-
-const enhance = compose(
-    withStyles(styles)
-);
-
-export default enhance(
-	connect(mapStateToProps, mapDispatchToProps)(
-    	InputForm
-	)
-);
+export default withStyles(styles)(InputForm);

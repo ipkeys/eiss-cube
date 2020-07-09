@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import dev.morphia.Datastore;
 import dev.morphia.query.FindOptions;
 import dev.morphia.query.Query;
+import eiss.cube.db.Cube;
 import eiss.cube.json.messages.properties.Property;
 import eiss.cube.json.messages.properties.PropertyListRequest;
 import eiss.cube.json.messages.properties.PropertyListResponse;
@@ -28,12 +29,12 @@ import static javax.servlet.http.HttpServletResponse.*;
 @Path("/eiss-api/properties/list")
 public class ListRoute implements Handler<RoutingContext> {
 
-    private Vertx vertx;
-    private Datastore datastore;
-    private Gson gson;
+    private final Vertx vertx;
+    private final Datastore datastore;
+    private final Gson gson;
 
     @Inject
-    public ListRoute(Vertx vertx, Datastore datastore, Gson gson) {
+    public ListRoute(Vertx vertx, @Cube Datastore datastore, Gson gson) {
         this.vertx = vertx;
         this.datastore = datastore;
         this.gson = gson;

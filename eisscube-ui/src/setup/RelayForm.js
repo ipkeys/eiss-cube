@@ -1,21 +1,34 @@
 import React, { Component, Fragment } from 'react';
-import compose from 'recompose/compose';
-import { connect } from 'react-redux';
-import { reset, submit, isPristine, isSubmitting, formValueSelector } from 'redux-form';
 import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import {
     SimpleForm,
     BooleanInput,
     SelectInput,
-    NumberInput,
-    TextInput
+    TextInput,
+    FormDataConsumer
 } from 'react-admin';
+import { FormSpy } from 'react-final-form';
 
 import { SetupFormButton } from './SetupCube';
 
 const styles = theme => ({
 });
+
+const RelaySettings = ({ formData }) => {
+    return (
+        formData && formData.relay && formData.relay.connected ?
+        <Fragment>
+            <SelectInput label='To contacts' source="relay.contacts" choices={[
+                { id: 'NO', name: 'Normal Open' },
+                { id: 'NC', name: 'Normal Close' }
+            ]} fullWidth />
+            <TextInput label='Label' source='relay.label' fullWidth />
+            <TextInput label='Description' source='relay.description' fullWidth />
+        </Fragment>
+        : null
+    );
+};
 
 class RelayForm extends Component {
 
@@ -24,8 +37,6 @@ class RelayForm extends Component {
         this.state = {
             data: props.data
         };
-
-        this.handleSave = this.handleSave.bind(this);
     }
     
     componentDidUpdate(prevProps) {
@@ -38,35 +49,27 @@ class RelayForm extends Component {
 		}
 	}
 
-    handleSave = () => {
-        const { submit } = this.props;
-        submit('SetupCubeWizard');
-    };
-
     render() {
-        const { onSubmit, isPristine, isSubmitting, step, back, next, isRelayConnected } = this.props
+        const { onSubmit, step, back, next } = this.props
         const { data } = this.state;
-
+        
         return (
             <SimpleForm
-                form='SetupCubeWizard'
-                defaultValue={data}
-                onSubmit={onSubmit}
+                initialValues={data}
+                save={onSubmit}
                 toolbar={null}
             >
-                <BooleanInput label='Connected' source='relay.connected' margin='dense'/>
-                {isRelayConnected &&
-                    <Fragment>
-                        <SelectInput label='To contacts' source="relay.contacts" choices={[
-                            { id: 'NO', name: 'Normal Open' },
-                            { id: 'NC', name: 'Normal Close' }
-                        ]} margin='dense' fullWidth />
-                        <NumberInput label='Load value (W)' source='relay.load' margin='dense' fullWidth />
-                        <TextInput label='Label' source='relay.label' margin='dense' fullWidth />
-                        <TextInput label='Description' source='relay.description' margin='dense' fullWidth />
-                    </Fragment>
-                }
-                <SetupFormButton step={step} onSave={this.handleSave} onNext={next} onBack={back} pristine={isPristine} submitting={isSubmitting}/>
+                <BooleanInput label='Connected' source='relay.connected' />
+
+                <FormDataConsumer>
+                    {formDataProps => <RelaySettings {...formDataProps} /> }
+                </FormDataConsumer>
+
+                <FormSpy subscription={{ pristine: true, submitting: true }}>
+                {props => (
+                    <SetupFormButton step={step} onNext={next} onBack={back} pristine={props.pristine} submitting={props.submitting}/>                
+                )}
+                </FormSpy>
             </SimpleForm>
         );
     }
@@ -77,25 +80,4 @@ RelayForm.propTypes = {
     data: PropTypes.object
 };
 
-const selector = formValueSelector('SetupCubeWizard');
-
-const mapStateToProps = state => ({
-	isRelayConnected: selector(state, 'relay.connected'),
-    isSubmitting: isSubmitting('SetupCubeWizard')(state),
-    isPristine: isPristine('SetupCubeWizard')(state)
-});
-
-const mapDispatchToProps = {
-	reset,
-    submit
-};
-
-const enhance = compose(
-    withStyles(styles)
-);
-
-export default enhance(
-	connect(mapStateToProps, mapDispatchToProps)(
-    	RelayForm
-	)
-);
+export default withStyles(styles)(RelayForm);

@@ -2,8 +2,11 @@ package eiss.cube.service.http.process.cubes;
 
 import com.google.gson.Gson;
 import com.mongodb.BasicDBObject;
+import eiss.cube.db.Cube;
+import eiss.cube.db.Eiss;
 import eiss.cube.service.http.process.api.Api;
 import eiss.models.cubes.EISScube;
+import eiss.models.eiss.Group;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
@@ -32,14 +35,16 @@ import static javax.servlet.http.HttpServletResponse.*;
 @Path("/cubes/{id}")
 public class PutRoute implements Handler<RoutingContext> {
 
-    private Vertx vertx;
-    private Datastore datastore;
-    private Gson gson;
+    private final Vertx vertx;
+    private final Datastore eissDatastore;
+    private final Datastore cubeDatastore;
+    private final Gson gson;
 
     @Inject
-    public PutRoute(Vertx vertx, Datastore datastore, Gson gson) {
+    public PutRoute(Vertx vertx, @Eiss Datastore eissDatastore, @Cube Datastore cubeDatastore, Gson gson) {
         this.vertx = vertx;
-        this.datastore = datastore;
+        this.eissDatastore = eissDatastore;
+        this.cubeDatastore = cubeDatastore;
         this.gson = gson;
     }
 
@@ -68,10 +73,10 @@ public class PutRoute implements Handler<RoutingContext> {
         }
 
         vertx.executeBlocking(cube_op -> {
-            Query<EISScube> q = datastore.createQuery(EISScube.class);
+            Query<EISScube> q = cubeDatastore.createQuery(EISScube.class);
             q.criteria("_id").equal(new ObjectId(id));
 
-            UpdateOperations<EISScube> ops = datastore.createUpdateOperations(EISScube.class);
+            UpdateOperations<EISScube> ops = cubeDatastore.createUpdateOperations(EISScube.class);
 
             if (cube.getName() == null) {
                 ops.unset("name");
@@ -130,7 +135,30 @@ public class PutRoute implements Handler<RoutingContext> {
                 ops.set("settings", cube.getSettings());
             }
 
-            UpdateResults result = datastore.update(q, ops);
+            // put cube under group
+            Query<Group> groupQuery = eissDatastore.createQuery(Group.class);
+            if (cube.getGroup_id() != null && !cube.getGroup_id().isEmpty()) {
+                ops.set("group_id", cube.getGroup_id());
+                groupQuery.criteria("_id").equal(new ObjectId(cube.getGroup_id()));
+                Group group = groupQuery.first();
+                if (group != null) {
+                    ops.set("group", group.getName());
+                } else {
+                    ops.unset("group");
+                }
+            } else if (cube.getGroup() != null && !cube.getGroup().isEmpty()) {
+                ops.set("group", cube.getGroup());
+                groupQuery.criteria("name").equal(cube.getGroup());
+                Group group = groupQuery.first();
+                if (group != null) {
+                    ops.set("group_id", group.getId().toString());
+                } else {
+                    ops.unset("group_id");
+                }
+            }
+            // ~put cube under group
+
+            UpdateResults result = cubeDatastore.update(q, ops);
             if (result.getUpdatedCount() == 1) {
                 cube_op.complete(gson.toJson(cube));
             } else {

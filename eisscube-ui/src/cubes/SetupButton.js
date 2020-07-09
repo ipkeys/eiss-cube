@@ -12,7 +12,7 @@ import SetupCube from '../setup/SetupCube';
 
 const styles = theme => ({
 	btnPadding: {
-        paddingRight: theme.spacing.unit
+        paddingRight: theme.spacing(1)
     },
     title: {
         display: 'inline-flex',

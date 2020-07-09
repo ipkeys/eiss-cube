@@ -7,6 +7,8 @@ import {
     TextField,
     SearchInput,
     TextInput,
+    ReferenceField,
+    ReferenceInput,
     SelectInput,
     ShowButton,
     Show,
@@ -14,18 +16,17 @@ import {
     Edit,
     TabbedForm,
     FormTab,
-    DisabledInput,
     Responsive, 
     SimpleList,
     maxLength
 } from 'react-admin';
-import { unparse as convertToCSV } from 'papaparse/papaparse.min';
+import jsonExport from 'jsonexport/dist';
 import moment from 'moment';
 import Icon from '@material-ui/icons/Router';
 import { withStyles } from '@material-ui/core/styles';
 import { green, red } from '@material-ui/core/colors';
 
-import { AppDateTimeFormat, DateTimeMomentFormat } from '../App';
+import { AppDateTimeFormat, DateTimeMomentFormat, isSuperAdmin } from '../App';
 import StatusField from './StatusField';
 import CubeMap from './CubeMap';
 import EissCubesShowActions from './ShowActions';
@@ -34,67 +35,75 @@ import Settings from './Settings';
 export const EissCubesIcon = Icon;
 
 const styles = theme => ({
-    title: {
-        color: theme.palette.common.white
-    },
     rowEven: {
         backgroundColor: theme.palette.grey[100]
     },
     inlineField: { 
         display: 'inline-block',
-        marginRight: theme.spacing.unit * 2, 
-        minWidth: theme.spacing.unit * 24   
+        marginRight: theme.spacing(2), 
+        minWidth: theme.spacing(24)   
     },
     inline: { 
         display: 'inline-block', 
-        marginRight: theme.spacing.unit * 2
+        marginRight: theme.spacing(2)
     },
     longText: {
-        minWidth: theme.spacing.unit * 66 
+        minWidth: theme.spacing(66) 
     }
 });
 
-const exporter = records => {
-    const data = records.map(record => ({
-        ...record,
+const exportCubeList = data => {
+    const records = data.map(record => ({
+        deviceID: record.deviceID,
+        name: record.name,
+        online: record.online,
         lastPing: moment(record.lastPing).format(DateTimeMomentFormat),
         timeStarted: moment(record.timeStarted).format(DateTimeMomentFormat)
     }));
 
-    const csv = convertToCSV({
-        data,
-        fields: ['deviceID', 'name', 'online', 'timeStarted', 'lastPing']
-    });
-
-    downloadCSV(csv, 'EISS™Cubes');
+    jsonExport(records, {
+        headers: ['deviceID', 'name', 'online', 'timeStarted', 'lastPing']
+        }, (err, csv) => {
+            downloadCSV(csv, 'EISS™Cubes');
+        }
+    );
 };
 
-const EissCubesTitle = withStyles(styles)(
-    ({classes, title, record}) => (
-        <div className={classes.title}>
-            {title} {record && record.name && `${record.name}`}
-        </div>
-    )
+const EissCubesTitle = ({title, record}) => (
+    <>
+    {title} {record && record.name && `${record.name}`}
+    </>
 );
 
 const EissCubesListFilter = props => (
     <Filter {...props}>
         <SearchInput source='q' alwaysOn />
-        <SelectInput source='online' label='Status' choices={[
+        <SelectInput source='online' label='Status' margin='dense' choices={[
             { id: true, name: 'ONLINE' },
             { id: false, name: 'OFFLINE' }
         ]} />
+        {isSuperAdmin(props.permissions) ? 
+            <ReferenceInput
+                source="group_id"
+                reference="groups"
+                sort={{ field: 'displayName', order: 'ASC' }}
+                allowEmpty
+            >
+                <SelectInput optionText='displayName' />
+            </ReferenceInput>
+        : null }
     </Filter>
 );
 
 export const EissCubesList = withStyles(styles)(
-    ({ classes, ...props }) => (
+    ({ classes, permissions: p, bulkActionsButtons: btns, ...props }) => (
         <List  
             title={<EissCubesTitle title='EISS™Cubes' />}
-            filters={<EissCubesListFilter />}
+            filters={<EissCubesListFilter permissions={p} />}
             sort={{ field: 'name', order: 'ASC' }}
             perPage={10}
-            exporter={exporter}
+            exporter={exportCubeList}
+            {...(isSuperAdmin(p) ? {bulkActionButtons: btns} : {bulkActionButtons: false})}
             {...props}
         >
             <Responsive
@@ -108,6 +117,13 @@ export const EissCubesList = withStyles(styles)(
                 medium={
                     <Datagrid classes={{ rowEven: classes.rowEven }} >
                         <TextField source='name' label='Name' />
+                        {isSuperAdmin(p) ?
+                            <ReferenceField source="group_id" label="Group" reference="groups" link={false} allowEmpty={true} >
+                                <TextField source="displayName" />
+                            </ReferenceField>
+                        : 
+                            null
+                        }
                         <StatusField source='online' label='Status' />
                         <DateField source='timeStarted' label='Started' showTime options={AppDateTimeFormat} />
                         <DateField source='lastPing' label='Last ping' showTime options={AppDateTimeFormat} />
@@ -121,7 +137,7 @@ export const EissCubesList = withStyles(styles)(
 
 export const EissCubesShow = withStyles(styles)(
     ({ classes, ...props }) => (
-        <Show 
+        <Show
             title={<EissCubesTitle title='Manage EISS™Cube -' />}
             actions={<EissCubesShowActions />}
             {...props}
@@ -135,14 +151,25 @@ const validateICCID = [maxLength(20)];
 const validateName = [maxLength(50)];
 
 export const EissCubesEdit = withStyles(styles)(
-    ({ classes, ...props }) => (
+    ({ classes, permissions: p, ...props }) => (
         <Edit  
             title={<EissCubesTitle title='Edit EISS™Cube -' />}
             {...props}
         >
             <TabbedForm>
                 <FormTab label='identity'>
-                    <DisabledInput label='ICCID' source='deviceID' className={classes.longText} validate={validateICCID} />
+                    {isSuperAdmin(p) ?
+                        <ReferenceInput 
+                            sort={{ field: 'displayName', order: 'ASC' }}
+                            source="group_id" 
+                            reference="groups"
+                        >
+                            <SelectInput optionText='displayName' />
+                        </ReferenceInput>
+                    : 
+                        null
+                    }
+                    <TextInput disabled label='ICCID' source='deviceID' className={classes.longText} validate={validateICCID} />
                     <TextInput label='Name' source='name' className={classes.longText} validate={validateName}/>
                 </FormTab>
                 <FormTab label='customer'>
