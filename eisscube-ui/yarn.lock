@@ -9167,10 +9167,10 @@ querystringify@^2.1.1:
   resolved "https://registry.yarnpkg.com/querystringify/-/querystringify-2.1.1.tgz#60e5a5fd64a7f8bfa4d2ab2ed6fdf4c85bad154e"
   integrity sha512-w7fLxIRCRT7U8Qu53jQnJyPkYZIaR4n5151KMfcJlO/A9397Wxb1amJvROTK6TOnp7PfoAmg/qXiNHI+08jRfA==
 
-ra-core@^3.6.0:
-  version "3.6.0"
-  resolved "https://registry.yarnpkg.com/ra-core/-/ra-core-3.6.0.tgz#f264c9cdc4655c99841bd2d5b783e4a3d98009b9"
-  integrity sha512-dMABSXtBDUX8FYIeE/Ac2XKg/mkD3UwAiNBtaMvvWxfzRiyNM8CMBXAHQOj0NTtHvaond7yKSF/Ji4oKPMULCw==
+ra-core@^3.7.0:
+  version "3.7.0"
+  resolved "https://registry.yarnpkg.com/ra-core/-/ra-core-3.7.0.tgz#b18116c2d1f1d0d9d96b0ffa485d498825c1cfd2"
+  integrity sha512-0kDszbrZjh7eGwZPyu7S0PrJNEJM+yaHVHcP/iGz9DcYLgAmDo5O2QCOMQxpikN9QDyKUa+CkoIWRM6TS/Hazw==
   dependencies:
     "@testing-library/react" "^8.0.7"
     classnames "~2.2.5"
@@ -9183,25 +9183,25 @@ ra-core@^3.6.0:
     recompose "~0.26.0"
     reselect "~3.0.0"
 
-ra-i18n-polyglot@^3.6.0:
-  version "3.6.0"
-  resolved "https://registry.yarnpkg.com/ra-i18n-polyglot/-/ra-i18n-polyglot-3.6.0.tgz#352bf93ee37b3c132de4a729ce99fdf19222d545"
-  integrity sha512-RqipBjPFyrmy46GnnGNiJCzXCYla+FUDcbygeYHdwK9tCVknedCzxOVvAyU7DtmDlpA+pxGgcwoOWprsAg61Ww==
+ra-i18n-polyglot@^3.7.0:
+  version "3.7.0"
+  resolved "https://registry.yarnpkg.com/ra-i18n-polyglot/-/ra-i18n-polyglot-3.7.0.tgz#8a12721dabe6164210d963d4cb84e93cfcfe44c2"
+  integrity sha512-d4mo+oEvAxjSmQJn+wzTvFfcUhAh3NDoQ2SHEnWmlpDguxDv0dNXwvwLzkj4mucZJ5ilm3txN5t3cw/SSUmPNA==
   dependencies:
     node-polyglot "^2.2.2"
-    ra-core "^3.6.0"
+    ra-core "^3.7.0"
 
-ra-language-english@^3.6.0:
-  version "3.6.0"
-  resolved "https://registry.yarnpkg.com/ra-language-english/-/ra-language-english-3.6.0.tgz#94f8a6c9889674651231aae1881c4d80156bbd07"
-  integrity sha512-a4FnwUTLN+4dWglCiPKIqbOLE5mQTbUMbeVKzhd7liAa0vtBeJGb6JHOArn5+mTaBaxWSF0GOUWXG5uWQqe+pw==
+ra-language-english@^3.7.0:
+  version "3.7.0"
+  resolved "https://registry.yarnpkg.com/ra-language-english/-/ra-language-english-3.7.0.tgz#4a4f6446a82b047b9b417ece8ceb2e7d1bb859dc"
+  integrity sha512-y51lz2U3VVL4ES8j7v3ZXeg0vuhCALzGdwwYZ/H5eZFI3In0CH1ovQx3v+3QeHQupMaA9BJv/knq6puTbNIAhQ==
   dependencies:
-    ra-core "^3.6.0"
+    ra-core "^3.7.0"
 
-ra-ui-materialui@^3.6.0:
-  version "3.6.0"
-  resolved "https://registry.yarnpkg.com/ra-ui-materialui/-/ra-ui-materialui-3.6.0.tgz#442b0542fbf4470e9bf45e8856d1248fca4f6b44"
-  integrity sha512-3KwPa077hlNcLuKhGjF0h09MRmnOS90Y4MSZBY5M3fu7rXmpdOGvyISA4eU6oiBIrMQyXbGTSX0s3a1xtcCLlw==
+ra-ui-materialui@^3.7.0:
+  version "3.7.0"
+  resolved "https://registry.yarnpkg.com/ra-ui-materialui/-/ra-ui-materialui-3.7.0.tgz#9454634c4aff5b13a9a1fe5d6c20ffbed339a9de"
+  integrity sha512-9iwYAKsxtdRtxSe3+RTrIeZfJ9RIZu6WweTQvbpreNr+7Jfg//UVPfkKRQPh5oRB/bC8hYafHvIFh3DZ2jAG6A==
   dependencies:
     autosuggest-highlight "^3.1.1"
     classnames "~2.2.5"
@@ -9254,10 +9254,10 @@ raw-body@2.4.0:
     iconv-lite "0.4.24"
     unpipe "1.0.0"
 
-react-admin@^3.6.0:
-  version "3.6.0"
-  resolved "https://registry.yarnpkg.com/react-admin/-/react-admin-3.6.0.tgz#c6ad0eab167fad30495a761f54a8f88754e6a883"
-  integrity sha512-PvH/1FCVWvz5aHO3fP+tx4Cvbfq9BoPgRHfhBc+O3W4SmLhnZt9+aI7A8gysTNIoH3td9hGPTqi49FL6Xt1P2g==
+react-admin@^3.7.0:
+  version "3.7.0"
+  resolved "https://registry.yarnpkg.com/react-admin/-/react-admin-3.7.0.tgz#627ade577d21a2a85c4cabfccc31f4d31ec5aef6"
+  integrity sha512-Wuo7U/ui4rPMY0JF9/gpRWPCf/qi/sIZPeta9lf8DM0WQVtEzP2EXP6iKC+gi4lDiww5hlSUCP+X+cHkl9hwSw==
   dependencies:
     "@material-ui/core" "^4.3.3"
     "@material-ui/icons" "^4.2.1"
@@ -9265,10 +9265,10 @@ react-admin@^3.6.0:
     connected-react-router "^6.5.2"
     final-form "^4.18.5"
     final-form-arrays "^3.0.1"
-    ra-core "^3.6.0"
-    ra-i18n-polyglot "^3.6.0"
-    ra-language-english "^3.6.0"
-    ra-ui-materialui "^3.6.0"
+    ra-core "^3.7.0"
+    ra-i18n-polyglot "^3.7.0"
+    ra-language-english "^3.7.0"
+    ra-ui-materialui "^3.7.0"
     react-final-form "^6.3.3"
     react-final-form-arrays "^3.1.1"
     react-redux "^7.1.0"
