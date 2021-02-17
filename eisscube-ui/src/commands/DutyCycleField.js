@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import get from 'lodash/get';
-import pure from 'recompose/pure';
 import { Labeled } from 'react-admin';
 import Typography from '@material-ui/core/Typography';
 import { green, red } from '@material-ui/core/colors';
@@ -33,10 +32,9 @@ DutyCycleField.propTypes = {
   };
 
 DutyCycleField.displayName = 'DutyCycleField';
-const PureDutyCycleField = pure(DutyCycleField);
 
-PureDutyCycleField.defaultProps = {
+DutyCycleField.defaultProps = {
     addLabel: true,
 };
 
-export default PureDutyCycleField;
+export default DutyCycleField;

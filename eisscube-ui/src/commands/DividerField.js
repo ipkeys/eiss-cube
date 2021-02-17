@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import pure from 'recompose/pure';
 import Divider from '@material-ui/core/Divider';
 
 const DividerField = () => {
@@ -14,10 +13,9 @@ DividerField.propTypes = {
 };
 
 DividerField.displayName = 'DividerField';
-const PureDividerField = pure(DividerField);
 
-PureDividerField.defaultProps = {
+DividerField.defaultProps = {
     addLabel: false,
 };
 
-export default PureDividerField;
+export default DividerField;

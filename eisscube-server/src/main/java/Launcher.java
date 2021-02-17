@@ -8,6 +8,7 @@ import eiss.cube.randname.RandnameModule;
 import eiss.cube.service.app.Application;
 import eiss.cube.service.http.HttpModule;
 import eiss.cube.service.tcp.TcpModule;
+import eiss.cube.service.webclient.WebClientModule;
 import eiss.cube.vertx.VertxModule;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,7 +28,8 @@ public class Launcher {
             new DatastoreModule(),
             new GsonModule(),
             new RandnameModule(),
-            new ConversionModule()
+            new ConversionModule(),
+            new WebClientModule()
         );
 
         final Application app = injector.getInstance(Application.class);

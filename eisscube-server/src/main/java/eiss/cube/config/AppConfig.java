@@ -27,4 +27,7 @@ public class AppConfig {
     @Getter
     private ApiUserConfig apiUserConfig;
 
+    @InjectConfig(value = "loraServer")
+    @Getter
+    private LoraServerConfig loraServerConfig;
 }

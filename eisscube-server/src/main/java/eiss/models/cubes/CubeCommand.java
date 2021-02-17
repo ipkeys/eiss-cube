@@ -20,6 +20,8 @@ public class CubeCommand {
     @Property Instant sent;
     @Property Instant received;
 
+    @Property String deviceType;
+
     @Indexed(options = @IndexOptions(name = "CubeIDIndex"))
     @Property ObjectId cubeID; // reference to EISScube.id
     @Property String cubeName;

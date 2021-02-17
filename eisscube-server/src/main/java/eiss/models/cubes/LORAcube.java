@@ -1,23 +1,28 @@
 package eiss.models.cubes;
 
 import com.mongodb.BasicDBObject;
+import dev.morphia.annotations.Embedded;
+import dev.morphia.annotations.Entity;
+import dev.morphia.annotations.Id;
+import dev.morphia.annotations.IndexOptions;
+import dev.morphia.annotations.Indexed;
+import dev.morphia.annotations.Property;
 import lombok.Data;
 import org.bson.types.ObjectId;
-import dev.morphia.annotations.*;
 
 import java.time.Instant;
 
 import static java.lang.Boolean.FALSE;
 
 @Data
-@Entity(value = "eisscubes", noClassnameStored = true)
-public class EISScube {
+@Entity(value = "loracubes", noClassnameStored = true)
+public class LORAcube {
 
     @Id ObjectId id;
 
     @Indexed(options = @IndexOptions(name = "CubeDeviceIDIndex", unique = true))
     @Property String deviceID; // SIM Card number provided by device
-    @Property String deviceType = "c";
+    @Property String deviceType = "l";
     @Property String name;
     @Property String socket;
 

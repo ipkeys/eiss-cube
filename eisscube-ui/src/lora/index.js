@@ -30,11 +30,11 @@ import { green, red } from '@material-ui/core/colors';
 import { AppDateTimeFormat, DateTimeMomentFormat, isSuperAdmin } from '../App';
 import StatusField from './StatusField';
 import CubeMap from './CubeMap';
-import EissCubesShowActions from './ShowActions';
+import LoraCubesShowActions from './ShowActions';
 import Settings from './Settings';
 import useRecursiveTimeout from '../useRecursiveTimeout';
 
-export const EissCubesIcon = Icon;
+export const LoraCubesIcon = Icon;
 
 const styles = theme => ({
     rowEven: {
@@ -54,7 +54,7 @@ const styles = theme => ({
     }
 });
 
-const exportCubeList = data => {
+const exportLoraCubeList = data => {
     const records = data.map(record => ({
         deviceID: record.deviceID,
         name: record.name,
@@ -66,18 +66,18 @@ const exportCubeList = data => {
     jsonExport(records, {
         headers: ['deviceID', 'name', 'online', 'timeStarted', 'lastPing']
         }, (err, csv) => {
-            downloadCSV(csv, 'EISS™Cubes');
+            downloadCSV(csv, 'LoRa™Cubes');
         }
     );
 };
 
-const EissCubesTitle = ({title, record}) => (
+const LoraCubesTitle = ({title, record}) => (
     <>
     {title} {record && record.name && `${record.name}`}
     </>
 );
 
-const EissCubesListFilter = props => (
+const LoraCubesListFilter = props => (
     <Filter {...props}>
         <SearchInput source='q' alwaysOn />
         <SelectInput source='online' label='Status' margin='dense' choices={[
@@ -97,18 +97,18 @@ const EissCubesListFilter = props => (
     </Filter>
 );
 
-export const EissCubesList = withStyles(styles)(
+export const LoraCubesList = withStyles(styles)(
     ({ classes, permissions: p, bulkActionsButtons: btns, ...props }) => {
         const refresh = useRefresh();
         useRecursiveTimeout(() => refresh(), 10000);
-        
+
         return (
             <List  
-                title={<EissCubesTitle title='EISS™Cubes' />}
-                filters={<EissCubesListFilter permissions={p} />}
+                title={<LoraCubesTitle title='LoRa™Cubes' />}
+                filters={<LoraCubesListFilter permissions={p} />}
                 sort={{ field: 'name', order: 'ASC' }}
                 perPage={10}
-                exporter={exportCubeList}
+                exporter={exportLoraCubeList}
                 {...(isSuperAdmin(p) ? {bulkActionButtons: btns} : {bulkActionButtons: false})}
                 {...props}
             >
@@ -142,11 +142,11 @@ export const EissCubesList = withStyles(styles)(
     }
 );
 
-export const EissCubesShow = withStyles(styles)(
+export const LoraCubesShow = withStyles(styles)(
     ({ classes, ...props }) => (
         <Show
-            title={<EissCubesTitle title='Manage EISS™Cube -' />}
-            actions={<EissCubesShowActions />}
+            title={<LoraCubesTitle title='Manage LoRa™Cube -' />}
+            actions={<LoraCubesShowActions />}
             {...props}
         >
             <CubeMap {...props}/>
@@ -154,13 +154,13 @@ export const EissCubesShow = withStyles(styles)(
     )
 );
   
-const validateICCID = [maxLength(20)];
+const validateDevUID = [maxLength(20)];
 const validateName = [maxLength(50)];
 
-export const EissCubesEdit = withStyles(styles)(
+export const LoraCubesEdit = withStyles(styles)(
     ({ classes, permissions: p, ...props }) => (
         <Edit  
-            title={<EissCubesTitle title='Edit EISS™Cube -' />}
+            title={<LoraCubesTitle title='Edit LoRa™Cube -' />}
             {...props}
         >
             <TabbedForm>
@@ -176,7 +176,7 @@ export const EissCubesEdit = withStyles(styles)(
                     : 
                         null
                     }
-                    <TextInput disabled label='ICCID' source='deviceID' className={classes.longText} validate={validateICCID} />
+                    <TextInput disabled label='DevUID' source='deviceID' className={classes.longText} validate={validateDevUID} />
                     <TextInput label='Name' source='name' className={classes.longText} validate={validateName}/>
                 </FormTab>
                 <FormTab label='customer'>

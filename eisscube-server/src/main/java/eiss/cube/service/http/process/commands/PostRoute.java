@@ -9,6 +9,7 @@ import eiss.cube.json.messages.CycleAndDutyCycleExtractor;
 import eiss.models.cubes.CubeCommand;
 import eiss.models.cubes.CubeReport;
 import eiss.models.cubes.EISScube;
+import eiss.models.cubes.LORAcube;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerResponse;
@@ -75,16 +76,29 @@ public class PostRoute implements Handler<RoutingContext> {
             cmd.setStatus("Created");
             cmd.setCreated(Instant.now());
 
-            // put command under cube's group
-            Query<EISScube> q = datastore.createQuery(EISScube.class);
-            q.criteria("id").equal(cmd.getCubeID());
-            EISScube cube = q.first();
-            if (cube != null) {
-                cmd.setCubeName(cube.getName());
-                cmd.setGroup(cube.getGroup());
-                cmd.setGroup_id(cube.getGroup_id());
+            // EISS cube
+            if (cmd.getDeviceType().equalsIgnoreCase("e")) {
+                Query<EISScube> q = datastore.createQuery(EISScube.class);
+                q.criteria("id").equal(cmd.getCubeID());
+                EISScube cube = q.first();
+                if (cube != null) {
+                    cmd.setCubeName(cube.getName());
+                    cmd.setGroup(cube.getGroup());
+                    cmd.setGroup_id(cube.getGroup_id());
+                }
             }
-            // ~put command under cube's group
+
+            // LORA cube
+            if (cmd.getDeviceType().equalsIgnoreCase("l")) {
+                Query<LORAcube> q = datastore.createQuery(LORAcube.class);
+                q.criteria("id").equal(cmd.getCubeID());
+                LORAcube cube = q.first();
+                if (cube != null) {
+                    cmd.setCubeName(cube.getName());
+                    cmd.setGroup(cube.getGroup());
+                    cmd.setGroup_id(cube.getGroup_id());
+                }
+            }
 
             try {
                 Key<CubeCommand> key = datastore.save(cmd);
@@ -96,9 +110,15 @@ public class PostRoute implements Handler<RoutingContext> {
             }
         }, res -> {
             if (res.succeeded()) {
-                // send cmd to EISScube device
-                sendIt(cmd);
 
+                // EISS cube
+                if (cmd.getDeviceType().equalsIgnoreCase("e")) {
+                    sendToEISScube(cmd);
+                }
+                // LORA cube
+                if (cmd.getDeviceType().equalsIgnoreCase("l")) {
+                    sendToLORAcube(cmd);
+                }
                 response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .setStatusCode(SC_CREATED)
                         .end(gson.toJson(cmd));
@@ -110,7 +130,7 @@ public class PostRoute implements Handler<RoutingContext> {
         });
     }
 
-    private void sendIt(CubeCommand cmd) {
+    private void sendToEISScube(CubeCommand cmd) {
         Query<EISScube> q = datastore.createQuery(EISScube.class);
         q.criteria("id").equal(cmd.getCubeID());
 
@@ -141,6 +161,48 @@ public class PostRoute implements Handler<RoutingContext> {
                 op.complete();
             } else {
                 op.fail(String.format("Cannot find EISSCube for id: %s", cmd.getCubeID().toString()));
+            }
+        }, cube_res -> {
+            if (cube_res.succeeded()) {
+                log.info("Command sent");
+            } else {
+                log.error("Failed to send Command");
+            }
+        });
+    }
+
+    private void sendToLORAcube(CubeCommand cmd) {
+        Query<LORAcube> q = datastore.createQuery(LORAcube.class);
+        q.criteria("id").equal(cmd.getCubeID());
+
+        vertx.executeBlocking(op -> {
+            LORAcube cube = q.first();
+            if (cube != null) {
+                // send command to device
+                vertx.eventBus().send("loracube",
+                        new JsonObject()
+                                .put("id", cmd.getId().toString())
+                                .put("to", cube.getDeviceID())
+                                .put("cmd", cmd.toString())
+                );
+
+/*
+                // prepare report record
+                if (cmd.getCommand().startsWith("ic")) {
+                    Query<CubeReport> qR = datastore.createQuery(CubeReport.class);
+                    qR.criteria("cubeID").equal(cube.getId());
+
+                    UpdateOperations<CubeReport> ops = datastore.createUpdateOperations(CubeReport.class);
+                    ops.setOnInsert("cubeID", cube.getId());
+                    ops.set("type", cmd.getCommand().replace("ic", "")); // leave just "p" or "c"
+
+                    datastore.update(qR, ops, new UpdateOptions().upsert(true));
+                }
+*/
+
+                op.complete();
+            } else {
+                op.fail(String.format("Cannot find LORACube for id: %s", cmd.getCubeID().toString()));
             }
         }, cube_res -> {
             if (cube_res.succeeded()) {

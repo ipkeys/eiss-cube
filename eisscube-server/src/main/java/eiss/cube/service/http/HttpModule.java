@@ -2,6 +2,7 @@ package eiss.cube.service.http;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
+import eiss.cube.service.http.process.lora.LoraCubeHandler;
 import eiss.jwt.Jwt;
 import eiss.cube.service.http.process.api.ApiBuilder;
 
@@ -13,6 +14,8 @@ public class HttpModule extends AbstractModule {
         bind(Http.class).asEagerSingleton();
         bind(ApiBuilder.class).asEagerSingleton();
         bind(Jwt.class).asEagerSingleton();
+
+        bind(LoraCubeHandler.class).asEagerSingleton();
     }
 
 }

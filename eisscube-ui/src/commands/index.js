@@ -22,11 +22,13 @@ import {
     ShowController,
     ShowView,
     SearchInput,
-    required
+    required,
+    useRefresh
 } from 'react-admin';
 import find from 'lodash/find';
 import jsonExport from 'jsonexport/dist';
 import { withStyles } from '@material-ui/core/styles';
+import Grid from '@material-ui/core/Grid';
 import Icon from '@material-ui/icons/Message';
 import { AppDateTimeFormat, DateTimeMomentFormat, isSuperAdmin } from '../App';
 import CycleField from './CycleField';
@@ -36,6 +38,7 @@ import CycleAndDutyCycleInput from './CycleAndDutyCycleInput';
 import CommandStatusField from './CommandStatusField';
 import { DateTimeFilterInput, DateTimeFormInput } from './DateTimePickerInput';
 import moment from 'moment';
+import useRecursiveTimeout from '../useRecursiveTimeout';
 
 export const CommandIcon = Icon;
 
@@ -59,6 +62,11 @@ const styles = theme => ({
         minWidth: theme.spacing(64)   
     }
 });
+
+const deviceTypes = [
+    { id: 'e', name: 'EISS™Cube' },
+    { id: 'l', name: 'LoRa™Cube' }
+];
   
 const cmds = [
     { id: 'ron', name: 'Relay ON' },
@@ -141,33 +149,41 @@ const exportCommandList = data => {
 };
 
 export const CommandList = withStyles(styles)(
-    ({ classes, permissions: p, ...props }) => (
-        <List  
-            title={<CommandTitle title='Commands' />}
-            filters={<CommandFilter permissions={p} />}
-            sort={{ field: 'created', order: 'DESC' }}
-            perPage={10}
-            exporter={exportCommandList}
-            {...props}
-        >
-            <Datagrid classes={{ rowEven: classes.rowEven }} >
-                <SelectField label='Command' source='command' choices={cmds} />
-                <ReferenceField label='for EISS™Cube' source='cubeID' reference='cubes' link='show'>
-                    <TextField source='name' />
-                </ReferenceField>
-                {isSuperAdmin(p)
-                ?   <ReferenceField source="group_id" label="Group" reference="groups" link={false} allowEmpty={true} >
-                        <TextField source="displayName" />
+    ({ classes, permissions: p, ...props }) => {
+        const refresh = useRefresh();
+        useRecursiveTimeout(() => refresh(), 10000);
+
+        return (
+            <List  
+                title={<CommandTitle title='Commands' />}
+                filters={<CommandFilter permissions={p} />}
+                sort={{ field: 'created', order: 'DESC' }}
+                perPage={10}
+                exporter={exportCommandList}
+                {...props}
+            >
+                <Datagrid classes={{ rowEven: classes.rowEven }} >
+                    <SelectField label='Command' source='command' choices={cmds} />
+                    <ReferenceField label='for EISS™Cube' source='cubeID' reference='cubes' link='show'>
+                        <TextField source='name' />
                     </ReferenceField>
-                : 
-                    null
-                }
-                <DateField label='Created' source='created' showTime options={AppDateTimeFormat} />
-                <CommandStatusField source='status' />
-                <ShowButton />
-            </Datagrid>
-        </List>
-    )
+                    <ReferenceField label='for LORA™Cube' source='cubeID' reference='lora' link='show'>
+                        <TextField source='name' />
+                    </ReferenceField>
+                    {isSuperAdmin(p)
+                    ?   <ReferenceField source="group_id" label="Group" reference="groups" link={false} allowEmpty={true} >
+                            <TextField source="displayName" />
+                        </ReferenceField>
+                    : 
+                        null
+                    }
+                    <DateField label='Created' source='created' showTime options={AppDateTimeFormat} />
+                    <CommandStatusField source='status' />
+                    <ShowButton />
+                </Datagrid>
+            </List>
+        );
+    }
 );
 
 export const CommandShow = withStyles(styles)(
@@ -185,6 +201,10 @@ export const CommandShow = withStyles(styles)(
                         <SelectField className={classes.inlineField} label='Command' source='command' choices={cmds} />
 
                         <ReferenceField className={classes.inlineField} label='for EISS™Cube' source='cubeID' reference='cubes' link='show'>
+                            <TextField source='name' />
+                        </ReferenceField>
+
+                        <ReferenceField className={classes.inlineField} label='for LORA™Cube' source='cubeID' reference='lora' link='show'>
                             <TextField source='name' />
                         </ReferenceField>
 
@@ -294,6 +314,10 @@ const checkCommandForInputCount = (v) => {
 const checkCommandForInputCycle = (v) => {
     return (v === 'icc') ? true : false ;
 };
+
+const checkCommandForDeviceType = (v) => {
+    return (v === 'e') ? true : false ;
+};
             
 export const CommandCreate = withStyles(styles)(
     ({ classes, ...props }) => (
@@ -303,11 +327,27 @@ export const CommandCreate = withStyles(styles)(
         >
             <SimpleForm validate={ validateCommandCreation } redirect='list'>
 
-                <ReferenceInput label='for EISS™Cube' source='cubeID' reference='cubes' validate={[ required() ]} >
-                    <AutocompleteInput optionText='name'/>
-                </ReferenceInput>
+                <SelectInput label='Device type' source='deviceType' choices={deviceTypes} validate={[ required() ]} />
 
-                <SelectInput label='Command' source='command' choices={cmds.filter(function(value, index, arr){ return value.id !== 'reboot';})} validate={[ required() ]} />
+                <FormDataConsumer>
+                {({ formData, ...rest }) => checkCommandForDeviceType(formData.deviceType) ?
+                    <ReferenceInput label='Device name' source='cubeID' reference='cubes' validate={[ required() ]} {...rest} >
+                        <AutocompleteInput optionText='name'/>
+                    </ReferenceInput>
+                    :
+                    <ReferenceInput label='Device name' source='cubeID' reference='lora' validate={[ required() ]} {...rest} >
+                        <AutocompleteInput optionText='name'/>
+                    </ReferenceInput>
+                 }
+                </FormDataConsumer>
+
+                <FormDataConsumer>
+                {({ formData, ...rest }) => checkCommandForDeviceType(formData.deviceType) ?
+                    <SelectInput label='Command' source='command' choices={cmds.filter(function(value, index, arr){ return value.id !== 'reboot';})} validate={[ required() ]} {...rest} />
+                    :
+                    <SelectInput label='Command' source='command' choices={cmds.filter(function(value, index, arr){ return value.id === 'ron' | value.id === 'roff';})} validate={[ required() ]} {...rest} />
+                 }
+                </FormDataConsumer>
 
                 <FormDataConsumer>
                 {({ formData, ...rest }) => checkCommandForRelayCycle(formData.command) &&
@@ -335,31 +375,42 @@ export const CommandCreate = withStyles(styles)(
                 }
                 </FormDataConsumer>
 
-                <DateTimeFormInput formClassName={classes.inline}
-                    label='Start Date, Time' 
-                    source='startTime' 
-                    options={{ 
-                        format: DateTimeMomentFormat, 
-                        ampm: false,
-                        margin: 'dense',
-						inputVariant: 'filled', 
-                        clearable: true,
-                        disablePast: true
-                    }} 
-                />
-
-                <DateTimeFormInput formClassName={classes.inline}
-                    label='End Date, Time' 
-                    source='endTime' 
-                    options={{ 
-                        format: DateTimeMomentFormat, 
-                        ampm: false,
-                        margin: 'dense',
-						inputVariant: 'filled', 
-                        clearable: true,
-                        disablePast: true
-                    }} 
-                />
+                <FormDataConsumer>
+                {({ formData, ...rest }) => checkCommandForDeviceType(formData.deviceType) &&
+                <Grid container spacing={2}>
+                    <Grid item>
+                    <DateTimeFormInput formClassName={classes.inline}
+                        label='Start Date, Time' 
+                        source='startTime' 
+                        options={{ 
+                            format: DateTimeMomentFormat, 
+                            ampm: false,
+                            margin: 'dense',
+                            inputVariant: 'filled', 
+                            clearable: true,
+                            disablePast: true
+                        }}
+                        {...rest} 
+                    />
+                    </Grid>
+                    <Grid item>
+                    <DateTimeFormInput formClassName={classes.inline}
+                        label='End Date, Time' 
+                        source='endTime' 
+                        options={{ 
+                            format: DateTimeMomentFormat, 
+                            ampm: false,
+                            margin: 'dense',
+                            inputVariant: 'filled', 
+                            clearable: true,
+                            disablePast: true
+                        }} 
+                        {...rest}
+                    />
+                    </Grid>
+                </Grid>
+                }
+                </FormDataConsumer>
 
             </SimpleForm>
         </Create>

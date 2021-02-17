@@ -123,7 +123,9 @@ const styles = theme => ({
 });
 
 const MIN = 0;
-let duration = 20, cycle = 5, MAX = 5;
+let MAX = 5;
+let duration = 20, cycle = 5;
+let lora_duration = 300, lora_cycle = 60;
 const normalise = value => (value - MIN) * 100 / (MAX - MIN);
 
 class TestCube extends Component {
@@ -141,11 +143,16 @@ class TestCube extends Component {
     }
 
     startTest = () => {
+        const { cubeID, deviceType } = this.props;
+        const dur = deviceType === "c" ? duration : lora_duration;
+        const cyc = deviceType === "c" ? cycle : lora_cycle;
+
         dataProvider(CREATE, 'test', {
-            data: { cubeID: this.props.cubeID, duration: duration, cycle: cycle }
+            data: { cubeID, deviceType, duration: dur, cycle: cyc }
         });
 
-        this.timer = setInterval(this.progress, 5000);
+        const updateInterval = deviceType === "c" ? 5000 : 60000; // 5 sec and 1 min
+        this.timer = setInterval(this.progress, updateInterval);
 
         this.setState({
             relaySeries: null,
@@ -158,6 +165,7 @@ class TestCube extends Component {
     };
 
     progress = () => {
+        const { cubeID, deviceType } = this.props;
         const { completed, finished } = this.state;
 
         if (finished) {
@@ -171,12 +179,15 @@ class TestCube extends Component {
         }
 
         dataProvider(GET_ONE, 'test', {
-            id: this.props.cubeID
+            id: cubeID
         })
         .then(response => response.data)
         .then(data => {
             if (data) {
                 let count = data.length;
+                const dur = deviceType === "c" ? duration : lora_duration;
+                const cyc = deviceType === "c" ? cycle : lora_cycle;
+
                 if (count === 0) {
                     const diff = Math.random() * 2;
                     const diff2 = Math.random() * 2;
@@ -213,7 +224,7 @@ class TestCube extends Component {
                         inputSeries,
                         completed: count,
                         buffer: (count % 2) === 0 ? count + 1 : count,
-                        finished: count === (duration / 5) + 1
+                        finished: count === (dur / cyc) + 1
                     });
                 }
             }
@@ -246,7 +257,7 @@ class TestCube extends Component {
     };
 
     render() {
-        const { classes } = this.props;
+        const { classes, deviceType } = this.props;
         const { relaySeries, inputSeries, completed, buffer, started, finished, expanded } = this.state;
 
         const beginTime = moment();
@@ -339,19 +350,36 @@ class TestCube extends Component {
                 <ExpansionPanel className={classes.notePanel} expanded={expanded === 'test_note'} onChange={this.handleNote('test_note')}>
                     <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
                         <i style={{color: red[800], marginRight: '8px'}}>Note!</i>
-                        Testing process will take from 2 to 5 minutes (depends on network speed). Press [START...] to run.
+                        Testing process will take up to 5 minutes (depends on network speed).<br/>Press [START...] to run.
                     </ExpansionPanelSummary>
-                    <ExpansionPanelDetails className={classes.panelDetails}>
-                        <div className={classes.detailsText}>
-                            RELAY will cycle for <SelectDuration onChange={this.handleDuration} /> with <SelectCycle onChange={this.handleCycle}/> <b style={{color: green[400]}}>ON</b>/<b style={{color: red[400]}}>OFF</b> intervals.
-                        <Divider className={classes.divider} />
-                            Connect <b style={{color: blue[400]}}>INPUT (#5)</b> to <b style={{color: blue[400]}}>NC - Normal Close (#8)</b> RELAY's contact
-                            <br/>
-                            Connect <b style={{color: red[400]}}>+12V (#3)</b> to <b style={{color: red[400]}}>COM - Common (#7)</b> RELAY's contact.
-                        <Divider className={classes.divider} />
-                            Input will reflect RELAY's switches and show <b style={{color: green[400]}}>HIGH</b>/<b style={{color: red[400]}}>LOW</b> level. 
-                        </div>
-                    </ExpansionPanelDetails>
+                    {deviceType === "c" &&
+                        <ExpansionPanelDetails className={classes.panelDetails}>
+                            <div className={classes.detailsText}>
+                                RELAY will cycle for <SelectDuration onChange={this.handleDuration} /> with <SelectCycle onChange={this.handleCycle}/> <b style={{color: green[400]}}>ON</b>/<b style={{color: red[400]}}>OFF</b> intervals.
+                            <Divider className={classes.divider} />
+                                Connect <b style={{color: blue[400]}}>INPUT (#5)</b> to <b style={{color: blue[400]}}>NC - Normal Close (#8)</b> RELAY's contact
+                                <br/>
+                                Connect <b style={{color: red[400]}}>+12V (#3)</b> to <b style={{color: red[400]}}>COM - Common (#7)</b> RELAY's contact.
+                            <Divider className={classes.divider} />
+                                Input will reflect RELAY's switches and show <b style={{color: green[400]}}>HIGH</b>/<b style={{color: red[400]}}>LOW</b> level. 
+                            </div>
+                        </ExpansionPanelDetails>
+                    }
+                    {deviceType === "l" &&
+                        <ExpansionPanelDetails className={classes.panelDetails}>
+                            <div className={classes.detailsText}>
+                                RELAY will cycle for 5 minutes with 1 minute <b style={{color: green[400]}}>ON</b>/<b style={{color: red[400]}}>OFF</b> intervals.
+                            <Divider className={classes.divider} />
+                                Connect <b style={{color: grey[900]}}>GND</b> to <b style={{color: blue[400]}}>DI-</b>.
+                                <br/>
+                                Connect <b style={{color: red[400]}}>VIN</b> to <b style={{color: green[400]}}>RO1-1</b>.
+                                <br/>
+                                Connect <b style={{color: green[400]}}>RO1-2</b> to <b style={{color: blue[400]}}>DI+</b>.
+                            <Divider className={classes.divider} />
+                                Input will reflect RELAY's switches and show <b style={{color: green[400]}}>HIGH</b>/<b style={{color: red[400]}}>LOW</b> level. 
+                            </div>
+                        </ExpansionPanelDetails>
+                    }
                 </ExpansionPanel>
 
                 <span className={classes.title}>
