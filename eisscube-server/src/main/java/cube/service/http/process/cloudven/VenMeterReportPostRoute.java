@@ -6,9 +6,9 @@ import dev.morphia.query.Query;
 import cube.db.Cube;
 import cube.input.Conversion;
 import cube.json.messages.cloudven.VenReport;
-import cube.json.messages.report.Power;
-import cube.json.messages.report.ReportRequest;
-import cube.json.messages.report.ReportResponse;
+import cube.service.http.process.meters.Meter;
+import cube.service.http.process.meters.MeterRequest;
+import cube.service.http.process.meters.MeterResponse;
 import dev.morphia.query.experimental.filters.Filters;
 import eiss.api.Api;
 import cube.models.CubeReport;
@@ -68,7 +68,7 @@ public class VenMeterReportPostRoute implements Handler<RoutingContext> {
 
         final String ven = req.getVen();
         final String resource = req.getResource();
-        final ReportResponse report_res = new ReportResponse();
+        final MeterResponse report_res = new MeterResponse();
 
         vertx.executeBlocking(op -> {
             if (ven != null && resource != null) {
@@ -85,7 +85,7 @@ public class VenMeterReportPostRoute implements Handler<RoutingContext> {
                     CubeSetup setup = datastore.find(CubeSetup.class).filter(Filters.eq("cubeID", cube.getId())).first();
                     CubeReport report = datastore.find(CubeReport.class).filter(Filters.eq("cubeID", cube.getId())).first();
                     if (report != null) {
-                        ReportRequest report_req = new ReportRequest();
+                        MeterRequest report_req = new MeterRequest();
 
                         report_req.setUtcOffset(0L);
                         report_req.setCubeID(cube.getId().toString());
@@ -103,8 +103,8 @@ public class VenMeterReportPostRoute implements Handler<RoutingContext> {
 
                         conversion.process(report_req, report_res); // whole day
                         // crop for specified time period
-                        List<Power> usage = report_res.getUsage().stream().filter(power -> {
-                            Instant t = power.getT();
+                        List<Meter> usage = report_res.getUsage().stream().filter(meter -> {
+                            Instant t = meter.getT();
                             if (t.isBefore(req.getFrom())) {
                                 return false;
                             } else if (t.isAfter(req.getTo())) {

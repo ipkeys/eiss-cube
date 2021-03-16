@@ -135,6 +135,8 @@ class PowerChart extends Component {
 			aggregation: '1h',
 			daterange: 'd',
 			factor: 1000,
+			unit: 'kWh',
+			meter: 'e',
 			load: 1,
 			watch: 'r'
 		};
@@ -142,7 +144,7 @@ class PowerChart extends Component {
 
 	getData = () => {
 		const { record } = this.props;
-		const { from, to, utcOffset, aggregation, factor, load, watch } = this.state;
+		const { from, to, utcOffset, aggregation, load, watch, factor, unit, meter } = this.state;
 		
 		dataProvider(USAGE, 'meters', {
 			data: { 
@@ -152,9 +154,11 @@ class PowerChart extends Component {
 				to,
 				utcOffset,
 				aggregation,
-				factor,
 				load,
-				watch
+				watch,
+				factor,
+				unit,
+				meter
 			}
 		})
 		.then(response => response.data.usage)
@@ -225,13 +229,22 @@ class PowerChart extends Component {
 			const data = results[0];
 			const input = data && data.input;
 
-			const factor = input && input.signal === 'p' && input.factor;
 			const watch = input && input.signal === 'c' && input.watch;
 			const load = input && input.signal === 'c' && input.load;
 
-			if (record.type === 'p' && factor) {
+			const factor = input && input.signal === 'p' && input.factor;
+			const meter = input && input.signal === 'p' && input.meter;
+			let unit = input && input.signal === 'p' && input.unit;
+
+			if (meter === 'e') { // remove lah 'h' from Wh, kWh or MWh
+				unit = unit.replace("h", "");
+			}
+
+			if (record.type === 'p' && factor && unit && meter) {
 				this.setState({
-					factor
+					factor,
+					unit,
+					meter
 				});
 			}
 
@@ -395,6 +408,7 @@ class PowerChart extends Component {
 	render() {
 		const { classes } = this.props;
 		const { 
+			unit,
 			ready,
 			from,
 			future,
@@ -421,16 +435,17 @@ class PowerChart extends Component {
 				`${moment(selection.event.index().begin()).format('MM/DD/YYYY, HH:mm')}`;
 
 			selectedValue = selection &&
-				`${selection.event.value(selection.column)} kW`;
+				`${selection.event.value(selection.column)} ${unit}`;
 
 			let infoValues = [];
 
 			if (highlight) {
-				const energyText = `${highlight.event.get(highlight.column)} kW`;
-				infoValues = [{ label: 'Power', value: energyText }];
+				const energyText = `${highlight.event.get(highlight.column)} ${unit}`;
+				infoValues = [{ label: 'Value', value: energyText }];
 			}
 
 			const seriesCropped = series.crop(timerange);
+			const y_axis_label = `${unit}`;
 
 			renderCharts =
 			<div className={classes.chart}>
@@ -450,7 +465,8 @@ class PowerChart extends Component {
 						<ChartRow height='400'>
 							<YAxis
 								id='axis'
-								label='Power (kW)'
+								label={y_axis_label}
+								labelOffset={-10}
 								min={0}
 								max={series.max() + series.max() * 0.1}
 								width={60}
@@ -588,7 +604,7 @@ class PowerChart extends Component {
 						{selectedDate}&nbsp;
 					</Typography>
 					<Typography variant="body2" style={{ color: grey[500] }}>
-						Power:&nbsp;
+						Value:&nbsp;
 					</Typography>
 					<Typography variant="body2" className={classes.info.power} style={{ color: red[500] }}>
 						{selectedValue}

@@ -12,6 +12,6 @@ import java.time.Instant;
 public class AggregatedMeterData {
 
     @Id Instant id;
-    @Property Double power;
+    @Property Double value;
 
 }

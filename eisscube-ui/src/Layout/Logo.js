@@ -4,7 +4,7 @@ import {createStyles, withStyles} from '@material-ui/core/styles';
 
 const styles = (theme) => createStyles({
     logo: {
-        background: 'url(eiss-logo-sm.png)',
+        background: 'url(logo.png)',
         backgroundRepeat: 'no-repeat',
         minHeight: theme.spacing(8),
         marginTop: theme.spacing(3),

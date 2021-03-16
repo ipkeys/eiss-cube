@@ -5,11 +5,13 @@ import dev.morphia.annotations.Embedded;
 import dev.morphia.annotations.Property;
 
 @Data
-@Embedded
+@Embedded(useDiscriminator = false)
 public class CubeInput {
 
     @Property Boolean connected;
     @Property String signal;
+    @Property String meter;
+    @Property String unit;
     @Property Float factor;
     @Property String watch;
     @Property Float load;

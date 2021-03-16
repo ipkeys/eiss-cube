@@ -1,4 +1,4 @@
-package cube.json.messages.report;
+package cube.service.http.process.meters;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -6,7 +6,7 @@ import lombok.NonNull;
 import java.time.Instant;
 
 @Data(staticConstructor="of")
-public class Power {
+public class Meter {
 
     @NonNull private Instant t;
     @NonNull private Double v;

@@ -4,7 +4,7 @@ import lombok.Data;
 import dev.morphia.annotations.*;
 
 @Data
-@Embedded
+@Embedded(useDiscriminator = false)
 public class CubeRelay {
 
     @Property Boolean connected;

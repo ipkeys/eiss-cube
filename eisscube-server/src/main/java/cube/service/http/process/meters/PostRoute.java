@@ -2,8 +2,6 @@ package cube.service.http.process.meters;
 
 import com.google.gson.Gson;
 import cube.input.Conversion;
-import cube.json.messages.report.ReportRequest;
-import cube.json.messages.report.ReportResponse;
 import eiss.api.Api;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -43,12 +41,11 @@ public class PostRoute implements Handler<RoutingContext> {
         if (jsonBody != null && !jsonBody.isEmpty()) {
             vertx.executeBlocking(op -> {
                 try {
-                    ReportRequest req = gson.fromJson(jsonBody, ReportRequest.class);
+                    MeterRequest req = gson.fromJson(jsonBody, MeterRequest.class);
                     if (req == null) {
                         op.fail("Bad request");
                     } else {
-                        log.debug("Request: {}", req);
-                        ReportResponse res = new ReportResponse();
+                        MeterResponse res = new MeterResponse();
 
                         conversion.process(req, res);
 
