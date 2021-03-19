@@ -327,15 +327,15 @@ export const CommandCreate = withStyles(styles)(
         >
             <SimpleForm validate={ validateCommandCreation } redirect='list'>
 
-                <SelectInput label='Device type' source='deviceType' choices={deviceTypes} validate={[ required() ]} />
+                <SelectInput label='Device type' source='deviceType' choices={deviceTypes} validate={required()} />
 
                 <FormDataConsumer>
                 {({ formData, ...rest }) => checkCommandForDeviceType(formData.deviceType) ?
-                    <ReferenceInput label='Device name' source='cubeID' reference='cubes' validate={[ required() ]} {...rest} >
+                    <ReferenceInput label='Device name' source='cubeID' reference='cubes' validate={required()} {...rest} >
                         <AutocompleteInput optionText='name'/>
                     </ReferenceInput>
                     :
-                    <ReferenceInput label='Device name' source='cubeID' reference='lora' validate={[ required() ]} {...rest} >
+                    <ReferenceInput label='Device name' source='cubeID' reference='lora' validate={required()} {...rest} >
                         <AutocompleteInput optionText='name'/>
                     </ReferenceInput>
                  }
@@ -343,9 +343,9 @@ export const CommandCreate = withStyles(styles)(
 
                 <FormDataConsumer>
                 {({ formData, ...rest }) => checkCommandForDeviceType(formData.deviceType) ?
-                    <SelectInput label='Command' source='command' choices={cmds.filter(function(value, index, arr){ return value.id !== 'reboot';})} validate={[ required() ]} {...rest} />
+                    <SelectInput label='Command' source='command' choices={cmds.filter(function(value, index, arr){ return value.id !== 'reboot';})} validate={required()} {...rest} />
                     :
-                    <SelectInput label='Command' source='command' choices={cmds.filter(function(value, index, arr){ return value.id === 'ron' | value.id === 'roff';})} validate={[ required() ]} {...rest} />
+                    <SelectInput label='Command' source='command' choices={cmds.filter(function(value, index, arr){ return value.id === 'ron' | value.id === 'roff';})} validate={required()} {...rest} />
                  }
                 </FormDataConsumer>
 
@@ -363,7 +363,7 @@ export const CommandCreate = withStyles(styles)(
                 <FormDataConsumer>
                 {({ formData, ...rest }) => checkCommandForInputCount(formData.command) &&
                     <Fragment>
-                        <SelectInput style={{ marginRight: 16 }} formClassName={classes.inline} label='Transition' source='transition' choices={edges} {...rest} validate={[ required() ]} />
+                        <SelectInput style={{ marginRight: 16 }} formClassName={classes.inline} label='Transition' source='transition' choices={edges} {...rest} validate={required()} />
                         <NumberInput formClassName={classes.inline} label='Cycle (sec)' source='completeCycle' step={'1'} {...rest} />
                     </Fragment>
                 }
@@ -371,7 +371,7 @@ export const CommandCreate = withStyles(styles)(
 
                 <FormDataConsumer>
                 {({ formData, ...rest }) => checkCommandForInputCycle(formData.command) &&
-                    <SelectInput label='Transition' source='transition' choices={edges} {...rest} validate={[ required() ]} />
+                    <SelectInput label='Transition' source='transition' choices={edges} {...rest} validate={required()} />
                 }
                 </FormDataConsumer>
 

@@ -51,9 +51,7 @@ const InputSettings = ({ formData }) => {
         <Fragment>
             <SelectInput label='Signal type' source="input.signal" choices={signals} fullWidth />
 
-            {formData.input.signal && formData.input.signal === "p" &&
-                <SelectInput label='Reading of' source="input.meter" choices={meters} fullWidth />
-            }
+            <SelectInput label='Reading of' source="input.meter" choices={meters} fullWidth />
 
             {formData.input.meter && formData.input.meter === "e" &&
                 <SelectInput label='Unit' source="input.unit" choices={electric_units} fullWidth />
@@ -71,7 +69,7 @@ const InputSettings = ({ formData }) => {
                 <SelectInput label='Watch' source="input.watch" choices={watch} fullWidth />
             }
             {formData.input.signal && formData.input.signal === "c" &&
-                <NumberInput label='Load value (kW)' source='input.load' fullWidth />
+                <NumberInput label='Load value' source='input.load' fullWidth />
             }
 
             <TextInput label='Label' source='input.label' fullWidth />

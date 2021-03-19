@@ -233,8 +233,9 @@ class PowerChart extends Component {
 			const load = input && input.signal === 'c' && input.load;
 
 			const factor = input && input.signal === 'p' && input.factor;
-			const meter = input && input.signal === 'p' && input.meter;
-			let unit = input && input.signal === 'p' && input.unit;
+
+			const meter = input && input.meter;
+			let unit = input && input.unit;
 
 			if (meter === 'e') { // remove lah 'h' from Wh, kWh or MWh
 				unit = unit.replace("h", "");
@@ -242,15 +243,17 @@ class PowerChart extends Component {
 
 			if (record.type === 'p' && factor && unit && meter) {
 				this.setState({
+					meter,
 					factor,
-					unit,
-					meter
+					unit
 				});
 			}
 
 			if (record.type === 'c' && watch && load) {
 				this.setState({
+					meter,
 					watch,
+					unit,
 					load
 				});
 			}

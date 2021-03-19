@@ -154,12 +154,12 @@ export const EissCubesShow = withStyles(styles)(
     )
 );
   
-const validateICCID = [maxLength(20)];
-const validateName = [maxLength(50)];
+const validateICCID = maxLength(20);
+const validateName = maxLength(50);
 
 export const EissCubesEdit = withStyles(styles)(
     ({ classes, permissions: p, ...props }) => (
-        <Edit  
+        <Edit
             title={<EissCubesTitle title='Edit EISS™Cube -' />}
             {...props}
         >

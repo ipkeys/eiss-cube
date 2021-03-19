@@ -80,7 +80,7 @@ const customRoutes = [
 ];
   
 const App = () => (
-	<Admin
+	<Admin disableTelemetry
         theme={ theme }
         i18nProvider={ i18nProvider }
         authProvider={ authProvider }
