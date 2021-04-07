@@ -22,7 +22,7 @@ const CommandStatusField = ({ record = {} }) => {
 		}
 
 		return (
-			<Typography variant="body2">
+			<Typography variant='body2'>
 				<span style={{ color: `${color}` }}><b>{record.status}</b></span>
 			</Typography>
 		);

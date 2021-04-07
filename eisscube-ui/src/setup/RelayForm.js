@@ -19,7 +19,7 @@ const RelaySettings = ({ formData }) => {
     return (
         formData && formData.relay && formData.relay.connected ?
         <Fragment>
-            <SelectInput label='To contacts' source="relay.contacts" choices={[
+            <SelectInput label='To contacts' source='relay.contacts' choices={[
                 { id: 'NO', name: 'Normal Open' },
                 { id: 'NC', name: 'Normal Close' }
             ]} fullWidth />

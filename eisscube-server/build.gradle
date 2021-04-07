@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'eiss-cube'
-version '3.3.9'
+version '3.3.10'
 
 application {
     mainClass = 'cube.app.Launcher'
@@ -28,10 +28,10 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.18'
     annotationProcessor 'org.projectlombok:lombok:1.18.18'
 
-    implementation 'io.vertx:vertx-core:4.0.2'
-    implementation 'io.vertx:vertx-web:4.0.2'
-    implementation 'io.vertx:vertx-web-client:4.0.2'
-    implementation 'io.vertx:vertx-auth-common:4.0.2'
+    implementation 'io.vertx:vertx-core:4.0.3'
+    implementation 'io.vertx:vertx-web:4.0.3'
+    implementation 'io.vertx:vertx-web-client:4.0.3'
+    implementation 'io.vertx:vertx-auth-common:4.0.3'
     implementation 'io.netty:netty-transport-native-epoll:4.1.52.Final:linux-x86_64'
     implementation 'io.netty:netty-transport-native-kqueue:4.1.52.Final:osx-x86_64'
 

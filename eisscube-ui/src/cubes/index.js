@@ -86,8 +86,8 @@ const EissCubesListFilter = props => (
         ]} />
         {isSuperAdmin(props.permissions) ? 
             <ReferenceInput
-                source="group_id"
-                reference="groups"
+                source='group_id'
+                reference='groups'
                 sort={{ field: 'displayName', order: 'ASC' }}
                 allowEmpty
             >
@@ -115,7 +115,7 @@ export const EissCubesList = withStyles(styles)(
                 <Responsive
                     small={
                         <SimpleList
-                            linkType="show"
+                            linkType='show'
                             primaryText={record => record.name}
                             secondaryText={record => record.online === true ? <span style={{ color: green[500] }}>ONLINE</span> : <span style={{ color: red[500] }}>OFFLINE</span>}
                         />
@@ -124,8 +124,8 @@ export const EissCubesList = withStyles(styles)(
                         <Datagrid classes={{ rowEven: classes.rowEven }} >
                             <TextField source='name' label='Name' />
                             {isSuperAdmin(p) ?
-                                <ReferenceField source="group_id" label="Group" reference="groups" link={false} allowEmpty={true} >
-                                    <TextField source="displayName" />
+                                <ReferenceField source='group_id' label='Group' reference='groups' link={false} allowEmpty={true} >
+                                    <TextField source='displayName' />
                                 </ReferenceField>
                             : 
                                 null
