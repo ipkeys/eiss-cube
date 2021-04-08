@@ -1,26 +1,27 @@
 import axios from 'axios';
-import { cfgObj, method } from './definitions';
-import LoginService from './loginService';
+import TokenManager from './tokenManager';
+
+export type method = "get" | "post" | "put" | "delete";
+
+export type cfgObj = {
+    headers?: Record<string, string>;
+    body: any;
+};
 
 //----------------------------------------------------------------------------
 // HTTP methods which insert Authorization header with JWT.
 // All errors are processed and checked for authorization issues.
 //----------------------------------------------------------------------------
 export default class HttpService {
-    loginService: LoginService;
-
-    constructor(loginService: LoginService) {
-        this.loginService = loginService;
-    }
+    constructor(private tokenManager: TokenManager) {}
 
     private request = (type: method, url: string, cfg?: cfgObj) => {
-        return this.loginService.getToken()
+        return this.tokenManager.getToken()
         .then(
             (token: any) => {
                 if (cfg === undefined) {
                     cfg = {} as cfgObj;
                 }
-                
                 if (!cfg.headers) {
                     cfg.headers = { Accept: 'application/json' };
                 }
@@ -41,7 +42,7 @@ export default class HttpService {
                     throw (new Error("eiss.no_response"));
                 }
                 else {
-                    this.loginService.logout();
+                    throw new Error("eiss.auth.expired");
                 }
             }
         );
@@ -55,4 +56,3 @@ export default class HttpService {
 
     public delete = (url: string, opts?: cfgObj) => this.request("delete", url, opts);
 }
-

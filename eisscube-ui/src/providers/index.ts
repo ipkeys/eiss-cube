@@ -19,6 +19,6 @@ const tokenManager = new TokenManager({
 
 export const loginService = new LoginService(tokenManager);
 export const authProvider = new AuthProvider(loginService);
-export const httpService = new HttpService(loginService);
-export const dataProvider = addUploadFeature(new DataProvider(httpService).query);
+export const httpService = new HttpService(tokenManager);
+export const dataProvider = addUploadFeature(new DataProvider(httpService, loginService.logout).query);
 export { i18nProvider } from './i18nProvider';

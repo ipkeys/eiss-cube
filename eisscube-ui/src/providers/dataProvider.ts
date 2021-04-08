@@ -1,17 +1,21 @@
-import { ServerResponse } from 'http';
 import { stringify } from 'query-string';
-// eslint-disable-next-line
-import { cfgObj, method } from './definitions';
-import HttpService from './httpService';
-import { apiUrl } from './index';
-import processError from './processError';
+import { 
+    HttpError, fetchUtils, GET_LIST, GET_ONE, GET_MANY, GET_MANY_REFERENCE, CREATE, UPDATE, UPDATE_MANY, DELETE, DELETE_MANY
+} from "react-admin";
 
-const {
-    fetchUtils, GET_LIST, GET_ONE, GET_MANY, GET_MANY_REFERENCE, CREATE, UPDATE, UPDATE_MANY, DELETE, DELETE_MANY,
-} = require('react-admin');
+// eslint-disable-next-line
+import HttpService, { cfgObj, method } from "./httpService";
+import { apiUrl } from './index';
 
 export const VALIDATE = "VALIDATE";
+export const COUNT = "COUNT";
 export const USAGE = "USAGE";
+
+type convertReturnType = {
+    url: string;
+    options: cfgObj;
+    method: method;
+}
 
 /**
  * Maps react-admin queries to a json-server powered REST API
@@ -27,11 +31,7 @@ export const USAGE = "USAGE";
  */
 
 export default class DataProvider {
-    http: HttpService;
-
-    constructor(httpService : HttpService) {
-        this.http = httpService;
-    }
+    constructor(private http: HttpService, private logout: () => void) {}
 
     /**
      * @param {String} type One of the constants appearing at the top if this file, e.g. 'UPDATE'
@@ -39,9 +39,9 @@ export default class DataProvider {
      * @param {Object} params The data request params, depending on the type
      * @returns {Object} { method, url, options } The HTTP request parameters
      */
-    private convertDataRequestToHTTP = (type: string, resource: string, params: any): any => {
+    private convertDataRequestToHTTP = (type: string, resource: string, params: any): convertReturnType => {
         let url = '';
-        let options: cfgObj = {} as cfgObj;
+        const options: cfgObj = {} as cfgObj;
         let method: method = "get";
 
         switch (type) {
@@ -52,6 +52,7 @@ export default class DataProvider {
                 }
                 const { page, perPage } = params.pagination;
                 const { field, order } = params.sort;
+
                 const query = {
                     ...fetchUtils.flattenObject(params.filter),
                     _sort: field,
@@ -59,6 +60,7 @@ export default class DataProvider {
                     _start: (page - 1) * perPage,
                     _end: page * perPage,
                 };
+
                 url = `${apiUrl}/${resource}?${stringify(query)}`;
                 break;
             }
@@ -107,15 +109,23 @@ export default class DataProvider {
                 method = 'post';
                 break;
             }
-            case USAGE:
+            case COUNT: {
+                const query = {
+                    ...fetchUtils.flattenObject(params.filter),
+                };
+                url = `${apiUrl}/${resource}-count?${stringify(query)}`;
+                break;
+            }
+            case USAGE: {
                 url = `${apiUrl}/${resource}`;
                 method = 'post';
                 options.body = params.data;
                 break;
+            }
             default:
                 throw new Error(`Unsupported fetch action type ${type}`);
         }
-        return {method, url, options };
+        return { method, url, options };
     };
 
     /**
@@ -128,7 +138,6 @@ export default class DataProvider {
     private convertHTTPResponse = (response: any, type: string, resource: string, params: any): any => {
         const { headers, data } = response;
 
-        // console.log(resource, response, params);
         switch (type) {
             case GET_MANY:
                 return { data: data };
@@ -190,27 +199,62 @@ export default class DataProvider {
             }));
         }
 
-        const { method, url, options } = this.convertDataRequestToHTTP(type, resource, params) as any;
-        // @ts-ignore
-        return this.http[method](url, options)
-            .then(
-                (response: ServerResponse) => {
-                    return this.convertHTTPResponse(response, type, resource, params)
-                },
-                (error: any) => {
-                    // Pass validation error handling upstream
-                    if (type === VALIDATE) {
-                        throw new Error(error.response);
-                    }  
-                    
-                    // Axios error
-                    if (error.message) {
-                        console.log(error.message);
-                        throw new Error("axios.error");
-                    }
-
-                    return processError(error);
+        const { method, url, options } = this.convertDataRequestToHTTP(type, resource, params);
+        
+        return new Promise(async (resolve, reject) => {
+            return this.http[method](url, options)
+            .then((value) => {
+                return resolve(this.convertHTTPResponse(value, type, resource, params));
+            })
+            .catch((error) => {
+                // Pass validation error handling upstream
+                if (type === VALIDATE) {
+                    return reject(new Error(error.response));
                 }
-            );
+                
+                const message = processError(error);
+                if (message === "eiss.auth.expired") {
+                    this.logout();
+                    return reject(new HttpError("", 401));
+                } else {
+                    return reject(new HttpError(message, error.response?.status ?? 500));
+                }
+            });
+        });
+        
     };
+};
+
+function processError(error: any, prefix = "eiss") {
+    // If no response at all
+    let message = `${prefix}.no_response`;
+
+    if (error.message === "eiss.no_response") {}
+    else if (error.message === "eiss.auth.expired" || error.message?.toLowerCase() === "token expired") {
+        message = "eiss.auth.expired";
+    }
+    else if (error.message === "Network Error") {
+        message = "axios.error";
+    }
+    else if (error.response) {
+        if (error.response.status === 404) {
+            message = "ra.page.not_found";
+        } 
+        else if (error.response.status === 500 || error.response.status === 405) {
+            message = `${prefix}.server_error`;
+        }
+        else if (error.response.data && typeof error.response.data === "string") {
+            // Server should return a translatable key for bad requests
+            message = `${prefix}.${error.response.data.toLowerCase()}`;
+        } else if (error.response.statusText) {
+            // Server status text contains non-translatable error message
+            message = error.response.statusText;
+        }
+    }
+    // If no `response` property, error message is assumed to be translatable
+    else if (error.message) {
+        message = `${prefix}.${error.message.toLowerCase().replace(" ", "_")}`;
+    }
+
+    return message;
 };
