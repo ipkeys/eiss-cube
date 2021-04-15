@@ -26,7 +26,7 @@ public class CubeCommand {
     @Property ObjectId cubeID; // reference to EISScube.id
     @Property String cubeName;
 
-    @Indexed(options = @IndexOptions(name="CommanGroupIndex"))
+    @Indexed(options = @IndexOptions(name="CommandGroupIndex"))
     @Property String group;
 
     @Indexed(options = @IndexOptions(name="CommandGroupIdIndex"))

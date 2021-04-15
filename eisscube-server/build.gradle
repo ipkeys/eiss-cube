@@ -4,20 +4,19 @@ plugins {
 }
 
 group 'eiss-cube'
-version '3.3.10'
+version '3.3.11'
 
 application {
-    mainClass = 'cube.app.Launcher'
+    mainClass.set('cube.app.Launcher')
 }
 
 repositories {
     mavenCentral()
-    jcenter()
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_15
-    targetCompatibility = JavaVersion.VERSION_15
+    sourceCompatibility = JavaVersion.VERSION_16
+    targetCompatibility = JavaVersion.VERSION_16
 }
 
 compileJava {
@@ -25,15 +24,15 @@ compileJava {
 }
 
 dependencies {
-    compileOnly 'org.projectlombok:lombok:1.18.18'
-    annotationProcessor 'org.projectlombok:lombok:1.18.18'
+    compileOnly 'org.projectlombok:lombok:1.18.20'
+    annotationProcessor 'org.projectlombok:lombok:1.18.20'
 
     implementation 'io.vertx:vertx-core:4.0.3'
     implementation 'io.vertx:vertx-web:4.0.3'
     implementation 'io.vertx:vertx-web-client:4.0.3'
     implementation 'io.vertx:vertx-auth-common:4.0.3'
-    implementation 'io.netty:netty-transport-native-epoll:4.1.52.Final:linux-x86_64'
-    implementation 'io.netty:netty-transport-native-kqueue:4.1.52.Final:osx-x86_64'
+    implementation 'io.netty:netty-transport-native-epoll:4.1.60.Final:linux-x86_64'
+    implementation 'io.netty:netty-transport-native-kqueue:4.1.60.Final:osx-x86_64'
 
     implementation 'com.google.inject:guice:5.0.1'
     implementation 'com.google.code.gson:gson:2.8.6'

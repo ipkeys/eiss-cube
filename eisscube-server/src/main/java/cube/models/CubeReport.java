@@ -13,6 +13,12 @@ public class CubeReport {
     @Indexed(options = @IndexOptions(name = "CubeIDIndex"))
     @Property ObjectId cubeID; // reference to EISScube.id
 
+    @Indexed(options = @IndexOptions(name="ReportGroupIndex"))
+    @Property String group;
+
+    @Indexed(options = @IndexOptions(name="reportGroupIdIndex"))
+    @Property String group_id;
+
     String cubeName;
     @Property String type;
 

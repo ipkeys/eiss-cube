@@ -12,6 +12,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.Session;
 import lombok.extern.slf4j.Slf4j;
 import dev.morphia.Datastore;
 import dev.morphia.query.FindOptions;
@@ -51,12 +52,24 @@ public class ListRoute implements Handler<RoutingContext> {
     public void handle(RoutingContext context) {
         HttpServerRequest request = context.request();
         HttpServerResponse response = context.response();
+        Session session = context.session();
 
         Query<CubeReport> q = datastore.find(CubeReport.class);
         FindOptions o = new FindOptions();
         o.collation(Collation.builder().locale("en").collationStrength(SECONDARY).build());
 
         // filters
+        if (session.get("role").equals("securityadmin")) {
+            // filters
+            String group_id = request.getParam("group_id");
+            if (group_id != null) {
+                q.filter(Filters.eq("group_id", group_id));
+            }
+            // ~filters
+        } else {
+            q.filter(Filters.eq("group", session.get("group")));
+        }
+
         String cubeID = request.getParam("cubeID");
         if (cubeID != null && !cubeID.isEmpty()) {
             if (ObjectId.isValid(cubeID)) {

@@ -83,10 +83,10 @@ public class ListRoute implements Handler<RoutingContext> {
 
         Query<EISScube> cubes = datastore.find(EISScube.class);
 
-        // filter
+        // filter by "customerID" property
         String customerID = req.getCustomerID();
         if (customerID != null && !customerID.isEmpty()) {
-            cubes.filter(Filters.regex("name").pattern("^" + customerID).caseInsensitive());
+            cubes.filter(Filters.eq("customerID", customerID));
         }
 
         // projections
