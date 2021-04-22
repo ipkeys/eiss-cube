@@ -42,7 +42,7 @@ export default class DataProvider {
     private convertDataRequestToHTTP = (type: string, resource: string, params: any): convertReturnType => {
         let url = '';
         const options: cfgObj = {} as cfgObj;
-        let method: method = "get";
+        let method: method = 'get';
 
         switch (type) {
             case GET_LIST: {

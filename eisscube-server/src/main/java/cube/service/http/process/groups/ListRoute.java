@@ -36,7 +36,7 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 @Slf4j
 @Api
-@Path("/groups")
+@Path("/grps")
 public class ListRoute implements Handler<RoutingContext> {
 
     private final Vertx vertx;

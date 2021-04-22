@@ -10,6 +10,7 @@ import {
     ReferenceField,
     ReferenceInput,
     SelectInput,
+    AutocompleteInput,
     ShowButton,
     Show,
     DateField,
@@ -85,13 +86,8 @@ const EissCubesListFilter = props => (
             { id: false, name: 'OFFLINE' }
         ]} />
         {isSuperAdmin(props.permissions) ? 
-            <ReferenceInput
-                source='group_id'
-                reference='groups'
-                sort={{ field: 'displayName', order: 'ASC' }}
-                allowEmpty
-            >
-                <SelectInput optionText='displayName' />
+            <ReferenceInput source="group_id" reference="grps" sort={{ field: 'displayName', order: 'ASC' }} allowEmpty >
+                <AutocompleteInput optionText='displayName' />
             </ReferenceInput>
         : null }
     </Filter>
@@ -124,7 +120,7 @@ export const EissCubesList = withStyles(styles)(
                         <Datagrid classes={{ rowEven: classes.rowEven }} >
                             <TextField source='name' label='Name' />
                             {isSuperAdmin(p) ?
-                                <ReferenceField source='group_id' label='Group' reference='groups' link={false} allowEmpty={true} >
+                                <ReferenceField source='group_id' label='Group' reference='grps' link={false} allowEmpty={true} >
                                     <TextField source='displayName' />
                                 </ReferenceField>
                             : 
@@ -169,9 +165,9 @@ export const EissCubesEdit = withStyles(styles)(
                         <ReferenceInput 
                             sort={{ field: 'displayName', order: 'ASC' }}
                             source="group_id" 
-                            reference="groups"
+                            reference="grps"
                         >
-                            <SelectInput optionText='displayName' />
+                            <AutocompleteInput optionText='displayName' />
                         </ReferenceInput>
                     : 
                         null

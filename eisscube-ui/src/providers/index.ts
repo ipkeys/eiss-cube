@@ -3,7 +3,7 @@ import DataProvider from './dataProvider';
 import HttpService from './httpService';
 import LoginService from './loginService';
 import TokenManager from './tokenManager';
-import addUploadFeature from './addUploadFeature';
+//import addUploadFeature from './addUploadFeature';
 
 export const development = (process.env.NODE_ENV === 'development');
 
@@ -20,5 +20,6 @@ const tokenManager = new TokenManager({
 export const loginService = new LoginService(tokenManager);
 export const authProvider = new AuthProvider(loginService);
 export const httpService = new HttpService(tokenManager);
-export const dataProvider = addUploadFeature(new DataProvider(httpService, loginService.logout).query);
+//export const dataProvider = addUploadFeature(new DataProvider(httpService, loginService.logout).query);
+export const dataProvider = new DataProvider(httpService, loginService.logout).query;
 export { i18nProvider } from './i18nProvider';

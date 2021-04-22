@@ -10,6 +10,7 @@ import {
     ReferenceField,
     ReferenceInput,
     SelectInput,
+    AutocompleteInput,
     ShowButton,
     Show,
     DateField,
@@ -87,11 +88,11 @@ const LoraCubesListFilter = props => (
         {isSuperAdmin(props.permissions) ? 
             <ReferenceInput
                 source="group_id"
-                reference="groups"
+                reference="grps"
                 sort={{ field: 'displayName', order: 'ASC' }}
                 allowEmpty
             >
-                <SelectInput optionText='displayName' />
+                <AutocompleteInput optionText='displayName' />
             </ReferenceInput>
         : null }
     </Filter>
@@ -124,7 +125,7 @@ export const LoraCubesList = withStyles(styles)(
                         <Datagrid classes={{ rowEven: classes.rowEven }} >
                             <TextField source='name' label='Name' />
                             {isSuperAdmin(p) ?
-                                <ReferenceField source="group_id" label="Group" reference="groups" link={false} allowEmpty={true} >
+                                <ReferenceField source="group_id" label="Group" reference="grps" link={false} allowEmpty={true} >
                                     <TextField source="displayName" />
                                 </ReferenceField>
                             : 
@@ -169,9 +170,9 @@ export const LoraCubesEdit = withStyles(styles)(
                         <ReferenceInput 
                             sort={{ field: 'displayName', order: 'ASC' }}
                             source="group_id" 
-                            reference="groups"
+                            reference="grps"
                         >
-                            <SelectInput optionText='displayName' />
+                            <AutocompleteInput optionText='displayName' />
                         </ReferenceInput>
                     : 
                         null

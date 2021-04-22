@@ -47,11 +47,11 @@ const ReportListFilter = props => (
 		{isSuperAdmin(props.permissions) ? 
             <ReferenceInput
                 source='group_id'
-                reference='groups'
+                reference='grps'
                 sort={{ field: 'displayName', order: 'ASC' }}
                 allowEmpty
             >
-                <SelectInput optionText='displayName' />
+                <AutocompleteInput optionText='displayName' />
             </ReferenceInput>
         : null }
 	</Filter>
@@ -72,7 +72,7 @@ export const ReportList = withStyles(styles)(
                     <TextField source='name' />
                 </ReferenceField>
 				{isSuperAdmin(p) ?
-					<ReferenceField source='group_id' label='Group' reference='groups' link={false} allowEmpty={true} >
+					<ReferenceField source='group_id' label='Group' reference='grps' link={false} allowEmpty={true} >
 						<TextField source='displayName' />
 					</ReferenceField>
 				: 

@@ -101,11 +101,11 @@ const CommandFilter = props => (
         {isSuperAdmin(props.permissions) ? 
             <ReferenceInput 
                 source='group_id'
-                reference='groups'
+                reference='grps'
                 sort={{ field: 'displayName', order: 'ASC' }}
                 allowEmpty
             >
-                <SelectInput optionText='displayName' />
+                <AutocompleteInput optionText='displayName' />
             </ReferenceInput>
         : null }
         <DateTimeFilterInput label='Created Before' source='timestamp_lte' 
@@ -171,7 +171,7 @@ export const CommandList = withStyles(styles)(
                         <TextField source='name' />
                     </ReferenceField>
                     {isSuperAdmin(p)
-                    ?   <ReferenceField source='group_id' label='Group' reference='groups' link={false} allowEmpty={true} >
+                    ?   <ReferenceField source='group_id' label='Group' reference='grps' link={false} allowEmpty={true} >
                             <TextField source='displayName' />
                         </ReferenceField>
                     : 
@@ -209,7 +209,7 @@ export const CommandShow = withStyles(styles)(
                         </ReferenceField>
 
                         {isSuperAdmin(p)
-                        ?   <ReferenceField className={classes.inlineField} source='group_id' label='Group' reference='groups' link={false} allowEmpty={true} >
+                        ?   <ReferenceField className={classes.inlineField} source='group_id' label='Group' reference='grps' link={false} allowEmpty={true} >
                                 <TextField source='displayName' />
                             </ReferenceField>
                         : 
