@@ -70,11 +70,9 @@ public class ListRoute implements Handler<RoutingContext> {
             q.filter(Filters.eq("group", session.get("group")));
         }
 
-        String cubeID = request.getParam("cubeID");
-        if (cubeID != null && !cubeID.isEmpty()) {
-            if (ObjectId.isValid(cubeID)) {
-                q.filter(Filters.eq("cubeID", new ObjectId(cubeID)));
-            }
+        String type = request.getParam("type");
+        if (type != null && !type.isEmpty()) {
+            q.filter(Filters.eq("type", type));
         }
         // ~filters
 

@@ -1,11 +1,15 @@
 package cube.service.http.process.eiss_api.lora;
 
 import com.google.gson.Gson;
+import cube.models.CubeMeter;
 import dev.morphia.Datastore;
+import dev.morphia.UpdateOptions;
 import dev.morphia.query.Query;
 import cube.db.Cube;
 import cube.randname.Randname;
 import dev.morphia.query.experimental.filters.Filters;
+import dev.morphia.query.experimental.updates.UpdateOperator;
+import dev.morphia.query.experimental.updates.UpdateOperators;
 import eiss.api.Api;
 import cube.models.CubeReport;
 import cube.models.CubeTest;
@@ -22,9 +26,16 @@ import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 
+import static java.lang.Boolean.TRUE;
+import static java.time.temporal.ChronoUnit.SECONDS;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 @Slf4j
@@ -191,8 +202,90 @@ public class EventRoute implements Handler<RoutingContext> {
 
                 CubeReport cr = qr.first();
                 if (cr != null) {
+                    // do "cycle" report
+                    if (cr.getType().equalsIgnoreCase("c")) {
+                        String work_mode = dataJSON.getString("Work_mode");
+                        if (work_mode != null && work_mode.equalsIgnoreCase("2ACI+2AVI")) { // MOD 1
+                            Instant ts = Instant.now().truncatedTo(SECONDS);
+
+                            String DI1_status = dataJSON.getString("DI1_status"); // "L" or "H"
+                            String start_edge = cr.getEdge(); // "f" or "r"
+                            // compare start edge and DI status and create an entry
+                            if (DI1_status != null && start_edge != null) {
+                                // Start cycle
+                                if (start_edge.equalsIgnoreCase("f") && DI1_status.equalsIgnoreCase("L")) {
+                                    if (cr.getTs() == null) { // start cycle
+                                        qr.update(UpdateOperators.set("ts", ts)).execute();
+                                        // create an open meter record with no value
+                                        CubeMeter meter = new CubeMeter();
+                                        meter.setCubeID(cube.getId());
+                                        meter.setType("c");
+                                        meter.setTimestamp(ts);
+                                        meter.setValue(null); // no duration
+                                        datastore.save(meter);
+                                    }
+
+                                }
+                                // Finish cycle
+                                if (start_edge.equalsIgnoreCase("f") && DI1_status.equalsIgnoreCase("H")) {
+                                    if (cr.getTs() != null) {
+                                        Duration dur = Duration.between(cr.getTs(), ts);
+                                        // update an open record with duration
+                                        Query<CubeMeter> qm = datastore.find(CubeMeter.class);
+                                        qm.filter(
+                                                Filters.and(
+                                                        Filters.eq("cubeID", cube.getId()),
+                                                        Filters.eq("type", "c"),
+                                                        Filters.eq("timestamp", cr.getTs())
+                                                )
+                                        );
+                                        qm.update(UpdateOperators.set("value", (double) dur.toSeconds())).execute();
+                                        // remove start timestamp of cycle from report - waiting for the next
+                                        qr.update(UpdateOperators.unset("ts")).execute();
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // do "pulses" report
                     if (cr.getType().equalsIgnoreCase("p")) {
-                        // do "count pulses" report
+                        String work_mode = dataJSON.getString("Work_mode");
+                        if (work_mode != null && work_mode.equalsIgnoreCase("Count mode 1")) { // MOD 3
+                            Double lastCounter1 = cube.getLastCounter1();
+                            if (lastCounter1 == null) { // start to count from 0
+                                q.update(UpdateOperators.set("lastCounter1", (double) 0)).execute();
+                                vertx.eventBus().send("loracubetest",
+                                        new JsonObject()
+                                                .put("to", cube.getDeviceID())
+                                                .put("cmd", "CLRCOUNT")
+                                );
+                            } else {
+                                Instant t = Instant.now().truncatedTo(SECONDS);
+                                Double v = dataJSON.getDouble("Count1_times");
+
+                                if (v != null) {
+                                    if (v >= lastCounter1) { // keep report and
+                                        // keep last counter for next report
+                                        q.update(UpdateOperators.set("lastCounter1", v)).execute();
+                                        // keep meter report
+                                        CubeMeter meter = new CubeMeter();
+                                        meter.setCubeID(cube.getId());
+                                        meter.setType("p");
+                                        meter.setTimestamp(t);
+                                        meter.setValue(v - lastCounter1);
+                                        datastore.save(meter);
+                                    } else { // overflow? - reset to 0 and start again
+                                        q.update(UpdateOperators.set("lastCounter1", (double) 0)).execute();
+                                        vertx.eventBus().send("loracubetest",
+                                                new JsonObject()
+                                                        .put("to", cube.getDeviceID())
+                                                        .put("cmd", "CLRCOUNT")
+                                        );
+                                    }
+                                }
+                            }
+                        }
                     }
                     if (cr.getType().equalsIgnoreCase("c")) {
                         // do "count cycle" report

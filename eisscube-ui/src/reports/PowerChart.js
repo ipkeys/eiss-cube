@@ -177,7 +177,8 @@ class PowerChart extends Component {
 					const index = Index.getIndexString(aggregation, time); 
 
 					points.push([index, value]);					
-					brushPoints.push([time, value]);
+					//brushPoints.push([time, value]);
+					brushPoints.push([index, value]);
 				}
 
 				const series = new TimeSeries({
@@ -188,7 +189,8 @@ class PowerChart extends Component {
 
 				const brushSeries = new TimeSeries({
 					name: "brush",
-					columns: ["time", "brush"],
+					//columns: ["time", "brush"],
+					columns: ["index", "brush"],
 					points: brushPoints
 				});
 

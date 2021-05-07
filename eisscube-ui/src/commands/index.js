@@ -345,7 +345,7 @@ export const CommandCreate = withStyles(styles)(
                 {({ formData, ...rest }) => checkCommandForDeviceType(formData.deviceType) ?
                     <SelectInput label='Command' source='command' choices={cmds.filter(function(value, index, arr){ return value.id !== 'reboot';})} validate={required()} {...rest} />
                     :
-                    <SelectInput label='Command' source='command' choices={cmds.filter(function(value, index, arr){ return value.id === 'ron' | value.id === 'roff';})} validate={required()} {...rest} />
+                    <SelectInput label='Command' source='command' choices={cmds.filter(function(value, index, arr){ return value.id === 'ron' | value.id === 'roff' | value.id === 'icp'| value.id === 'icc';})} validate={required()} {...rest} />
                  }
                 </FormDataConsumer>
 

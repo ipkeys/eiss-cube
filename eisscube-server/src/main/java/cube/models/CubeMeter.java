@@ -13,7 +13,7 @@ public class CubeMeter {
     @Id ObjectId id;
 
     @Indexed(options = @IndexOptions(name = "CubeIDIndex"))
-    @Property ObjectId cubeID; // reference to EISScube.id
+    @Property ObjectId cubeID; // reference to device by id - can be EISScube or LORAcube
 
     @Indexed(options = @IndexOptions(name = "CubeMeterTimestampIndex"))
     @Property Instant timestamp;

@@ -57,7 +57,10 @@ class SetupEissCube extends Component {
 
     handleSubmit = (values) => {
         dataProvider(CREATE, `setup`, {
-            data: { ...values, cubeID: this.props.cubeID}
+            data: {
+                ...values, 
+                cubeID: this.props.cubeID
+            }
         })
         .then(response => response.data)
         .then(data => {

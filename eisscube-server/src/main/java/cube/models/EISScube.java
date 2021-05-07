@@ -17,7 +17,7 @@ public class EISScube {
 
     @Indexed(options = @IndexOptions(name = "CubeDeviceIDIndex", unique = true))
     @Property String deviceID; // SIM Card number provided by device
-    @Property String deviceType = "c";
+    @Property String deviceType = "e";
     @Property String name;
     @Property String socket;
 

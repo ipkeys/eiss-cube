@@ -20,6 +20,8 @@ import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.*;
 
 @Slf4j
@@ -58,17 +60,13 @@ public class GetRoute implements Handler<RoutingContext> {
         vertx.executeBlocking(op -> {
             CubeReport report = q.first();
             if (report != null) {
-                EISScube cube = datastore.find(EISScube.class).filter(Filters.eq("_id", report.getCubeID())).first();
-                if (cube != null) {
-                    report.setCubeName(cube.getName());
-                }
                 op.complete(gson.toJson(report));
             } else {
                 op.fail(String.format("CubeReport: %s not found", id));
             }
         }, res -> {
             if (res.succeeded()) {
-                response.putHeader("content-type", "application/json")
+                response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .setStatusCode(SC_OK)
                         .end(String.valueOf(res.result()));
             } else {

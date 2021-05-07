@@ -1,7 +1,9 @@
 package cube.service.http.process.commands;
 
 import com.google.gson.Gson;
+import com.mongodb.client.result.UpdateResult;
 import cube.db.Cube;
+import dev.morphia.UpdateOptions;
 import dev.morphia.query.experimental.filters.Filters;
 import dev.morphia.query.experimental.updates.UpdateOperator;
 import dev.morphia.query.experimental.updates.UpdateOperators;
@@ -24,10 +26,14 @@ import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
+import static java.lang.Boolean.TRUE;
 import static javax.servlet.http.HttpServletResponse.*;
 
 @Slf4j
@@ -92,11 +98,11 @@ public class PostRoute implements Handler<RoutingContext> {
             if (cmd.getDeviceType().equalsIgnoreCase("l")) {
                 Query<LORAcube> q = datastore.find(LORAcube.class);
                 q.filter(Filters.eq("id", cmd.getCubeID()));
-                LORAcube cube = q.first();
-                if (cube != null) {
-                    cmd.setCubeName(cube.getName());
-                    cmd.setGroup(cube.getGroup());
-                    cmd.setGroup_id(cube.getGroup_id());
+                LORAcube lora = q.first();
+                if (lora != null) {
+                    cmd.setCubeName(lora.getName());
+                    cmd.setGroup(lora.getGroup());
+                    cmd.setGroup_id(lora.getGroup_id());
                 }
             }
 
@@ -147,13 +153,22 @@ public class PostRoute implements Handler<RoutingContext> {
 
                 // prepare report record
                 if (cmd.getCommand().startsWith("ic")) {
+                    String type = cmd.getCommand().replace("ic", ""); // leave just "p" or "c"
                     Query<CubeReport> qR = datastore.find(CubeReport.class);
                     qR.filter(Filters.eq("cubeID", cube.getId()));
+                    qR.filter(Filters.eq("type", type));
 
-                    UpdateOperator op1 = UpdateOperators.set("type", cmd.getCommand().replace("ic", "")); // leave just "p" or "c"
-                    UpdateOperator op2 = UpdateOperators.setOnInsert(Map.of("cubeID", cube.getId()));
+                    Map<String, Object> values = new HashMap<>();
+                    values.put("type", type);
+                    values.put("deviceType", "e");
+                    values.put("cubeID", cube.getId());
 
-                    qR.update(op1, op2);
+                    UpdateOperator op1 = UpdateOperators.setOnInsert(values);
+                    UpdateOperator op2 = UpdateOperators.set("group_id", cube.getGroup_id());
+                    UpdateOperator op3 = UpdateOperators.set("group", cube.getGroup());
+                    UpdateOperator op4 = UpdateOperators.set("cubeName", cube.getName());
+
+                    qR.update(op1, op2, op3, op4).execute(new UpdateOptions().upsert(TRUE));
                 }
 
                 op.complete();
@@ -176,25 +191,38 @@ public class PostRoute implements Handler<RoutingContext> {
         vertx.executeBlocking(op -> {
             LORAcube cube = q.first();
             if (cube != null) {
-                // send command to device
+                // send command to device - will work from DB, not a command string!!!
                 vertx.eventBus().send("loracube",
                     new JsonObject()
                         .put("id", cmd.getId().toString())
                         .put("to", cube.getDeviceID())
                         .put("cmd", cmd.toString())
                 );
-/*
+
                 // prepare report record
                 if (cmd.getCommand().startsWith("ic")) {
+                    String type = cmd.getCommand().replace("ic", ""); // leave just "p" or "c"
                     Query<CubeReport> qR = datastore.find(CubeReport.class);
                     qR.filter(Filters.eq("cubeID", cube.getId()));
+                    qR.filter(Filters.eq("type", type));
 
-                    UpdateOperator op1 = UpdateOperators.set("type", cmd.getCommand().replace("ic", "")); // leave just "p" or "c"
-                    UpdateOperator op2 = UpdateOperators.setOnInsert(Map.of("cubeID", cube.getId()));
+                    List<UpdateOperator> updates = new ArrayList<>();
+                    updates.add(UpdateOperators.set("group_id", cube.getGroup_id()));
+                    updates.add(UpdateOperators.set("group", cube.getGroup()));
+                    updates.add(UpdateOperators.set("cubeName", cube.getName()));
 
-                    qR.update(op1, op2);
+                    Map<String, Object> values = new HashMap<>();
+                    values.put("type", type);
+                    values.put("deviceType", "l");
+                    values.put("cubeID", cube.getId());
+                    updates.add(UpdateOperators.setOnInsert(values));
+
+                    if (type.equalsIgnoreCase("c")) { // for cycle counting - keep edge for report
+                        updates.add(UpdateOperators.set("edge", cmd.getTransition()));
+                    }
+
+                    qR.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute(new UpdateOptions().upsert(TRUE));
                 }
-*/
                 op.complete();
             } else {
                 op.fail(String.format("Cannot find LORACube for id: %s", cmd.getCubeID().toString()));

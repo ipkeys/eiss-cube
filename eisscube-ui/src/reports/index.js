@@ -41,9 +41,6 @@ const ReportListTitle = ({title, record}) => (
 
 const ReportListFilter = props => (
 	<Filter {...props}>
-		<ReferenceInput label='from EISS™Cube' source='cubeID' reference='cubes'>
-			<AutocompleteInput optionText='name'/>
-		</ReferenceInput>
 		{isSuperAdmin(props.permissions) ? 
             <ReferenceInput
                 source='group_id'
@@ -54,6 +51,7 @@ const ReportListFilter = props => (
                 <AutocompleteInput optionText='displayName' />
             </ReferenceInput>
         : null }
+		<SelectInput label='Report type' source='type' margin='dense' choices={types} />
 	</Filter>
 );
 
@@ -71,6 +69,11 @@ export const ReportList = withStyles(styles)(
 				<ReferenceField label='EISS™Cube' source='cubeID' reference='cubes' link='show'>
                     <TextField source='name' />
                 </ReferenceField>
+
+				<ReferenceField label='LORA™Cube' source='cubeID' reference='lora' link='show'>
+					<TextField source='name' />
+				</ReferenceField>
+
 				{isSuperAdmin(p) ?
 					<ReferenceField source='group_id' label='Group' reference='grps' link={false} allowEmpty={true} >
 						<TextField source='displayName' />

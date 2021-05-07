@@ -95,22 +95,32 @@ public class SetupForDeviceRoute implements Handler<RoutingContext> {
                     Setup.builder()
                         .deviceID(c.getCubeID().toString())
 
-                        .relay(Relay.builder()
-                            .connected(c.getRelay().getConnected())
-                            .contacts(c.getRelay().getContacts())
-                            .label(c.getRelay().getLabel())
-                            .description(c.getRelay().getDescription())
-                        .build())
+                        .relay(
+                            c.getRelay() != null ?
+                                Relay.builder()
+                                    .connected(c.getRelay().getConnected())
+                                    .contacts(c.getRelay().getContacts())
+                                    .label(c.getRelay().getLabel())
+                                    .description(c.getRelay().getDescription())
+                                .build()
+                            :
+                                Relay.builder().build()
+                        )
 
-                        .input(Input.builder()
-                            .connected(c.getInput().getConnected())
-                            .signal(c.getInput().getSignal())
-                            .meter(c.getInput().getMeter())
-                            .unit(c.getInput().getUnit())
-                            .factor(c.getInput().getFactor())
-                            .label(c.getInput().getLabel())
-                            .description(c.getInput().getDescription())
-                        .build())
+                        .input(
+                            c.getInput() != null ?
+                                Input.builder()
+                                    .connected(c.getInput().getConnected())
+                                    .signal(c.getInput().getSignal())
+                                    .meter(c.getInput().getMeter())
+                                    .unit(c.getInput().getUnit())
+                                    .factor(c.getInput().getFactor())
+                                    .label(c.getInput().getLabel())
+                                    .description(c.getInput().getDescription())
+                                .build()
+                            :
+                                Input.builder().build()
+                        )
 
                     .build()
                 );

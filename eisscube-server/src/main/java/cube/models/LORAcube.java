@@ -46,5 +46,5 @@ public class LORAcube {
 
     @Property Integer signalStrength;
     @Property BasicDBObject settings;
-
+    @Property Double lastCounter1;
 }

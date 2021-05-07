@@ -10,8 +10,10 @@ public class CubeSetup {
 
     @Id ObjectId id;
 
+    @Property String deviceType;
+
     @Indexed(options = @IndexOptions(name = "CubeIDIndex", unique = true))
-    @Property ObjectId cubeID; // reference to EISScube.id
+    @Property ObjectId cubeID; // reference to device id - can be EISScube or LORAcube
 
     @Property CubeRelay relay;
     @Property CubeInput input;
