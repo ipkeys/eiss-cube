@@ -1,5 +1,4 @@
 import React, { Component, useCallback } from 'react';
-import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Stepper from '@material-ui/core/Stepper';
 import Step from '@material-ui/core/Step';
@@ -59,7 +58,8 @@ class SetupEissCube extends Component {
         dataProvider(CREATE, `setup`, {
             data: {
                 ...values, 
-                cubeID: this.props.cubeID
+                cubeID: this.props.cubeID,
+                deviceType: this.props.deviceType
             }
         })
         .then(response => response.data)
@@ -126,10 +126,6 @@ class SetupEissCube extends Component {
         );
     }
 }
-
-SetupEissCube.propTypes = {
-    deviceID: PropTypes.string
-};
 
 export default withStyles(styles)(SetupEissCube);
 

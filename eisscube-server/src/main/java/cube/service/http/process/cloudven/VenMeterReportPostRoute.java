@@ -1,6 +1,8 @@
 package cube.service.http.process.cloudven;
 
 import com.google.gson.Gson;
+import cube.models.CubeInput;
+import cube.models.LORAcube;
 import dev.morphia.Datastore;
 import dev.morphia.query.Query;
 import cube.db.Cube;
@@ -19,6 +21,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 
 import javax.inject.Inject;
 import javax.ws.rs.POST;
@@ -68,58 +71,40 @@ public class VenMeterReportPostRoute implements Handler<RoutingContext> {
 
         final String ven = req.getVen();
         final String resource = req.getResource();
-        final MeterResponse report_res = new MeterResponse();
 
         vertx.executeBlocking(op -> {
-            if (ven != null && resource != null) {
-                Query<EISScube> q = datastore.find(EISScube.class);
-                q.filter(
-                    Filters.and(
-                        Filters.eq("settings.VEN", ven),
-                        Filters.eq("name", resource)
-                    )
+            ObjectId cubeId = null;
+            // EISScube report
+            Query<EISScube> qe = datastore.find(EISScube.class);
+            qe.filter(
+                Filters.eq("settings.VEN", ven),
+                Filters.eq("name", resource)
+            );
+
+            EISScube eisscube = qe.first();
+            if (eisscube != null) {
+                cubeId = eisscube.getId();
+            }
+            // ~EISScube report
+
+            if (cubeId == null) { // not found? try the second type of devices
+                // LORAcube report
+                Query<LORAcube> ql = datastore.find(LORAcube.class);
+                ql.filter(
+                    Filters.eq("settings.VEN", ven),
+                    Filters.eq("name", resource)
                 );
 
-                EISScube cube = q.first();
-                if (cube != null) {
-                    CubeSetup setup = datastore.find(CubeSetup.class).filter(Filters.eq("cubeID", cube.getId())).first();
-                    CubeReport report = datastore.find(CubeReport.class).filter(Filters.eq("cubeID", cube.getId())).first();
-                    if (report != null) {
-                        MeterRequest report_req = new MeterRequest();
-
-                        report_req.setUtcOffset(0L);
-                        report_req.setCubeID(cube.getId().toString());
-                        report_req.setType(report.getType());
-                        if (setup != null && setup.getInput() != null) {
-                            report_req.setFactor(setup.getInput().getFactor());
-                            report_req.setLoad(setup.getInput().getLoad());
-                            report_req.setWatch(setup.getInput().getWatch());
-                        }
-                        Instant beginOfDay = req.getFrom().truncatedTo(ChronoUnit.DAYS);
-                        Instant endOfDay =  beginOfDay.plus(1440, ChronoUnit.MINUTES);
-                        report_req.setFrom(beginOfDay);
-                        report_req.setTo(endOfDay);
-                        report_req.setAggregation(req.getAggregation());
-
-                        conversion.process(report_req, report_res); // whole day
-                        // crop for specified time period
-                        List<Meter> usage = report_res.getUsage().stream().filter(meter -> {
-                            Instant t = meter.getT();
-                            if (t.isBefore(req.getFrom())) {
-                                return false;
-                            } else if (t.isAfter(req.getTo())) {
-                                return false;
-                            } else {
-                                return (t.equals(req.getFrom()) ||
-                                        t.isAfter(req.getFrom()) && t.isBefore(req.getTo())
-                                );
-                            }
-                        }).collect(Collectors.toList());
-                        report_res.setUsage(usage);
-
-                        op.complete(gson.toJson(report_res));
-                    }
+                LORAcube loracube = ql.first();
+                if (loracube != null) {
+                    cubeId = loracube.getId();
                 }
+                // ~LORAcube report
+            }
+
+            if (cubeId != null) {
+                MeterResponse report_res = getMeterResponse(cubeId, req.getFrom(), req.getTo(), req.getAggregation());
+                op.complete(gson.toJson(report_res));
             } else {
                 op.fail("Report not found");
             }
@@ -135,6 +120,52 @@ public class VenMeterReportPostRoute implements Handler<RoutingContext> {
             }
         });
 
+    }
+
+    private MeterResponse getMeterResponse(ObjectId cubeId, Instant from, Instant to, String aggregation) {
+        MeterResponse report_res = new MeterResponse();
+
+        CubeSetup setup = datastore.find(CubeSetup.class).filter(Filters.eq("cubeID", cubeId)).first();
+        if (setup != null && setup.getInput() != null) {
+            CubeInput input = setup.getInput();
+            CubeReport report = datastore.find(CubeReport.class).filter(Filters.eq("cubeID", cubeId), Filters.eq("type", input.getSignal())).first();
+            if (report != null) {
+                MeterRequest report_req = new MeterRequest();
+
+                report_req.setUtcOffset(0L);
+                report_req.setCubeID(cubeId.toString());
+                report_req.setType(report.getType());
+                report_req.setMeter(input.getMeter());
+                report_req.setUnit(input.getUnit());
+                report_req.setFactor(input.getFactor());
+                report_req.setLoad(input.getLoad());
+                report_req.setWatch(input.getWatch());
+
+                Instant beginOfDay = from.truncatedTo(ChronoUnit.DAYS);
+                Instant endOfDay = beginOfDay.plus(1440, ChronoUnit.MINUTES);
+                report_req.setFrom(beginOfDay);
+                report_req.setTo(endOfDay);
+                report_req.setAggregation(aggregation);
+
+                conversion.process(report_req, report_res); // whole day
+
+                // crop for specified time period
+                List<Meter> usage = report_res.getUsage().stream().filter(meter -> {
+                    Instant t = meter.getT();
+                    if (t.isBefore(from)) {
+                        return false;
+                    } else if (t.isAfter(to)) {
+                        return false;
+                    } else {
+                        return (t.equals(from) || t.isAfter(from) && t.isBefore(to));
+                    }
+                }).collect(Collectors.toList());
+
+                report_res.setUsage(usage);
+            }
+        }
+
+        return report_res;
     }
 
 }

@@ -67,7 +67,7 @@ public class PostRoute implements Handler<RoutingContext> {
         q.filter(Filters.eq("cubeID", setup.getCubeID()));
 
         List<UpdateOperator> updates = new ArrayList<>();
-        //updates.add(UpdateOperators.set("deviceType", setup.getDeviceType()));
+        updates.add(UpdateOperators.set("deviceType", setup.getDeviceType()));
 
         CubeRelay relay = setup.getRelay();
         if (relay != null) {

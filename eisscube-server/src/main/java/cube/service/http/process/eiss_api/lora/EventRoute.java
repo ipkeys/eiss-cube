@@ -213,8 +213,12 @@ public class EventRoute implements Handler<RoutingContext> {
                             // compare start edge and DI status and create an entry
                             if (DI1_status != null && start_edge != null) {
                                 // Start cycle
-                                if (start_edge.equalsIgnoreCase("f") && DI1_status.equalsIgnoreCase("L")) {
-                                    if (cr.getTs() == null) { // start cycle
+                                if (
+                                        (start_edge.equalsIgnoreCase("f") && DI1_status.equalsIgnoreCase("L"))
+                                        ||
+                                        (start_edge.equalsIgnoreCase("r") && DI1_status.equalsIgnoreCase("H"))
+                                ) {
+                                    if (cr.getTs() == null) { // cycle not started yet?
                                         qr.update(UpdateOperators.set("ts", ts)).execute();
                                         // create an open meter record with no value
                                         CubeMeter meter = new CubeMeter();
@@ -224,11 +228,14 @@ public class EventRoute implements Handler<RoutingContext> {
                                         meter.setValue(null); // no duration
                                         datastore.save(meter);
                                     }
-
                                 }
                                 // Finish cycle
-                                if (start_edge.equalsIgnoreCase("f") && DI1_status.equalsIgnoreCase("H")) {
-                                    if (cr.getTs() != null) {
+                                if (
+                                        (start_edge.equalsIgnoreCase("f") && DI1_status.equalsIgnoreCase("H"))
+                                        ||
+                                        (start_edge.equalsIgnoreCase("r") && DI1_status.equalsIgnoreCase("L"))
+                                ) {
+                                    if (cr.getTs() != null) { // cycle started and timestamp is marked?
                                         Duration dur = Duration.between(cr.getTs(), ts);
                                         // update an open record with duration
                                         Query<CubeMeter> qm = datastore.find(CubeMeter.class);
@@ -287,12 +294,9 @@ public class EventRoute implements Handler<RoutingContext> {
                             }
                         }
                     }
-                    if (cr.getType().equalsIgnoreCase("c")) {
-                        // do "count cycle" report
-                    }
                 }
 
-
+/*
                 String work_mode = dataJSON.getString("Work_mode");
                 if (work_mode != null && work_mode.equalsIgnoreCase("2ACI+2AVI")) {
                     String r = "0";
@@ -315,7 +319,7 @@ public class EventRoute implements Handler<RoutingContext> {
 
                     datastore.save(cubeTest);
                 }
-
+*/
             }
             op.complete();
         }, res -> log.info("DeviceID: {} device data is handeled", deviceID));
