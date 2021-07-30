@@ -17,7 +17,7 @@ public class EISScube {
 
     @Indexed(options = @IndexOptions(name = "CubeDeviceIDIndex", unique = true))
     @Property String deviceID; // SIM Card number provided by device
-    @Property String deviceType = "e";
+    @Property String deviceType = "e"; // "e" - 4G default, "l" - LoRa
     @Property String name;
     @Property String socket;
 

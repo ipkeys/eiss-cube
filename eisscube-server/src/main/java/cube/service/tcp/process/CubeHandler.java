@@ -206,6 +206,7 @@ public class CubeHandler implements Handler<NetSocket> {
                 cube.setDeviceID(deviceID);
                 cube.setName(randname.next()); // random name from dictionary
                 cube.setSocket(socket);
+                cube.setDeviceType("e");
             }
 
             Instant timestamp = Instant.now();
@@ -215,6 +216,7 @@ public class CubeHandler implements Handler<NetSocket> {
             cube.setTimeStarted(timestamp);
             cube.setLastPing(timestamp);
             cube.setSocket(socket);
+            cube.setDeviceType("e");
 
             datastore.save(cube);
 

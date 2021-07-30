@@ -12,7 +12,6 @@ import cube.json.messages.CycleAndDutyCycleExtractor;
 import cube.models.CubeCommand;
 import cube.models.CubeReport;
 import cube.models.EISScube;
-import cube.models.LORAcube;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerResponse;
@@ -82,28 +81,14 @@ public class PostRoute implements Handler<RoutingContext> {
             cmd.setStatus("Created");
             cmd.setCreated(Instant.now());
 
-            // EISS cube
-            if (cmd.getDeviceType().equalsIgnoreCase("e")) {
-                Query<EISScube> q = datastore.find(EISScube.class);
-                q.filter(Filters.eq("id", cmd.getCubeID()));
-                EISScube cube = q.first();
-                if (cube != null) {
-                    cmd.setCubeName(cube.getName());
-                    cmd.setGroup(cube.getGroup());
-                    cmd.setGroup_id(cube.getGroup_id());
-                }
-            }
-
-            // LORA cube
-            if (cmd.getDeviceType().equalsIgnoreCase("l")) {
-                Query<LORAcube> q = datastore.find(LORAcube.class);
-                q.filter(Filters.eq("id", cmd.getCubeID()));
-                LORAcube lora = q.first();
-                if (lora != null) {
-                    cmd.setCubeName(lora.getName());
-                    cmd.setGroup(lora.getGroup());
-                    cmd.setGroup_id(lora.getGroup_id());
-                }
+            Query<EISScube> q = datastore.find(EISScube.class);
+            q.filter(Filters.eq("id", cmd.getCubeID()));
+            EISScube cube = q.first();
+            if (cube != null) {
+                cmd.setCubeName(cube.getName());
+                cmd.setGroup(cube.getGroup());
+                cmd.setGroup_id(cube.getGroup_id());
+                cmd.setDeviceType(cube.getDeviceType());
             }
 
             try {
@@ -116,14 +101,8 @@ public class PostRoute implements Handler<RoutingContext> {
         }, res -> {
             if (res.succeeded()) {
 
-                // EISS cube
-                if (cmd.getDeviceType().equalsIgnoreCase("e")) {
-                    sendToEISScube(cmd);
-                }
-                // LORA cube
-                if (cmd.getDeviceType().equalsIgnoreCase("l")) {
-                    sendToLORAcube(cmd);
-                }
+                sendToEISScube(cmd);
+
                 response.putHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .setStatusCode(SC_CREATED)
                         .end(gson.toJson(cmd));
@@ -142,8 +121,10 @@ public class PostRoute implements Handler<RoutingContext> {
         vertx.executeBlocking(op -> {
             EISScube cube = q.first();
             if (cube != null) {
+                String busAddress = cmd.getDeviceType().equalsIgnoreCase("e") ? "eisscube" : "loracube";
+
                 // send command to device
-                vertx.eventBus().send("eisscube",
+                vertx.eventBus().send(busAddress,
                     new JsonObject()
                         .put("id", cmd.getId().toString())
                         .put("to", cube.getDeviceID())
@@ -160,7 +141,7 @@ public class PostRoute implements Handler<RoutingContext> {
 
                     Map<String, Object> values = new HashMap<>();
                     values.put("type", type);
-                    values.put("deviceType", "e");
+                    values.put("deviceType", cmd.getDeviceType());
                     values.put("cubeID", cube.getId());
 
                     UpdateOperator op1 = UpdateOperators.setOnInsert(values);
@@ -174,58 +155,6 @@ public class PostRoute implements Handler<RoutingContext> {
                 op.complete();
             } else {
                 op.fail(String.format("Cannot find EISSCube for id: %s", cmd.getCubeID().toString()));
-            }
-        }, cube_res -> {
-            if (cube_res.succeeded()) {
-                log.info("Command sent");
-            } else {
-                log.error("Failed to send Command");
-            }
-        });
-    }
-
-    private void sendToLORAcube(CubeCommand cmd) {
-        Query<LORAcube> q = datastore.find(LORAcube.class);
-        q.filter(Filters.eq("id", cmd.getCubeID()));
-
-        vertx.executeBlocking(op -> {
-            LORAcube cube = q.first();
-            if (cube != null) {
-                // send command to device - will work from DB, not a command string!!!
-                vertx.eventBus().send("loracube",
-                    new JsonObject()
-                        .put("id", cmd.getId().toString())
-                        .put("to", cube.getDeviceID())
-                        .put("cmd", cmd.toString())
-                );
-
-                // prepare report record
-                if (cmd.getCommand().startsWith("ic")) {
-                    String type = cmd.getCommand().replace("ic", ""); // leave just "p" or "c"
-                    Query<CubeReport> qR = datastore.find(CubeReport.class);
-                    qR.filter(Filters.eq("cubeID", cube.getId()));
-                    qR.filter(Filters.eq("type", type));
-
-                    List<UpdateOperator> updates = new ArrayList<>();
-                    updates.add(UpdateOperators.set("group_id", cube.getGroup_id()));
-                    updates.add(UpdateOperators.set("group", cube.getGroup()));
-                    updates.add(UpdateOperators.set("cubeName", cube.getName()));
-
-                    Map<String, Object> values = new HashMap<>();
-                    values.put("type", type);
-                    values.put("deviceType", "l");
-                    values.put("cubeID", cube.getId());
-                    updates.add(UpdateOperators.setOnInsert(values));
-
-                    if (type.equalsIgnoreCase("c")) { // for cycle counting - keep edge for report
-                        updates.add(UpdateOperators.set("edge", cmd.getTransition()));
-                    }
-
-                    qR.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute(new UpdateOptions().upsert(TRUE));
-                }
-                op.complete();
-            } else {
-                op.fail(String.format("Cannot find LORACube for id: %s", cmd.getCubeID().toString()));
             }
         }, cube_res -> {
             if (cube_res.succeeded()) {

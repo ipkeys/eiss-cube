@@ -1,11 +1,11 @@
 package cube.models;
 
-import lombok.Data;
-import dev.morphia.annotations.Embedded;
+import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Property;
+import lombok.Data;
 
 @Data
-@Embedded(useDiscriminator = false)
+@Entity(useDiscriminator = false)
 public class CubeInput {
 
     @Property Boolean connected;

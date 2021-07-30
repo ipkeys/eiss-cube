@@ -2,7 +2,6 @@ package cube.service.http.process.cloudven;
 
 import com.google.gson.Gson;
 import cube.models.CubeInput;
-import cube.models.LORAcube;
 import dev.morphia.Datastore;
 import dev.morphia.query.Query;
 import cube.db.Cube;
@@ -74,7 +73,6 @@ public class VenMeterReportPostRoute implements Handler<RoutingContext> {
 
         vertx.executeBlocking(op -> {
             ObjectId cubeId = null;
-            // EISScube report
             Query<EISScube> qe = datastore.find(EISScube.class);
             qe.filter(
                 Filters.eq("settings.VEN", ven),
@@ -83,27 +81,7 @@ public class VenMeterReportPostRoute implements Handler<RoutingContext> {
 
             EISScube eisscube = qe.first();
             if (eisscube != null) {
-                cubeId = eisscube.getId();
-            }
-            // ~EISScube report
-
-            if (cubeId == null) { // not found? try the second type of devices
-                // LORAcube report
-                Query<LORAcube> ql = datastore.find(LORAcube.class);
-                ql.filter(
-                    Filters.eq("settings.VEN", ven),
-                    Filters.eq("name", resource)
-                );
-
-                LORAcube loracube = ql.first();
-                if (loracube != null) {
-                    cubeId = loracube.getId();
-                }
-                // ~LORAcube report
-            }
-
-            if (cubeId != null) {
-                MeterResponse report_res = getMeterResponse(cubeId, req.getFrom(), req.getTo(), req.getAggregation());
+                MeterResponse report_res = getMeterResponse(eisscube.getId(), req.getFrom(), req.getTo(), req.getAggregation());
                 op.complete(gson.toJson(report_res));
             } else {
                 op.fail("Report not found");

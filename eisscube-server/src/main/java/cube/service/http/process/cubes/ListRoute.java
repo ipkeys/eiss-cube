@@ -107,7 +107,7 @@ public class ListRoute implements Handler<RoutingContext> {
         // ~sorts
 
         // projections
-        o.projection().include("deviceID", "name", "group_id", "group", "online", "lastPing", "timeStarted", "location", "customerID");
+        o.projection().include("deviceID", "deviceType", "name", "group_id", "group", "online", "lastPing", "timeStarted", "location", "customerID");
         // ~projections
 
         // skip/limit

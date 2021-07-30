@@ -8,7 +8,6 @@ import DevelopmentLogin from './Layout/Login';
 
 import { Dashboard } from './dashboard';
 import { EissCubesIcon, EissCubesList, EissCubesShow, EissCubesEdit } from './cubes';
-import { LoraCubesIcon, LoraCubesList, LoraCubesShow, LoraCubesEdit } from './lora';
 import { CommandIcon, CommandList, CommandShow, CommandCreate } from './commands';
 import { PropertyIcon, PropertyList, PropertyEdit, PropertyCreate } from './properties';
 import { ReportIcon, ReportList, ReportShow } from './reports';
@@ -106,13 +105,6 @@ const App = () => (
             list={ EissCubesList }
             show={ EissCubesShow }
             edit={ EissCubesEdit }
-		/>,
-		<Resource options={{ label: 'LoRa™Cubes' }}
-			name="lora"
-			icon={ LoraCubesIcon }
-            list={ LoraCubesList }
-            show={ LoraCubesShow }
-            edit={ LoraCubesEdit }
 		/>,
 		<Resource options={{ label: 'Commands' }}
 			name="commands"

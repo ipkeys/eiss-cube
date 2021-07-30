@@ -1,11 +1,11 @@
 package cube.service.http.process.test;
 
 import cube.db.Cube;
+import dev.morphia.DeleteOptions;
 import dev.morphia.query.experimental.filters.Filters;
 import eiss.api.Api;
 import cube.models.CubeTest;
 import cube.models.EISScube;
-import cube.models.LORAcube;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -22,11 +22,12 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
+import static java.lang.Boolean.TRUE;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
@@ -69,13 +70,8 @@ public class PostRoute implements Handler<RoutingContext> {
         String deviceType = json.getString("deviceType");
 
         vertx.executeBlocking(op -> {
-            if (deviceType.equalsIgnoreCase("c")) {
-                doEISScubeTest(cubeID, duration, cycle, op);
-            }
 
-            if (deviceType.equalsIgnoreCase("l")) {
-                doLORAcubeTest(cubeID, duration, cycle, op);
-            }
+            doEISScubeTest(cubeID, duration, cycle, op);
 
         }, res -> {
             if (res.succeeded()) {
@@ -99,64 +95,31 @@ public class PostRoute implements Handler<RoutingContext> {
             // remove old test's results
             Query<CubeTest> qt = datastore.find(CubeTest.class);
             qt.filter(Filters.eq("cubeID", cube.getId()));
-            qt.delete();
+            qt.delete(new DeleteOptions().multi(TRUE));
 
-            long now = Instant.now().getEpochSecond();
+            String busAddress = cube.getDeviceType().equalsIgnoreCase("e")
+                    ? "eisscubetest"
+                    : "loracubetest";
+            String testCmd = cube.getDeviceType().equalsIgnoreCase("e")
+                    ? "c=status&each=5&st=%d&dur=%d&id=test"
+                    : "c=test&each=5&st=%d&dur=%d&id=test";
+
+            long startTime = Instant.now().plus(3, ChronoUnit.SECONDS).getEpochSecond();
+
             // do Input Cycle
-            vertx.eventBus().send("eisscubetest", new JsonObject()
+            vertx.eventBus().send(busAddress, new JsonObject()
                     .put("to", cube.getDeviceID())
                     .put("socket", cube.getSocket())
-                    .put("cmd", String.format("c=status&each=5&st=%d&dur=%d&id=test", now, duration))
+                    .put("cmd", String.format(testCmd, startTime, duration))
             );
-            // do Relay Cycle after 1 second
+
             vertx.setTimer(1000, id -> {
-                vertx.eventBus().send("eisscubetest", new JsonObject()
+                // do Relay Cycle
+                vertx.eventBus().send(busAddress, new JsonObject()
                         .put("to", cube.getDeviceID())
                         .put("socket", cube.getSocket())
-                        .put("cmd", String.format("c=rcyc&each=%d&pct=50&st=%d&dur=%d&id=test", cycle, now, duration))
+                        .put("cmd", String.format("c=rcyc&each=%d&pct=50&st=%d&dur=%d&id=test", cycle, startTime, duration))
                 );
-            });
-
-            op.complete();
-        } else {
-            op.fail(String.format("Cannot start Test for: %s", cubeID));
-        }
-    }
-
-    private void doLORAcubeTest(String cubeID, Integer duration, Integer cycle, Promise<Object> op) {
-        Query<LORAcube> q = datastore.find(LORAcube.class);
-        q.filter(Filters.eq("id", new ObjectId(cubeID)));
-        int numberOfRun = duration / (cycle / 2);
-
-        LORAcube cube = q.first();
-        if (cube != null) {
-            // remove old test's results
-            Query<CubeTest> qt = datastore.find(CubeTest.class);
-            qt.filter(Filters.eq("cubeID", cube.getId()));
-            qt.delete();
-
-            vertx.eventBus().send("loracubetest", new JsonObject()
-                .put("to", cube.getDeviceID())
-                .put("cmd", "c=ron&id=test")
-            );
-            // do Relay Cycle each 1 minute
-            AtomicInteger counter = new AtomicInteger();
-            vertx.setPeriodic(60000, id -> {
-                if (counter.getAndIncrement() % 2 == 0) {
-                    vertx.eventBus().send("loracubetest", new JsonObject()
-                        .put("to", cube.getDeviceID())
-                        .put("cmd", "c=roff&id=test")
-                    );
-                } else {
-                    vertx.eventBus().send("loracubetest", new JsonObject()
-                        .put("to", cube.getDeviceID())
-                        .put("cmd", "c=ron&id=test")
-                    );
-                }
-
-                if (counter.get() == numberOfRun) {
-                    vertx.cancelTimer(id);
-                }
             });
 
             op.complete();

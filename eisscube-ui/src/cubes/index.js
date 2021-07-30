@@ -29,6 +29,7 @@ import { withStyles } from '@material-ui/core/styles';
 import { green, red } from '@material-ui/core/colors';
 
 import { AppDateTimeFormat, DateTimeMomentFormat, isSuperAdmin } from '../App';
+import DeviceTypeField from './DeviceTypeField';
 import StatusField from './StatusField';
 import CubeMap from './CubeMap';
 import EissCubesShowActions from './ShowActions';
@@ -126,6 +127,7 @@ export const EissCubesList = withStyles(styles)(
                             : 
                                 null
                             }
+                            <DeviceTypeField source='deviceType' label='Type' />
                             <StatusField source='online' label='Status' />
                             <DateField source='timeStarted' label='Started' showTime options={AppDateTimeFormat} />
                             <DateField source='lastPing' label='Last ping' showTime options={AppDateTimeFormat} />
@@ -150,7 +152,6 @@ export const EissCubesShow = withStyles(styles)(
     )
 );
   
-const validateICCID = maxLength(20);
 const validateName = maxLength(50);
 
 export const EissCubesEdit = withStyles(styles)(
@@ -161,19 +162,20 @@ export const EissCubesEdit = withStyles(styles)(
         >
             <TabbedForm>
                 <FormTab label='identity'>
+                <TextInput disabled label='ID' source='deviceID' className={classes.longText} />
+                <TextInput label='Name' source='name' formClassName={classes.inline} validate={validateName} />
                     {isSuperAdmin(p) ?
                         <ReferenceInput 
                             sort={{ field: 'displayName', order: 'ASC' }}
                             source="group_id" 
                             reference="grps"
+                            formClassName={classes.inline}
                         >
-                            <AutocompleteInput optionText='displayName' />
+                            <AutocompleteInput optionText='displayName' formClassName={classes.inline} />
                         </ReferenceInput>
                     : 
                         null
                     }
-                    <TextInput disabled label='ICCID' source='deviceID' className={classes.longText} validate={validateICCID} />
-                    <TextInput label='Name' source='name' className={classes.longText} validate={validateName}/>
                 </FormTab>
                 <FormTab label='customer'>
                     <TextInput label='Customer ID' source='customerID' className={classes.longText} />

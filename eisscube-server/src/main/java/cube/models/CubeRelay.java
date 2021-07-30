@@ -1,10 +1,11 @@
 package cube.models;
 
+import dev.morphia.annotations.Entity;
+import dev.morphia.annotations.Property;
 import lombok.Data;
-import dev.morphia.annotations.*;
 
 @Data
-@Embedded(useDiscriminator = false)
+@Entity(useDiscriminator = false)
 public class CubeRelay {
 
     @Property Boolean connected;

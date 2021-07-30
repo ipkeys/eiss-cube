@@ -70,10 +70,6 @@ export const ReportList = withStyles(styles)(
                     <TextField source='name' />
                 </ReferenceField>
 
-				<ReferenceField label='LORA™Cube' source='cubeID' reference='lora' link='show'>
-					<TextField source='name' />
-				</ReferenceField>
-
 				{isSuperAdmin(p) ?
 					<ReferenceField source='group_id' label='Group' reference='grps' link={false} allowEmpty={true} >
 						<TextField source='displayName' />

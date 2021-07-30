@@ -2,6 +2,7 @@ package cube.service.http.process.eiss_api.lora;
 
 import com.google.gson.Gson;
 import cube.models.CubeMeter;
+import cube.models.EISScube;
 import dev.morphia.Datastore;
 import dev.morphia.UpdateOptions;
 import dev.morphia.query.Query;
@@ -13,7 +14,6 @@ import dev.morphia.query.experimental.updates.UpdateOperators;
 import eiss.api.Api;
 import cube.models.CubeReport;
 import cube.models.CubeTest;
-import cube.models.LORAcube;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
@@ -67,11 +67,11 @@ public class EventRoute implements Handler<RoutingContext> {
         log.info("event: {}, body: {}", event, json.encodePrettily());
 
         switch (event) {
-            case "up":
-                upLORACube(json);
-                break;
             case "join":
                 joinLORACube(json);
+                break;
+            case "up":
+                upLORACube(json);
                 break;
             default:
                 break;
@@ -86,61 +86,22 @@ public class EventRoute implements Handler<RoutingContext> {
         return no.toString(16);
     }
 
-    private void upLORACube(JsonObject json) {
-        String deviceID = base64toHex(json.getString("devEUI"));
-        String deviceName = json.getString("deviceName");
-        Integer ss = json.getJsonArray("rxInfo").getJsonObject(0).getInteger("rssi");
-
-        Query<LORAcube> q = datastore.find(LORAcube.class);
-        q.filter(Filters.eq("deviceID", deviceID));
-
-        vertx.executeBlocking(op -> {
-            LORAcube cube = q.first();
-            if (cube == null) {
-                cube = new LORAcube();
-                cube.setDeviceID(deviceID);
-                cube.setName(deviceName);
-                cube.setSocket(null);
-            }
-
-            Instant timestamp = Instant.now();
-
-            cube.setOnline(Boolean.TRUE);
-            cube.setSignalStrength(convertDBm(ss));
-            cube.setLastPing(timestamp);
-            cube.setSocket(null);
-
-            datastore.save(cube);
-
-            String data = json.getString("objectJSON");
-            if (data != null && !data.isEmpty()) {
-                JsonObject dataJSON = new JsonObject(data);
-                doBusinessWithDevice(deviceID, dataJSON);
-            }
-
-            op.complete();
-        }, res -> {
-            if (res.succeeded()) {
-                log.info("DeviceID: {} 'up' device data is served", deviceID);
-            }
-        });
-    }
-
     private void joinLORACube(JsonObject json) {
         String deviceID = base64toHex(json.getString("devEUI"));
         String deviceName = json.getString("deviceName");
         Integer ss = json.getJsonArray("rxInfo").getJsonObject(0).getInteger("rssi");
 
-        Query<LORAcube> q = datastore.find(LORAcube.class);
+        Query<EISScube> q = datastore.find(EISScube.class);
         q.filter(Filters.eq("deviceID", deviceID));
 
         vertx.executeBlocking(op -> {
-            LORAcube cube = q.first();
+            EISScube cube = q.first();
             if (cube == null) {
-                cube = new LORAcube();
+                cube = new EISScube();
                 cube.setDeviceID(deviceID);
                 cube.setName(deviceName);
                 cube.setSocket(null);
+                cube.setDeviceType("l");
             }
 
             Instant timestamp = Instant.now();
@@ -148,13 +109,80 @@ public class EventRoute implements Handler<RoutingContext> {
             cube.setOnline(Boolean.TRUE);
             cube.setSignalStrength(convertDBm(ss));
             cube.setTimeStarted(timestamp);
-            cube.setSocket(null);
+            cube.setLastPing(timestamp);
 
             datastore.save(cube);
 
             op.complete();
-        }, res -> log.info("DeviceID: {} is ONLINE", deviceID));
+        }, res -> log.info("DeviceID: {} sent JOIN", deviceID));
     }
+
+
+
+    private void upLORACube(JsonObject json) {
+        String deviceID = base64toHex(json.getString("devEUI"));
+        String deviceName = json.getString("deviceName");
+        Integer ss = json.getJsonArray("rxInfo").getJsonObject(0).getInteger("rssi");
+
+        Query<EISScube> q = datastore.find(EISScube.class);
+        q.filter(Filters.eq("deviceID", deviceID));
+
+        vertx.executeBlocking(op -> {
+            EISScube cube = q.first();
+            if (cube == null) {
+                cube = new EISScube();
+                cube.setDeviceID(deviceID);
+                cube.setName(deviceName);
+                cube.setSocket(null);
+                cube.setDeviceType("l");
+            }
+
+            Instant timestamp = Instant.now();
+
+            cube.setOnline(Boolean.TRUE);
+            cube.setSignalStrength(convertDBm(ss));
+            cube.setLastPing(timestamp);
+
+            datastore.save(cube);
+
+            // use combination of port & data and use timestamp from server
+            Integer port = json.getInteger("fPort");
+            String data = json.getString("objectJSON");
+            Instant ts = Instant.parse(json.getString("publishedAt")).truncatedTo(SECONDS);
+
+            if (port == 2) { // STATUS report
+                if (data != null && !data.isEmpty()) {
+                    JsonObject dataJSON = new JsonObject(data);
+                    //doBusinessWithDevice(deviceID, dataJSON);
+                }
+            }
+            if (port == 3) { // ICP report
+                if (data != null && !data.isEmpty()) {
+                    JsonObject dataJSON = new JsonObject(data);
+                    savePulseReport(cube, dataJSON);
+                }
+            }
+            if (port == 4) { // ICC report
+                if (data != null && !data.isEmpty()) {
+                    JsonObject dataJSON = new JsonObject(data);
+                    //doBusinessWithDevice(deviceID, dataJSON);
+                }
+            }
+            if (port == 5) { // TEST report
+                if (data != null && !data.isEmpty()) {
+                    JsonObject dataJSON = new JsonObject(data);
+                    dataJSON.put("ts", ts);
+
+                    saveTestReport(cube, dataJSON);
+                }
+            }
+
+            log.info("Data on port: {} payload: {}", port, data);
+
+            op.complete(data);
+        }, res -> log.info("DeviceID: {} sent UP", deviceID));
+    }
+
 
     public static boolean between(int i, int minValueInclusive, int maxValueExlusive) {
         return (i >= minValueInclusive && i < maxValueExlusive);
@@ -190,12 +218,35 @@ public class EventRoute implements Handler<RoutingContext> {
         return rc;
     }
 
+    private void saveTestReport(EISScube cube, JsonObject dataJSON) {
+        CubeTest cubeTest = new CubeTest();
+        cubeTest.setCubeID(cube.getId());
+        cubeTest.setTimestamp(dataJSON.getInstant("ts"));
+        cubeTest.setR(dataJSON.getInteger("r"));
+        cubeTest.setI(dataJSON.getInteger("i"));
+
+        datastore.save(cubeTest);
+    }
+
+    private void savePulseReport(EISScube cube, JsonObject dataJSON) {
+        CubeMeter cubeMeter = new CubeMeter();
+        cubeMeter.setCubeID(cube.getId());
+        cubeMeter.setTimestamp(Instant.ofEpochSecond(dataJSON.getInteger("ts")));
+        cubeMeter.setValue(dataJSON.getDouble("v"));
+        cubeMeter.setType("p"); // count pulses
+
+        datastore.save(cubeMeter);
+    }
+
+
+
     private void doBusinessWithDevice(String deviceID, JsonObject dataJSON) {
-        Query<LORAcube> q = datastore.find(LORAcube.class);
+        Query<EISScube> q = datastore.find(EISScube.class);
         q.filter(Filters.eq("deviceID", deviceID));
+        q.filter(Filters.eq("deviceType", "l"));
 
         vertx.executeBlocking(op -> {
-            LORAcube cube = q.first();
+            EISScube cube = q.first();
             if (cube != null) {
                 Query<CubeReport> qr = datastore.find(CubeReport.class);
                 qr.filter(Filters.eq("cubeID", cube.getId()));
@@ -258,6 +309,7 @@ public class EventRoute implements Handler<RoutingContext> {
                     // do "pulses" report
                     if (cr.getType().equalsIgnoreCase("p")) {
                         String work_mode = dataJSON.getString("Work_mode");
+/*
                         if (work_mode != null && work_mode.equalsIgnoreCase("Count mode 1")) { // MOD 3
                             Double lastCounter1 = cube.getLastCounter1();
                             if (lastCounter1 == null) { // start to count from 0
@@ -293,6 +345,7 @@ public class EventRoute implements Handler<RoutingContext> {
                                 }
                             }
                         }
+*/
                     }
                 }
 
