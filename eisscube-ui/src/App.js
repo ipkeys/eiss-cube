@@ -1,7 +1,7 @@
 import React, { useEffect, Fragment }from 'react';
 import { Admin, Resource } from 'react-admin';
 import { Route } from 'react-router-dom';
-import { createMuiTheme } from '@material-ui/core/styles';
+import { createTheme } from '@material-ui/core/styles';
 
 import cubeLayout from './Layout';
 import DevelopmentLogin from './Layout/Login';
@@ -14,7 +14,7 @@ import { ReportIcon, ReportList, ReportShow } from './reports';
 
 import { development, authProvider, dataProvider, i18nProvider } from './providers';
 
-const theme = createMuiTheme({
+const theme = createTheme({
     sidebar: {
         width: 150
     },

@@ -330,15 +330,15 @@ export const CommandCreate = withStyles(styles)(
                 <FormDataConsumer>
                 {({ formData, ...rest }) => checkCommandForInputCount(formData.command) &&
                     <Fragment>
-                        <SelectInput style={{ marginRight: 16 }} formClassName={classes.inline} label='Transition' source='transition' choices={edges} validate={required()} />
-                        <NumberInput formClassName={classes.inline} label='Cycle (sec)' source='completeCycle' step={'1'} />
+                        <SelectInput style={{ marginRight: 16 }} formClassName={classes.inline} label='Transition' source='transition' choices={edges} validate={required()} {...rest} />
+                        <NumberInput formClassName={classes.inline} label='Cycle (sec)' source='completeCycle' step={'1'} {...rest} />
                     </Fragment>
                 }
                 </FormDataConsumer>
 
                 <FormDataConsumer>
                 {({ formData, ...rest }) => checkCommandForInputCycle(formData.command) &&
-                    <SelectInput label='Transition' source='transition' choices={edges} validate={required()} />
+                    <SelectInput label='Transition' source='transition' choices={edges} validate={required()} {...rest} />
                 }
                 </FormDataConsumer>
 
