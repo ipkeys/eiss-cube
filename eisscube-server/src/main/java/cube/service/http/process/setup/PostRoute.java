@@ -79,12 +79,8 @@ public class PostRoute implements Handler<RoutingContext> {
         }
 
         vertx.executeBlocking(op -> {
-            UpdateResult result = q.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute(new UpdateOptions().upsert(TRUE));
-            if (result.getModifiedCount() == 1) {
-                op.complete(gson.toJson(setup));
-            } else {
-                op.fail(String.format("Unable to create/update setup for EISScube: %s", setup.getCubeID()));
-            }
+            q.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute(new UpdateOptions().upsert(TRUE));
+            op.complete(gson.toJson(setup));
         }, res -> {
             if (res.succeeded()) {
                 response.putHeader(CONTENT_TYPE, APPLICATION_JSON)

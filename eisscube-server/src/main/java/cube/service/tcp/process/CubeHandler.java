@@ -457,7 +457,7 @@ public class CubeHandler implements Handler<NetSocket> {
             op.complete();
         }, res -> {
             if (res.succeeded()) {
-                log.info("DeviceID: {} is OFFLINE", res.result());
+                log.info(String.valueOf(res.result()));
             } else {
                 log.error(res.cause().getMessage());
             }

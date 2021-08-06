@@ -21,6 +21,7 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 
 import javax.inject.Inject;
 import javax.ws.rs.POST;
@@ -148,7 +149,6 @@ public class EventRoute implements Handler<RoutingContext> {
             // use combination of port & data and use timestamp from server
             Integer port = json.getInteger("fPort");
             String data = json.getString("objectJSON");
-            Instant ts = Instant.parse(json.getString("publishedAt")).truncatedTo(SECONDS);
 
             if (port == 2) { // STATUS report
                 if (data != null && !data.isEmpty()) {
@@ -165,12 +165,13 @@ public class EventRoute implements Handler<RoutingContext> {
             if (port == 4) { // ICC report
                 if (data != null && !data.isEmpty()) {
                     JsonObject dataJSON = new JsonObject(data);
-                    //doBusinessWithDevice(deviceID, dataJSON);
+                    saveCycleReport(cube, dataJSON);
                 }
             }
             if (port == 5) { // TEST report
                 if (data != null && !data.isEmpty()) {
                     JsonObject dataJSON = new JsonObject(data);
+                    Instant ts = Instant.parse(json.getString("publishedAt")).truncatedTo(SECONDS);
                     dataJSON.put("ts", ts);
 
                     saveTestReport(cube, dataJSON);
@@ -238,6 +239,57 @@ public class EventRoute implements Handler<RoutingContext> {
         datastore.save(cubeMeter);
     }
 
+    private void saveCycleReport(EISScube cube, JsonObject dataJSON) {
+        Instant ts = Instant.ofEpochSecond(dataJSON.getInteger("ts"));
+        Double v = dataJSON.getDouble("dur");
+
+        Query<CubeMeter> qm = datastore.find(CubeMeter.class);
+        qm.filter(
+            Filters.and(
+                Filters.eq("cubeID", cube.getId()),
+                Filters.eq("timestamp", ts)
+            )
+        );
+
+        List<UpdateOperator> updates = new ArrayList<>();
+
+        updates.add(UpdateOperators.set("type", "c"));
+        updates.add(UpdateOperators.setOnInsert(Map.of("cubeID", cube.getId())));
+        updates.add(UpdateOperators.setOnInsert(Map.of("timestamp", ts)));
+        if (v > -1) { // interval is finished - set value = dur, if -1 - do not save it
+            updates.add(UpdateOperators.set("value", v)); // do not update timestamp
+        }
+
+        qm.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute(new UpdateOptions().upsert(true));
+
+        if (v > -1) { // after update of interval - fix the previous record
+            fixNotFinishedCycleReport(cube.getId()); // finish unfinished interval - set to 1 minute
+        }
+    }
+
+    private void fixNotFinishedCycleReport(ObjectId cubeID) {
+        vertx.executeBlocking(op -> {
+            Query<CubeMeter> q = datastore.find(CubeMeter.class);
+            q.filter(
+                Filters.and(
+                    Filters.eq("cubeID", cubeID),
+                    Filters.eq("type", "c"),
+                    Filters.exists("value").not()
+                )
+            );
+
+            UpdateOperator upd = UpdateOperators.set("value", 60);
+            q.update(upd).execute();
+
+            op.complete();
+        }, res -> {
+            if (res.succeeded()) {
+                log.info(String.valueOf(res.result()));
+            } else {
+                log.error(res.cause().getMessage());
+            }
+        });
+    }
 
 
     private void doBusinessWithDevice(String deviceID, JsonObject dataJSON) {
