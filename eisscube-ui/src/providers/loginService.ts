@@ -1,4 +1,4 @@
-import { setApplication } from '../App';
+import { redirectLogin } from '../App';
 import ActivityTimeout from './timeoutService';
 import TokenManager from './tokenManager';
 
@@ -8,11 +8,11 @@ export default class LoginService {
 
     constructor(tokenManager: TokenManager) {
         this.tokenManager = tokenManager;
-        this.activityTimeout = new ActivityTimeout(this, tokenManager);
+        this.activityTimeout = new ActivityTimeout(tokenManager, this.logout, this.getUser() !== null);
     }
 
     // This function is for development
-    login = ({username, password}: any) => {
+    login = ({ username, password }: { username: string; password: string }) => {
         this.activityTimeout.start();
         return this.tokenManager.login(username, password);
     };
@@ -20,7 +20,7 @@ export default class LoginService {
     logout = () => {
         this.tokenManager.removeToken();
         this.activityTimeout.cancel();
-        setApplication();
+        redirectLogin();
     };
 
     getUser = () => {
@@ -33,10 +33,6 @@ export default class LoginService {
             return null;
         }
     };
-
-    getToken = () => {
-        return this.tokenManager.getToken();
-    }
 
 }
 

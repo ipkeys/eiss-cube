@@ -25,7 +25,7 @@ function YearPicker({classes, date, onChange}) {
 		<DatePicker className={classes.date}
 			autoOk
 			variant='inline'
-			views={["year"]}
+			views={['year']}
 			label={false}
 			disableFuture={true}
 			value={value}

@@ -46,7 +46,7 @@ class Settings extends Component {
                             label={property.label} 
                             helperText={property.description}
                             margin='normal'
-                            validate={[maxLength(50)]}
+                            validate={maxLength(50)}
                         />
                     </FormGroup>
                 ))}

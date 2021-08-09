@@ -1,5 +1,3 @@
-import { redirectLogin } from '../App';
-import LoginService from './loginService';
 import TokenManager from './tokenManager';
 
 // The amount of time between checks
@@ -24,36 +22,32 @@ document.addEventListener("keypress", () => {
  * This checks for user activity and logs the user out when inactive
  */
 export default class ActivityTimeout {
-    interval: number;
-    loginService: LoginService;
-    tokenManager: TokenManager;
+    private interval: number;
+    private logout: () => void;
+    private tokenManager: TokenManager;
 
-    constructor(loginService: LoginService, tokenManager: TokenManager) {
-        this.loginService = loginService;
+    constructor(tokenManager: TokenManager, logout: () => void, loggedin: boolean) {
         this.tokenManager = tokenManager;
+        this.logout = logout;
 
-        if (loginService.getUser()) {
+        if (loggedin) {
             this.start();
         }
     }
 
     start = () => {
         this.interval = window.setInterval(this.checkIdleTime, CHECK_DURATION * 1000);
-    }
+    };
 
     cancel = () => {
         clearInterval(this.interval);
-    }
+    };
 
     checkIdleTime = () => {
         _idleCounter++;
         const timeoutDuration = this.tokenManager.getTimeoutDuration();
-        if (timeoutDuration === null ||
-            _idleCounter * CHECK_DURATION >= Number(timeoutDuration) * 60
-        ) {
-            this.loginService.logout();
-            redirectLogin();
+        if (timeoutDuration === null || _idleCounter * CHECK_DURATION >= Number(timeoutDuration) * 60) {
+            this.logout();
         }
-    }
-
+    };
 }

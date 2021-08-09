@@ -7,12 +7,14 @@ import {
 	ReferenceField,
 	TextField,
 	ShowButton,
+	SelectInput,
 	ReferenceInput,
 	AutocompleteInput,
 	Show,
 	SimpleShowLayout,
 } from 'react-admin';
 import { withStyles } from '@material-ui/core/styles';
+import { isSuperAdmin } from '../App';
 
 import Icon from '@material-ui/icons/BarChart';
 
@@ -39,9 +41,17 @@ const ReportListTitle = ({title, record}) => (
 
 const ReportListFilter = props => (
 	<Filter {...props}>
-		<ReferenceInput label='from EISS™Cube' source='cubeID' reference='cubes'>
-			<AutocompleteInput optionText='name'/>
-		</ReferenceInput>
+		{isSuperAdmin(props.permissions) ? 
+            <ReferenceInput
+                source='group_id'
+                reference='grps'
+                sort={{ field: 'displayName', order: 'ASC' }}
+                allowEmpty
+            >
+                <AutocompleteInput optionText='displayName' />
+            </ReferenceInput>
+        : null }
+		<SelectInput label='Report type' source='type' margin='dense' choices={types} />
 	</Filter>
 );
 
@@ -59,6 +69,14 @@ export const ReportList = withStyles(styles)(
 				<ReferenceField label='EISS™Cube' source='cubeID' reference='cubes' link='show'>
                     <TextField source='name' />
                 </ReferenceField>
+
+				{isSuperAdmin(p) ?
+					<ReferenceField source='group_id' label='Group' reference='grps' link={false} allowEmpty={true} >
+						<TextField source='displayName' />
+					</ReferenceField>
+				: 
+					null
+				}
 				<FunctionField label='Report type' sortBy='type'
 					render={ rd => types.find(r => r.id === rd.type).name }
 				/>

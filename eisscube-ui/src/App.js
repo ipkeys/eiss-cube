@@ -1,20 +1,20 @@
-import React, { Fragment }from 'react';
+import React, { useEffect, Fragment }from 'react';
 import { Admin, Resource } from 'react-admin';
 import { Route } from 'react-router-dom';
-import { createMuiTheme } from '@material-ui/core/styles';
+import { createTheme } from '@material-ui/core/styles';
 
 import cubeLayout from './Layout';
-import Login from './Layout/Login';
+import DevelopmentLogin from './Layout/Login';
+
 import { Dashboard } from './dashboard';
 import { EissCubesIcon, EissCubesList, EissCubesShow, EissCubesEdit } from './cubes';
-import { LoraCubesIcon, LoraCubesList, LoraCubesShow, LoraCubesEdit } from './lora';
 import { CommandIcon, CommandList, CommandShow, CommandCreate } from './commands';
 import { PropertyIcon, PropertyList, PropertyEdit, PropertyCreate } from './properties';
 import { ReportIcon, ReportList, ReportShow } from './reports';
 
 import { development, authProvider, dataProvider, i18nProvider } from './providers';
 
-const theme = createMuiTheme({
+const theme = createTheme({
     sidebar: {
         width: 150
     },
@@ -43,21 +43,26 @@ const theme = createMuiTheme({
     }
 });
 
-export const setApplication = () => (
-    sessionStorage.setItem("application", "/ui/cube/")
-);
-
 export const redirectLogin = () => {
-    setApplication();
-    window.location.href = "/ui/login/";
-    return <Fragment />;
+	sessionStorage.setItem("application", "/ui/cube/")
+	if (!development) window.location.href = "/ui/login/";
+    else window.location.href = '/#/login';
+
+
 }
 
 export const redirectHome = () => {
-    sessionStorage.removeItem("application");
-    window.location.href = "/ui/home/";
-    return <Fragment />;
+	sessionStorage.removeItem("application");
+	if (!development) window.location.href = "/ui/home/";
 }
+
+const Login = () => {
+	useEffect(() => {
+        redirectLogin();
+    }, []);
+    return <></>;
+}
+
 
 export const profile = () => {
     window.location.href = '/ui/users/#profile';
@@ -80,7 +85,7 @@ const customRoutes = [
 ];
   
 const App = () => (
-	<Admin
+	<Admin disableTelemetry
         theme={ theme }
         i18nProvider={ i18nProvider }
         authProvider={ authProvider }
@@ -89,10 +94,10 @@ const App = () => (
         layout={ cubeLayout }
         dashboard={ Dashboard }
         /* Prevents infinite loop in development*/
-        {...(development ? {loginPage: Login}: {loginPage: redirectLogin} )}
+        {...(development ? {loginPage: DevelopmentLogin}: {loginPage: Login} )}
     >
         {permissions => [
-        <Resource name="groups" />,
+        <Resource name="grps" />,
         <Resource name="meters" />,
 		<Resource options={{ label: 'EISS™Cubes' }}
 			name="cubes"
@@ -100,13 +105,6 @@ const App = () => (
             list={ EissCubesList }
             show={ EissCubesShow }
             edit={ EissCubesEdit }
-		/>,
-		<Resource options={{ label: 'LoRa™Cubes' }}
-			name="lora"
-			icon={ LoraCubesIcon }
-            list={ LoraCubesList }
-            show={ LoraCubesShow }
-            edit={ LoraCubesEdit }
 		/>,
 		<Resource options={{ label: 'Commands' }}
 			name="commands"

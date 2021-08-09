@@ -52,7 +52,7 @@ class RebootButton extends Component {
         this.setState({ showDialog: false });
 
         dataProvider(CREATE, 'commands', {
-            data: { cubeID: record.id, command: 'reboot' }
+            data: { cubeID: record.id, command: 'reboot', deviceType: 'e' }
         })
         .then(() => {
             showNotification('Reboot in process... Wait 1 minute and check the status!', 'warning');

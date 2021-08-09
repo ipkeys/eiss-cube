@@ -10,6 +10,7 @@ import {
     ReferenceField,
     ReferenceInput,
     SelectInput,
+    AutocompleteInput,
     ShowButton,
     Show,
     DateField,
@@ -28,6 +29,7 @@ import { withStyles } from '@material-ui/core/styles';
 import { green, red } from '@material-ui/core/colors';
 
 import { AppDateTimeFormat, DateTimeMomentFormat, isSuperAdmin } from '../App';
+import DeviceTypeField from './DeviceTypeField';
 import StatusField from './StatusField';
 import CubeMap from './CubeMap';
 import EissCubesShowActions from './ShowActions';
@@ -85,13 +87,8 @@ const EissCubesListFilter = props => (
             { id: false, name: 'OFFLINE' }
         ]} />
         {isSuperAdmin(props.permissions) ? 
-            <ReferenceInput
-                source="group_id"
-                reference="groups"
-                sort={{ field: 'displayName', order: 'ASC' }}
-                allowEmpty
-            >
-                <SelectInput optionText='displayName' />
+            <ReferenceInput source="group_id" reference="grps" sort={{ field: 'displayName', order: 'ASC' }} allowEmpty >
+                <AutocompleteInput optionText='displayName' />
             </ReferenceInput>
         : null }
     </Filter>
@@ -115,7 +112,7 @@ export const EissCubesList = withStyles(styles)(
                 <Responsive
                     small={
                         <SimpleList
-                            linkType="show"
+                            linkType='show'
                             primaryText={record => record.name}
                             secondaryText={record => record.online === true ? <span style={{ color: green[500] }}>ONLINE</span> : <span style={{ color: red[500] }}>OFFLINE</span>}
                         />
@@ -124,12 +121,13 @@ export const EissCubesList = withStyles(styles)(
                         <Datagrid classes={{ rowEven: classes.rowEven }} >
                             <TextField source='name' label='Name' />
                             {isSuperAdmin(p) ?
-                                <ReferenceField source="group_id" label="Group" reference="groups" link={false} allowEmpty={true} >
-                                    <TextField source="displayName" />
+                                <ReferenceField source='group_id' label='Group' reference='grps' link={false} allowEmpty={true} >
+                                    <TextField source='displayName' />
                                 </ReferenceField>
                             : 
                                 null
                             }
+                            <DeviceTypeField source='deviceType' label='Type' />
                             <StatusField source='online' label='Status' />
                             <DateField source='timeStarted' label='Started' showTime options={AppDateTimeFormat} />
                             <DateField source='lastPing' label='Last ping' showTime options={AppDateTimeFormat} />
@@ -154,30 +152,30 @@ export const EissCubesShow = withStyles(styles)(
     )
 );
   
-const validateICCID = [maxLength(20)];
-const validateName = [maxLength(50)];
+const validateName = maxLength(50);
 
 export const EissCubesEdit = withStyles(styles)(
     ({ classes, permissions: p, ...props }) => (
-        <Edit  
+        <Edit
             title={<EissCubesTitle title='Edit EISS™Cube -' />}
             {...props}
         >
             <TabbedForm>
                 <FormTab label='identity'>
+                <TextInput disabled label='ID' source='deviceID' className={classes.longText} />
+                <TextInput label='Name' source='name' formClassName={classes.inline} validate={validateName} />
                     {isSuperAdmin(p) ?
                         <ReferenceInput 
                             sort={{ field: 'displayName', order: 'ASC' }}
                             source="group_id" 
-                            reference="groups"
+                            reference="grps"
+                            formClassName={classes.inline}
                         >
-                            <SelectInput optionText='displayName' />
+                            <AutocompleteInput optionText='displayName' formClassName={classes.inline} />
                         </ReferenceInput>
                     : 
                         null
                     }
-                    <TextInput disabled label='ICCID' source='deviceID' className={classes.longText} validate={validateICCID} />
-                    <TextInput label='Name' source='name' className={classes.longText} validate={validateName}/>
                 </FormTab>
                 <FormTab label='customer'>
                     <TextInput label='Customer ID' source='customerID' className={classes.longText} />
