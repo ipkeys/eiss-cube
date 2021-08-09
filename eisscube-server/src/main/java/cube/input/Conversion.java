@@ -12,7 +12,7 @@ import cube.models.AggregatedMeterData;
 import cube.models.CubeMeter;
 import dev.morphia.query.FindOptions;
 import dev.morphia.query.Query;
-import dev.morphia.query.internal.MorphiaCursor;
+import dev.morphia.query.MorphiaCursor;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
@@ -30,7 +30,7 @@ import java.util.Optional;
 import static dev.morphia.aggregation.experimental.expressions.AccumulatorExpressions.sum;
 import static dev.morphia.aggregation.experimental.expressions.Expressions.field;
 import static dev.morphia.aggregation.experimental.stages.Group.id;
-import static dev.morphia.aggregation.experimental.stages.Sort.on;
+import static dev.morphia.aggregation.experimental.stages.Sort.sort;
 import static dev.morphia.query.experimental.filters.Filters.eq;
 import static dev.morphia.query.experimental.filters.Filters.gte;
 import static dev.morphia.query.experimental.filters.Filters.lt;
@@ -93,8 +93,8 @@ public class Conversion {
 				gte("timestamp", from),
 				lt("timestamp", to)
 			)
-			.sort(on().ascending("timestamp"))
-			.project(Projection.of()
+			.sort(sort().ascending("timestamp"))
+			.project(Projection.project()
 				.include("value")
 				.include("minutely",
 					new Expression("$dateFromParts", new Document()
@@ -118,7 +118,7 @@ public class Conversion {
 				)
 			)
 			.group(
-				Group.of(id(field("minutely"))).field("value", sum(field("value")))
+				Group.group(id(field("minutely"))).field("value", sum(field("value")))
 			)
 			.execute(AggregatedMeterData.class);
 
@@ -171,8 +171,8 @@ public class Conversion {
 				gte("timestamp", from),
 				lt("timestamp", to)
 			)
-			.sort(on().ascending("timestamp"))
-			.project(Projection.of()
+			.sort(sort().ascending("timestamp"))
+			.project(Projection.project()
 				.include("value")
 				.include("hourly",
 					new Expression("$dateFromParts", new Document()
@@ -184,7 +184,7 @@ public class Conversion {
 				)
 			)
 			.group(
-				Group.of(id(field("hourly"))).field("value", sum(field("value")))
+				Group.group(id(field("hourly"))).field("value", sum(field("value")))
 			)
 			.execute(AggregatedMeterData.class);
 

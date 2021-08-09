@@ -1,7 +1,5 @@
-
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
 import eiss.cube.config.ConfigModule;
 import eiss.cube.service.app.Application;
 import eiss.cube.service.tcp.TcpModule;
