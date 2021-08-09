@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'eiss-cube'
-version '3.3.12'
+version '3.3.16'
 
 application {
     mainClass.set('cube.app.Launcher')
