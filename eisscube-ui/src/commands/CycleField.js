@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import get from 'lodash/get';
-import pure from 'recompose/pure';
 import { Labeled } from 'react-admin';
 import Typography from '@material-ui/core/Typography';
 
@@ -29,10 +28,9 @@ CycleField.propTypes = {
 };
 
 CycleField.displayName = 'CycleField';
-const PureCycleField = pure(CycleField);
 
-PureCycleField.defaultProps = {
+CycleField.defaultProps = {
     addLabel: true,
 };
 
-export default PureCycleField;
+export default CycleField;

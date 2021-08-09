@@ -22,7 +22,6 @@ const styles = theme => ({
 });
 
 const durations = [
-	{ value: 20, label: '20 seconds'},
 	{ value: 60, label: '1 minute'},
 	{ value: 120, label: '2 minutes'},
 	{ value: 180, label: '3 minutes'}
@@ -30,7 +29,7 @@ const durations = [
 
 class SelectDuration extends Component {
 	state = {
-		duration: 20,
+		duration: 60,
 	};
 
 	handleChange = name => event => {

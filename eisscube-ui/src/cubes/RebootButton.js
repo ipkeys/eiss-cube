@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
-import compose from 'recompose/compose';
+import compose from 'lodash/flowRight';
+//import compose from 'recompose/compose';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -51,7 +52,7 @@ class RebootButton extends Component {
         this.setState({ showDialog: false });
 
         dataProvider(CREATE, 'commands', {
-            data: { cubeID: record.id, command: 'reboot' }
+            data: { cubeID: record.id, command: 'reboot', deviceType: 'e' }
         })
         .then(() => {
             showNotification('Reboot in process... Wait 1 minute and check the status!', 'warning');

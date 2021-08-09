@@ -108,7 +108,7 @@ export const PropertyEdit = withStyles(styles)(
             <SimpleForm redirect='list'>
                 <TextInput label='Name' source='name' validate={validateValue} formClassName={classes.inline} />
                 <TextInput label='Label' source='label' validate={validateValue} formClassName={classes.inline} />
-                <TextInput label='Description' source='description' validate={[maxLength(50)]} className={classes.longText} />
+                <TextInput label='Description' source='description' validate={maxLength(50)} className={classes.longText} />
             </SimpleForm>
         </Edit>
     )
@@ -123,7 +123,7 @@ export const PropertyCreate = withStyles(styles)(
             <SimpleForm redirect='list'>
                 <TextInput label='Name' source='name' validate={validateValue} formClassName={classes.inline} />
                 <TextInput label='Label' source='label' validate={validateValue} formClassName={classes.inline} />
-                <TextInput label='Description' source='description' validate={[maxLength(50)]} className={classes.longText} />
+                <TextInput label='Description' source='description' validate={maxLength(50)} className={classes.longText} />
             </SimpleForm>
         </Create>
     )

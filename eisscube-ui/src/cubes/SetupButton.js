@@ -67,7 +67,7 @@ class SetupButton extends Component {
 					</DialogTitle>
 					
 					<DialogContent className={classes.content}>
-                        <SetupCube cubeID={record.id} />
+                        <SetupCube cubeID={record.id} deviceType={record.deviceType} />
 					</DialogContent>
 
 					<DialogActions>

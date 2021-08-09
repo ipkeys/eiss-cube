@@ -79,7 +79,7 @@ class CubeMap extends Component {
                 onDragend={this.updatePosition}
                 position={[location.lat, location.lng]}
                 icon={blueMarker}
-                ref="marker"
+                ref='marker'
             >
                 <Popup minWidth={200} open>
                     <span>
@@ -108,19 +108,19 @@ class CubeMap extends Component {
                 length={4}
                 center={[location.lat, location.lng]}
                 zoom={15}
-                ref="map"
+                ref='map'
             >
-                <LayersControl position="topright">
-                    <BaseLayer checked name="Color">
+                <LayersControl position='topright'>
+                    <BaseLayer checked name='Color'>
                         <TileLayer
-                            attribution="&amp;copy <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            attribution='&amp;copy <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors'
+                            url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
                         />
                     </BaseLayer>
-                    <BaseLayer name="Black And White">
+                    <BaseLayer name='Black And White'>
                         <TileLayer
-                            attribution="&amp;copy <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
-                            url="http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png"
+                            attribution='&amp;copy <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors'
+                            url='http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png'
                         />
                     </BaseLayer>
                     {marker}

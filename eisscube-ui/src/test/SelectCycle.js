@@ -22,7 +22,6 @@ const styles = theme => ({
 });
 
 const cycles = [
-	{ value: 5, label: '5 seconds'},
 	{ value: 10, label: '10 seconds'},
 	{ value: 15, label: '15 seconds'},
 	{ value: 30, label: '30 seconds'}
@@ -30,7 +29,7 @@ const cycles = [
 
 class SelectCycle extends Component {
 	state = {
-		cycle: 5,
+		cycle: 10,
 	};
 
 	handleChange = name => event => {

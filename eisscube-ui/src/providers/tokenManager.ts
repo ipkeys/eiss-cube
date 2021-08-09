@@ -99,7 +99,7 @@ class TokenManager {
         if (!this.tokenData) {
             this.readTokenData();
         }
-        return this.tokenData ? this.tokenData!.user : null;
+        return this.tokenData ? this.tokenData.user : null;
     };
 
     getGroup = () => {
@@ -228,7 +228,7 @@ class TokenManager {
 
     login = (username: string, password: string) => {
         return new Promise((resolve, reject) => {
-            let device = guid();
+            const device = guid();
             axios.post(
                 this.tokenUrl, 
                 {username, password, device}, 

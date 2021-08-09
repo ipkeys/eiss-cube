@@ -22,7 +22,8 @@ import {
     ShowController,
     ShowView,
     SearchInput,
-    required
+    required,
+    useRefresh
 } from 'react-admin';
 import find from 'lodash/find';
 import jsonExport from 'jsonexport/dist';
@@ -36,6 +37,7 @@ import CycleAndDutyCycleInput from './CycleAndDutyCycleInput';
 import CommandStatusField from './CommandStatusField';
 import { DateTimeFilterInput, DateTimeFormInput } from './DateTimePickerInput';
 import moment from 'moment';
+import useRecursiveTimeout from '../useRecursiveTimeout';
 
 export const CommandIcon = Icon;
 
@@ -59,7 +61,7 @@ const styles = theme => ({
         minWidth: theme.spacing(64)   
     }
 });
-  
+
 const cmds = [
     { id: 'ron', name: 'Relay ON' },
     { id: 'roff', name: 'Relay OFF' },
@@ -92,12 +94,12 @@ const CommandFilter = props => (
         </ReferenceInput>
         {isSuperAdmin(props.permissions) ? 
             <ReferenceInput 
-                source="group_id"
-                reference="groups"
+                source='group_id'
+                reference='grps'
                 sort={{ field: 'displayName', order: 'ASC' }}
                 allowEmpty
             >
-                <SelectInput optionText='displayName' />
+                <AutocompleteInput optionText='displayName' />
             </ReferenceInput>
         : null }
         <DateTimeFilterInput label='Created Before' source='timestamp_lte' 
@@ -141,33 +143,38 @@ const exportCommandList = data => {
 };
 
 export const CommandList = withStyles(styles)(
-    ({ classes, permissions: p, ...props }) => (
-        <List  
-            title={<CommandTitle title='Commands' />}
-            filters={<CommandFilter permissions={p} />}
-            sort={{ field: 'created', order: 'DESC' }}
-            perPage={10}
-            exporter={exportCommandList}
-            {...props}
-        >
-            <Datagrid classes={{ rowEven: classes.rowEven }} >
-                <SelectField label='Command' source='command' choices={cmds} />
-                <ReferenceField label='for EISS™Cube' source='cubeID' reference='cubes' link='show'>
-                    <TextField source='name' />
-                </ReferenceField>
-                {isSuperAdmin(p)
-                ?   <ReferenceField source="group_id" label="Group" reference="groups" link={false} allowEmpty={true} >
-                        <TextField source="displayName" />
+    ({ classes, permissions: p, ...props }) => {
+        const refresh = useRefresh();
+        useRecursiveTimeout(() => refresh(), 10000);
+
+        return (
+            <List  
+                title={<CommandTitle title='Commands' />}
+                filters={<CommandFilter permissions={p} />}
+                sort={{ field: 'created', order: 'DESC' }}
+                perPage={10}
+                exporter={exportCommandList}
+                {...props}
+            >
+                <Datagrid classes={{ rowEven: classes.rowEven }} >
+                    <SelectField label='Command' source='command' choices={cmds} />
+                    <ReferenceField label='for EISS™Cube' source='cubeID' reference='cubes' link='show'>
+                        <TextField source='name' />
                     </ReferenceField>
-                : 
-                    null
-                }
-                <DateField label='Created' source='created' showTime options={AppDateTimeFormat} />
-                <CommandStatusField source='status' />
-                <ShowButton />
-            </Datagrid>
-        </List>
-    )
+                    {isSuperAdmin(p)
+                    ?   <ReferenceField source='group_id' label='Group' reference='grps' link={false} allowEmpty={true} >
+                            <TextField source='displayName' />
+                        </ReferenceField>
+                    : 
+                        null
+                    }
+                    <DateField label='Created' source='created' showTime options={AppDateTimeFormat} />
+                    <CommandStatusField source='status' />
+                    <ShowButton />
+                </Datagrid>
+            </List>
+        );
+    }
 );
 
 export const CommandShow = withStyles(styles)(
@@ -189,8 +196,8 @@ export const CommandShow = withStyles(styles)(
                         </ReferenceField>
 
                         {isSuperAdmin(p)
-                        ?   <ReferenceField className={classes.inlineField} source="group_id" label="Group" reference="groups" link={false} allowEmpty={true} >
-                                <TextField source="displayName" />
+                        ?   <ReferenceField className={classes.inlineField} source='group_id' label='Group' reference='grps' link={false} allowEmpty={true} >
+                                <TextField source='displayName' />
                             </ReferenceField>
                         : 
                             null
@@ -303,11 +310,11 @@ export const CommandCreate = withStyles(styles)(
         >
             <SimpleForm validate={ validateCommandCreation } redirect='list'>
 
-                <ReferenceInput label='for EISS™Cube' source='cubeID' reference='cubes' validate={[ required() ]} >
+                <ReferenceInput label='Device name' source='cubeID' reference='cubes' validate={required()} >
                     <AutocompleteInput optionText='name'/>
                 </ReferenceInput>
 
-                <SelectInput label='Command' source='command' choices={cmds.filter(function(value, index, arr){ return value.id !== 'reboot';})} validate={[ required() ]} />
+                <SelectInput label='Command' source='command' choices={cmds.filter(function(value, index, arr){ return value.id !== 'reboot';})} validate={required()} />
 
                 <FormDataConsumer>
                 {({ formData, ...rest }) => checkCommandForRelayCycle(formData.command) &&
@@ -316,14 +323,14 @@ export const CommandCreate = withStyles(styles)(
                             margin: 'dense',
                             variant: 'filled'
                         }} 
-                    {...rest} />
+                    />
                  }
                 </FormDataConsumer>
 
                 <FormDataConsumer>
                 {({ formData, ...rest }) => checkCommandForInputCount(formData.command) &&
                     <Fragment>
-                        <SelectInput style={{ marginRight: 16 }} formClassName={classes.inline} label='Transition' source='transition' choices={edges} {...rest} validate={[ required() ]} />
+                        <SelectInput style={{ marginRight: 16 }} formClassName={classes.inline} label='Transition' source='transition' choices={edges} validate={required()} {...rest} />
                         <NumberInput formClassName={classes.inline} label='Cycle (sec)' source='completeCycle' step={'1'} {...rest} />
                     </Fragment>
                 }
@@ -331,7 +338,7 @@ export const CommandCreate = withStyles(styles)(
 
                 <FormDataConsumer>
                 {({ formData, ...rest }) => checkCommandForInputCycle(formData.command) &&
-                    <SelectInput label='Transition' source='transition' choices={edges} {...rest} validate={[ required() ]} />
+                    <SelectInput label='Transition' source='transition' choices={edges} validate={required()} {...rest} />
                 }
                 </FormDataConsumer>
 
@@ -342,12 +349,11 @@ export const CommandCreate = withStyles(styles)(
                         format: DateTimeMomentFormat, 
                         ampm: false,
                         margin: 'dense',
-						inputVariant: 'filled', 
+                        inputVariant: 'filled', 
                         clearable: true,
                         disablePast: true
-                    }} 
+                    }}
                 />
-
                 <DateTimeFormInput formClassName={classes.inline}
                     label='End Date, Time' 
                     source='endTime' 
@@ -355,7 +361,7 @@ export const CommandCreate = withStyles(styles)(
                         format: DateTimeMomentFormat, 
                         ampm: false,
                         margin: 'dense',
-						inputVariant: 'filled', 
+                        inputVariant: 'filled', 
                         clearable: true,
                         disablePast: true
                     }} 
