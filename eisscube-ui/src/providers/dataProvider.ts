@@ -215,7 +215,7 @@ export default class DataProvider {
                 const message = processError(error);
                 if (message === "eiss.auth.expired") {
                     this.logout();
-                    return reject(new HttpError("", 401));
+                    return reject(new HttpError("ra.notification.logged_out", 401));
                 } else {
                     return reject(new HttpError(message, error.response?.status ?? 500));
                 }
@@ -226,17 +226,21 @@ export default class DataProvider {
 };
 
 function processError(error: any, prefix = "eiss") {
+    console.info(error);
     // If no response at all
     let message = `${prefix}.no_response`;
 
     if (error.message === "eiss.no_response") {}
-    else if (error.message === "eiss.auth.expired" || error.message?.toLowerCase() === "token expired") {
+    else if (error.message === "eiss.auth.expired") {
         message = "eiss.auth.expired";
     }
     else if (error.message === "Network Error") {
         message = "axios.error";
     }
     else if (error.response) {
+        if (error.response.status === 401 && error.response.statusText?.toLowerCase() === "token expired") {
+            message = "eiss.auth.expired";
+        }
         if (error.response.status === 404) {
             message = "ra.page.not_found";
         } 
