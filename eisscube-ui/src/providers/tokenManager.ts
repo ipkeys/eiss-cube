@@ -1,200 +1,182 @@
-import axios from 'axios';
-
 // from: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
 function guid() {
     function s4() {
         return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
     }
-    return s4()+s4()+'-'+s4()+'-'+s4()+'-'+s4()+'-'+s4()+s4()+s4();
+    return s4() + s4() + "-" + s4() + "-" + s4() + "-" + s4() + "-" + s4() + s4() + s4();
 }
 
-type TokenData = { 
-    accessToken: string, 
-    tokenExpires: Date, 
-    refreshToken: string, 
-    refreshExpires: Date, 
-    user: string, 
-    group: string, 
-    role: string, 
-    device: string, 
-    timeoutDuration: string
- } | null;
+type TokenData = {
+  accessToken: string;
+  tokenExpires: Date;
+  refreshToken: string | null;
+  refreshExpires: Date;
+  user_id: string;
+  group_id: string;
+  role: string;
+  device: string;
+  timeoutDuration: string;
+} | null;
+
+type Opts = {
+  win?: Window;
+  storage?: Storage;
+  tokenUrl: string;
+  refreshUrl: string;
+  tokenStorageKey?: string;
+}
 
 let win: Window, storage: Storage;
 
-//------------------------------------------------------------------------------
+const RequestHeaders = { 'Content-Type': 'application/json' };
+
+// ------------------------------------------------------------------------------
 // TokenManager - Get, refresh, store and manage tokens.
-//
-// token management and processing functions
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 class TokenManager {
     tokenUrl: string;
     refreshUrl: string;
     tokenStorageKey: string;
-    tokenData: TokenData = null;
+    tokenData: TokenData | null = null;
 
     /**
      * Options are for test purposes:
      * @param win - the window object for location and replace()
      * @param storage - simulate session storage
-    */ 
-    constructor(opts: any) {
+     */
+    constructor(opts: Opts) {
         this.tokenUrl = opts.tokenUrl;
         this.refreshUrl = opts.refreshUrl;
 
         if (!(this.tokenUrl && this.refreshUrl)) {
-            throw new Error('TokenManager missing required option(s)');    
+            throw new Error("TokenManager missing required option(s)");
         }
 
-        this.tokenStorageKey = opts.tokenStorageKey || 'sessionjwt';
+        this.tokenStorageKey = opts.tokenStorageKey || "sessionjwt";
 
-        storage = opts.storage;
-        if (!storage) {
-            if (typeof sessionStorage !== 'undefined') {
+        if (!opts.storage) {
+            if (typeof sessionStorage !== "undefined") {
                 storage = sessionStorage;
             }
+        } else {
+            ({ storage } = opts);
         }
 
-        win = opts.win;
-        if (!win) {
-            if (typeof window !== 'undefined') {
+        if (!opts.win) {
+            if (typeof window !== "undefined") {
                 win = window;
             }
+        } else {
+            ({ win } = opts);
         }
     }
 
-    saveTokenData = (data: any) => {
+    saveToken = (data: TokenData) => {
         storage.setItem(this.tokenStorageKey, JSON.stringify(data));
-    }
+        this.tokenData = data;
+    };
 
     removeToken = () => {
-        if (typeof storage !== 'undefined') {
+        if (typeof storage !== "undefined") {
             storage.removeItem(this.tokenStorageKey);
         }
         this.tokenData = null;
-    }
+    };
 
-    readTokenData = () => {
+    readToken = () => {
+        if (this.tokenData !== null) return this.tokenData;
+
         const data = storage.getItem(this.tokenStorageKey);
-        if (!data) {
-            return;
-        }
-    
+        if (!data) return null;
+
         try {
             this.tokenData = JSON.parse(data);
-            if (this.tokenData === null) return;
-            if (typeof this.tokenData.tokenExpires === 'string') {
-                this.tokenData.tokenExpires = new Date(this.tokenData!.tokenExpires);
+            if (this.tokenData === null) return null;
+            if (typeof this.tokenData.tokenExpires === "string") {
+                this.tokenData.tokenExpires = new Date(this.tokenData.tokenExpires);
             }
-            if (typeof this.tokenData.refreshExpires === 'string') {
+            if (typeof this.tokenData.refreshExpires === "string") {
                 this.tokenData.refreshExpires = new Date(this.tokenData.refreshExpires);
             }
-            return;
         } catch (error) {
             this.tokenData = null;
         }
-    }
-        
-    getUser = () => {
-        if (!this.tokenData) {
-            this.readTokenData();
-        }
-        return this.tokenData ? this.tokenData.user : null;
-    };
 
-    getGroup = () => {
-        if (!this.tokenData) {
-            this.readTokenData();
-        }
-        return this.tokenData ? this.tokenData.group : null;
-    };
-
-    getRole = () => {
-        if (!this.tokenData) {
-            this.readTokenData();
-        }
-        return this.tokenData ? this.tokenData.role : null;
+        return this.tokenData;
     };
 
     getTimeoutDuration = () => {
-        if (!this.tokenData) {
-            this.readTokenData();
-        }
-        return this.tokenData ? this.tokenData.timeoutDuration : null;
-    }
+        const tokenData = this.readToken();
+        return tokenData ? tokenData.timeoutDuration : null;
+    };
 
     getTokenExpiration = () => {
-        if (!this.tokenData) {
-            this.readTokenData();
-        }
-        return this.tokenData ? this.tokenData.tokenExpires : null;
+        const tokenData = this.readToken();
+        return tokenData ? tokenData.tokenExpires : null;
     };
 
     getRefreshExpiration = () => {
-        if (!this.tokenData) {
-            this.readTokenData();
-        }
-        return this.tokenData ? this.tokenData.refreshExpires : null;
+        const tokenData = this.readToken();
+        return tokenData ? tokenData.refreshExpires : null;
     };
 
     // Parse and store the received token data:
     // tokenResponse = { access_token: at, refresh_token: rt, expires: milliseconds }
-    getNewTokenExpiration = (atoken: string) => {
+    getNewTokenExpiration = (tokenData: TokenData) => {
         try {
-            const parts = atoken.split('.');
+            const parts = tokenData?.accessToken.split(".");
+            if (parts === undefined) {
+                return null;    
+            }
             const str = win.atob(parts[1]);
             const token = JSON.parse(str);
-            const tokenExpires = new Date(token.exp * 1000);
-            return tokenExpires;
+            return new Date(token.exp * 1000);
         } catch (err) {
             return null;
         }
-    }
+    };
 
-    getToken = () => {
+    getToken = (): Promise<string> => {
         return new Promise((resolve, reject) => {
-            if (!this.tokenData) {
-                // Try to read token data before rejecting token
-                this.readTokenData();
-    
-                if (!this.tokenData) {
-                    return reject(new Error('expired'));
-                }
+            const tokenData = this.readToken();
+
+            if (tokenData === null) {
+                return reject(new Error("expired"));
             }
-    
-            if (this.tokenData.tokenExpires.getTime() > new Date().getTime()) {
-                return resolve(this.tokenData.accessToken);
+
+            if (tokenData.tokenExpires.getTime() > new Date().getTime()) {
+                return resolve(tokenData.accessToken);
             }
-    
-            if (this.tokenData.refreshExpires.getTime() < new Date().getTime()) {
-                return reject(new Error('expired'));
+
+            if (tokenData.refreshExpires.getTime() < new Date().getTime()) {
+                return reject(new Error("expired"));
             }
-    
-            axios.post(
-                this.refreshUrl, 
-                {refresh_token: this.tokenData.refreshToken, device: this.tokenData.device}, 
-                {headers: {'Content-Type': 'application/json'}}
-            )
-            .then((response) => {
-                if (response?.data?.access_token) {
-                    this.tokenData!.accessToken = response.data.access_token;
-                    const newExpiration = this.getNewTokenExpiration(this.tokenData!.accessToken);
-                    if (newExpiration) {
-                        this.tokenData!.tokenExpires = newExpiration;
-                        this.saveTokenData(this.tokenData);
-                    }
-                    return resolve(this.tokenData!.accessToken);
-                } 
-                else {
-                    return reject(new Error('expired'));
-                }
+
+            // Update refresh token
+            fetch(this.refreshUrl, {
+                method: 'post',
+                headers: RequestHeaders,
+                body: JSON.stringify({ refresh_token: tokenData.refreshToken, device: tokenData.device }) 
             })
-            .catch((error) => reject(error));
+            .then(response => response.json())
+            .then(data => {
+                if (data.access_token) {
+                    tokenData.accessToken = data.access_token;
+                    const newExpiration = this.getNewTokenExpiration(tokenData);
+                    if (newExpiration !== null) {
+                        tokenData.tokenExpires = newExpiration;
+                        this.saveToken(tokenData);
+                    }
+                    return resolve(tokenData.accessToken);
+                }
+                return reject(new Error("expired"));
+            })
+            .catch(error => reject(error));
         });
     };
 
     processToken = (tokenResponse: any, device: string) => {
-        if (!(tokenResponse?.access_token)) {
+        if (!tokenResponse?.access_token) {
             return false;
         }
 
@@ -204,54 +186,60 @@ class TokenManager {
         const refreshExpires = tokenResponse.expires ? new Date(tokenResponse.expires) : new Date();
         const timeoutDuration = tokenResponse.inactivity_duration;
         try {
-            let parts = accessToken.split('.');
+            let parts = accessToken.split(".");
             const str = win.atob(parts[1]);
             const token = JSON.parse(str);
             const tokenExpires = new Date(token.exp * 1000);
-            let user = '';
-            let group = '';
-            parts = token.sub.split('/');
-            if (parts.length === 2) { 
-                group = parts[0]; 
-                user = parts[1]; 
+            let user_id = "";
+            let group_id = "";
+            parts = token.sub.split("/");
+            if (parts.length === 2) {
+                group_id = parts[0];
+                user_id = parts[1];
             }
-            const role = token.scope || '';
-    
-            this.tokenData = { accessToken, tokenExpires, refreshToken, refreshExpires, user, group, role, device, timeoutDuration };
-            this.saveTokenData(this.tokenData);
-    
+            const role = token.scope || "";
+
+            const tokenData = {
+                accessToken,
+                tokenExpires,
+                refreshToken,
+                refreshExpires,
+                user_id,
+                group_id,
+                role,
+                device,
+                timeoutDuration,
+            };
+            this.saveToken(tokenData);
+
             return true;
-        }  catch (err) {
+        } catch (err) {
             return false;
         }
-    }
-
-    login = (username: string, password: string) => {
-        return new Promise((resolve, reject) => {
-            const device = guid();
-            axios.post(
-                this.tokenUrl, 
-                {username, password, device}, 
-                {headers: {'Content-Type': 'application/json'}}
-            )
-            .then(
-                (response) => {
-                    if (response && response.data) {
-                        if (response.data.mfa || response.data.type) {
-                            return resolve({data: response.data, device});
-                        }
-                        else if (!this.processToken(response.data, device)) {
-                            return reject(new Error("eiss.auth.process"));
-                        }
-                        return resolve({});
-                    }
-                    return reject(new Error("eiss.no_response"));
-                },
-                (error) => reject(error)
-            )
-        });
     };
 
+    login = async (username: string, password: string): Promise<{ data: any; device: string } | void> => {
+        return new Promise((resolve, reject) => {
+            const device = guid();
+
+            fetch(this.tokenUrl, {
+                method: 'post',
+                headers: RequestHeaders,
+                body: JSON.stringify({ username, password, device }) 
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.mfa || data.type) {
+                    return resolve({ data, device });
+                } 
+                if (!this.processToken(data, device)) {
+                    return reject(new Error("sf.auth.process"));
+                }
+                return resolve();
+            })
+            .catch(error => reject(error))
+        });
+    };
 }
 
 export default TokenManager;

@@ -1,9 +1,9 @@
 package eiss.http;
 
-import cube.config.ApiUserConfig;
-import cube.config.AppConfig;
-import eiss.config.Config;
-import cube.config.EissCubeConfig;
+import eiss.config.ApiUserConfig;
+import eiss.config.AppConfig;
+import eiss.home.Config;
+import eiss.config.ServerConfig;
 import eiss.jwt.ExpiredTokenException;
 import eiss.jwt.Jwt;
 import eiss.api.ApiBuilder;
@@ -15,9 +15,7 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.*;
-import io.vertx.ext.web.sstore.LocalSessionStore;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
@@ -31,7 +29,7 @@ import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 @Slf4j
 public class Http extends AbstractVerticle {
 
-    private final EissCubeConfig cfg;
+    private final ServerConfig cfg;
     private final ApiUserConfig apiUser;
     private final Router router;
     private final ApiBuilder builder;
@@ -89,7 +87,6 @@ public class Http extends AbstractVerticle {
     private void setupRoutes() {
         router.route()
             .handler(BodyHandler.create())
-            .handler(SessionHandler.create(LocalSessionStore.create(vertx)))
             .handler(CorsHandler.create("*")
                 .allowedMethod(HttpMethod.GET)
                 .allowedMethod(HttpMethod.POST)
@@ -123,10 +120,8 @@ public class Http extends AbstractVerticle {
 
                         if (!user.isEmpty() && user.equals(apiUser.getUsername())) {
                             if (pass != null && !pass.isEmpty() && pass.equals(apiUser.getPassword())) {
-                                // store user and role in session
-                                Session s = context.session();
-
-                                s.put("user", user);
+                                // store user and role in context
+                                context.put("user", user);
 
                                 // Call the next handler
                                 context.next();
@@ -155,12 +150,10 @@ public class Http extends AbstractVerticle {
                                 role.equalsIgnoreCase("operator") ||
                                 role.equalsIgnoreCase("viewer"))
                         {
-                            // store user and role in session
-                            Session s = context.session();
-
-                            s.put("user", jwt.getUser());
-                            s.put("group", jwt.getGroup());
-                            s.put("role", role);
+                            // store user and role in context
+                            context.put("user_id", jwt.getUser_id());
+                            context.put("group_id", jwt.getGroup_id());
+                            context.put("role", role);
 
                             // Call the next handler
                             context.next();

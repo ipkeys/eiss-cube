@@ -4,14 +4,17 @@ plugins {
 }
 
 group 'eiss-cube'
-version '3.3.17'
+version '3.3.18'
 
 application {
-    mainClass.set('cube.app.Launcher')
+    mainClass.set('Launcher')
 }
 
 repositories {
     mavenCentral()
+    maven {
+        url project.file("../../eiss-local-repo")
+    }
 }
 
 java {
@@ -24,24 +27,27 @@ compileJava {
 }
 
 dependencies {
-    compileOnly 'org.projectlombok:lombok:1.18.20'
-    annotationProcessor 'org.projectlombok:lombok:1.18.20'
+    compileOnly 'org.projectlombok:lombok:1.18.22'
+    annotationProcessor 'org.projectlombok:lombok:1.18.22'
 
-    implementation 'io.vertx:vertx-core:4.1.4'
-    implementation 'io.vertx:vertx-web:4.1.4'
-    implementation 'io.vertx:vertx-web-client:4.1.4'
-    implementation 'io.vertx:vertx-auth-common:4.1.4'
-    implementation 'io.netty:netty-transport-native-epoll:4.1.68.Final'
-    implementation 'io.netty:netty-transport-native-kqueue:4.1.68.Final:osx-x86_64'
+    implementation 'eiss:eiss-commons:0.0.2'
+    implementation 'eiss:eiss-models:0.0.3'
+
+    implementation 'io.vertx:vertx-core:4.2.1'
+    implementation 'io.vertx:vertx-web:4.2.1'
+    implementation 'io.vertx:vertx-web-client:4.2.1'
+    implementation 'io.vertx:vertx-auth-common:4.2.1'
+    implementation 'io.netty:netty-transport-native-epoll:4.1.69.Final'
+    implementation 'io.netty:netty-transport-native-kqueue:4.1.69.Final:osx-x86_64'
 
     implementation 'com.google.inject:guice:5.0.1'
-    implementation 'com.google.code.gson:gson:2.8.8'
+    implementation 'com.google.code.gson:gson:2.8.9'
 
     implementation 'net.jmob:guice.conf:1.4.3'
     implementation 'commons-validator:commons-validator:1.7'
 
     implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
-    implementation 'org.reflections:reflections:0.9.12'
+    implementation 'org.reflections:reflections:0.10.2'
     implementation 'javax.servlet:javax.servlet-api:4.0.1'
     implementation 'jakarta.xml.bind:jakarta.xml.bind-api:3.0.1'
     implementation 'com.sun.xml.bind:jaxb-impl:3.0.2'
@@ -50,10 +56,9 @@ dependencies {
     implementation 'ch.qos.logback:logback-core:1.3.0-alpha5'
     implementation 'ch.qos.logback:logback-classic:1.3.0-alpha5'
 
-    implementation 'dev.morphia.morphia:morphia-core:2.2.1'
+    implementation 'dev.morphia.morphia:morphia-core:2.2.2'
 
     compileOnly 'io.jsonwebtoken:jjwt-api:0.11.2'
     implementation 'io.jsonwebtoken:jjwt-impl:0.11.2'
     implementation 'io.jsonwebtoken:jjwt-gson:0.11.2'
-
 }

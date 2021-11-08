@@ -1,0 +1,37 @@
+import { makeStyles, Theme } from '@material-ui/core/styles';
+import Card from '@material-ui/core/Card';
+import CardHeader from '@material-ui/core/CardHeader';
+import Avatar from '@material-ui/core/Avatar';
+import LightBulbIcon from '@material-ui/icons/EmojiObjectsOutlined';
+
+const useStyles = makeStyles((theme: Theme) => ({ 
+    card: { 
+        borderLeft: `solid 4px ${theme.palette.primary.main}`, 
+        flex: 1, 
+        marginBottom: theme.spacing(1) 
+    },
+    avatar: {
+        color: theme.palette.common.white,
+        backgroundColor: theme.palette.primary.main
+    }
+}));
+
+const Welcome = () => {
+    const classes = useStyles();
+
+    return (
+        <Card className={classes.card} >
+            <CardHeader
+                avatar={
+                    <Avatar className={classes.avatar}>
+                        <LightBulbIcon />
+                    </Avatar>
+                }
+                title='Welcome to the EISS™Cube Server'
+                subheader='Handling EISS™Cubes, sending commands, collecting reports...'
+            />
+        </Card>
+    );
+}
+
+export default Welcome;
