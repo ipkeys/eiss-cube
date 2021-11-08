@@ -22,7 +22,7 @@ const useStyles = makeStyles(theme => ({
         justifyContent: 'flex-start'
     },
     card: {
-        minWidth: 460,
+        minWidth: 470,
         marginTop: theme.spacing(20),
         backgroundColor: lightBlue[50]
     },
