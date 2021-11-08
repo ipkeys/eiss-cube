@@ -1,264 +1,256 @@
+import { AxiosResponse } from 'axios';
 import { stringify } from 'query-string';
-import { 
-    HttpError, fetchUtils, GET_LIST, GET_ONE, GET_MANY, GET_MANY_REFERENCE, CREATE, UPDATE, UPDATE_MANY, DELETE, DELETE_MANY
-} from "react-admin";
+import { DataProvider as DataProviderType, fetchUtils, HttpError } from "ra-core";
+import HttpService from "./HttpService";
+import { prefix } from './i18nProvider';
 
-// eslint-disable-next-line
-import HttpService, { cfgObj, method } from "./httpService";
-import { apiUrl } from './index';
-
-export const VALIDATE = "VALIDATE";
-export const COUNT = "COUNT";
-export const USAGE = "USAGE";
-
-type convertReturnType = {
-    url: string;
-    options: cfgObj;
-    method: method;
+type Extended = {
+    count: (resource: string, params: {filter: any}) => Promise<{data: number}>,
+    validate: (resource: string, params: {data: any}) => Promise<AxiosResponse<any>>
+    usage: (resource: string, params: {data: any}) => Promise<AxiosResponse<any>>
 }
 
-/**
- * Maps react-admin queries to a json-server powered REST API
- *
- * @see https://github.com/typicode/json-server
- * @example
- * GET_LIST     => GET http://my.api.url/posts?_sort=title&_order=ASC&_start=0&_end=24
- * GET_ONE      => GET http://my.api.url/posts/123
- * GET_MANY     => GET http://my.api.url/posts/123, GET http://my.api.url/posts/456, GET http://my.api.url/posts/789
- * UPDATE       => PUT http://my.api.url/posts/123
- * CREATE       => POST http://my.api.url/posts/123
- * DELETE       => DELETE http://my.api.url/posts/123
- */
-
-export default class DataProvider {
-    constructor(private http: HttpService, private logout: () => void) {}
-
-    /**
-     * @param {String} type One of the constants appearing at the top if this file, e.g. 'UPDATE'
-     * @param {String} resource Name of the resource to fetch, e.g. 'posts'
-     * @param {Object} params The data request params, depending on the type
-     * @returns {Object} { method, url, options } The HTTP request parameters
-     */
-    private convertDataRequestToHTTP = (type: string, resource: string, params: any): convertReturnType => {
+const DataProvider = (apiUrl: string, http: HttpService): DataProviderType & Extended => ({
+    
+    getList: (resource, params) => {
         let url = '';
-        const options: cfgObj = {} as cfgObj;
-        let method: method = 'get';
 
-        switch (type) {
-            case GET_LIST: {
-                if (!params) {
-                    url = `${apiUrl}/${resource}`;
-                    break;
-                }
-                const { page, perPage } = params.pagination;
-                const { field, order } = params.sort;
-
-                const query = {
-                    ...fetchUtils.flattenObject(params.filter),
-                    _sort: field,
-                    _order: order,
-                    _start: (page - 1) * perPage,
-                    _end: page * perPage,
-                };
-
-                url = `${apiUrl}/${resource}?${stringify(query)}`;
-                break;
-            }
-            case GET_ONE:
-                url = `${apiUrl}/${resource}/${params.id}`;
-                break;
-            case GET_MANY_REFERENCE: {
-                const { page, perPage } = params.pagination;
-                const { field, order } = params.sort;
-                const query = {
-                    ...fetchUtils.flattenObject(params.filter),
-                    [params.target]: params.id,
-                    _sort: field,
-                    _order: order,
-                    _start: (page - 1) * perPage,
-                    _end: page * perPage,
-                };
-                url = `${apiUrl}/${resource}?${stringify(query)}`;
-                break;
-            }
-            case UPDATE:
-                url = `${apiUrl}/${resource.replace('/update/', '')}/${params.id}`;
-                method = 'put';
-                // options.body = {data: params.data, previousData: params.previousData};
-                options.body = params.data;
-                break;
-            case CREATE:
-                url = `${apiUrl}/${resource.replace('/create/', '')}`;
-                method = 'post';
-                options.body = params.data;
-                break;
-            case DELETE:
-                url = `${apiUrl}/${resource}/${params.id}`;
-                method = 'delete';
-                break;
-            case GET_MANY: {
-                const query = {
-                    [`id_like`]: params.ids.join('|'),
-                };
-                url = `${apiUrl}/${resource}?${stringify(query)}`;
-                break;
-            }
-            case VALIDATE: {
-                url = `${apiUrl}/${resource}/validate`;
-                options.body = params.data;
-                method = 'post';
-                break;
-            }
-            case COUNT: {
-                const query = {
-                    ...fetchUtils.flattenObject(params.filter),
-                };
-                url = `${apiUrl}/${resource}-count?${stringify(query)}`;
-                break;
-            }
-            case USAGE: {
-                url = `${apiUrl}/${resource}`;
-                method = 'post';
-                options.body = params.data;
-                break;
-            }
-            default:
-                throw new Error(`Unsupported fetch action type ${type}`);
+        if (!params) {
+            url = `${apiUrl}/${resource}`;
         }
-        return { method, url, options };
-    };
+        else {
+            const {page, perPage} = params.pagination;
+            const {field, order} = params.sort;
 
-    /**
-     * @param {Object} response HTTP response from fetch()
-     * @param {String} type One of the constants appearing at the top if this file, e.g. 'UPDATE'
-     * @param {String} resource Name of the resource to fetch, e.g. 'posts'
-     * @param {Object} params The data request params, depending on the type
-     * @returns {Object} Data response
-     */
-    private convertHTTPResponse = (response: any, type: string, resource: string, params: any): any => {
-        const { headers, data } = response;
+            const query = {
+                ...fetchUtils.flattenObject(params.filter),
+                _sort: field,
+                _order: order,
+                _start: (page - 1) * perPage,
+                _end: page * perPage,
+            };
 
-        switch (type) {
-            case GET_MANY:
-                return { data: data };
-            case GET_LIST:
-            case GET_MANY_REFERENCE:
-                if (!headers['x-total-count']) {
-                    throw new Error('Did you declare "x-total-count" in the Access-Control-Expose-Headers header?');
-                }
-                return {
-                    data: data,
-                    total: parseInt(headers['x-total-count'], 10)
-                };
-            case CREATE:
-                return { data: { ...params.data, id: data.id } };
-            case VALIDATE:
-                return response;
-            default:
-                return { data: data };
-        }
-    };
-
-    /**
-     * Maps react-admin queries to a json-server powered REST API
-     * @see https://github.com/typicode/json-server
-     * @param {string} type Request type, e.g GET_LIST
-     * @param {string} resource Resource name, e.g. "posts"
-     * @param {Object} payload Request parameters. Depends on the request type
-     * @returns {Promise} the Promise for a data response
-     *
-    * GET_LIST     => GET http://my.api.url/posts?_sort=title&_order=ASC&_start=0&_end=24
-    * GET_ONE      => GET http://my.api.url/posts/123
-    * GET_MANY     => GET http://my.api.url/posts/123, GET http://my.api.url/posts/456, GET http://my.api.url/posts/789
-    * UPDATE       => PUT http://my.api.url/posts/123
-    * CREATE       => POST http://my.api.url/posts/123
-    * DELETE       => DELETE http://my.api.url/posts/123
-    */
-    public query =  async (type: string, resource: string, params: any): Promise<any> => {
-        // json-server doesn't handle filters on UPDATE route, so we fallback to calling UPDATE n times instead
-        if (type === UPDATE_MANY) {
-            return Promise.all(
-                params.ids.map((id: any) =>
-                this.http.put(`${apiUrl}/${resource}/${id}`, {
-                        body: JSON.stringify(params.data),
-                    })
-                )
-            ).then(responses => ({
-                data: responses.map((response: any) => response.json),
-            }));
+            url = `${apiUrl}/${resource}?${stringify(query)}`;
         }
 
-        // json-server doesn't handle filters on DELETE route, so we fallback to calling DELETE n times instead
-        if (type === DELETE_MANY) {
-            return Promise.all(
-                params.ids.map((id: any) =>
-                    this.http.delete(`${apiUrl}/${resource}/${id}`)
-                )
-            ).then(responses => ({
-                data: responses.map((response: any) => response.json),
-            }));
-        }
-
-        const { method, url, options } = this.convertDataRequestToHTTP(type, resource, params);
-        
         return new Promise(async (resolve, reject) => {
-            return this.http[method](url, options)
-            .then((value) => {
-                return resolve(this.convertHTTPResponse(value, type, resource, params));
+            http.get(url)
+            .then(({data, headers}) => {
+                if (!headers['x-total-count']) {
+                    throw new Error('Did you declare "X-Total-Count" in the Access-Control-Expose-Headers header?');
+                }
+    
+                return resolve({
+                    data: data.map(formatRecord),
+                    total: parseInt(headers["x-total-count"]) 
+                });
             })
             .catch((error) => {
-                // Pass validation error handling upstream
-                if (type === VALIDATE) {
-                    return reject(new Error(error.response));
-                }
-                
-                const message = processError(error);
-                if (message === "eiss.auth.expired") {
-                    this.logout();
-                    return reject(new HttpError("ra.notification.logged_out", 401));
-                } else {
-                    return reject(new HttpError(message, error.response?.status ?? 500));
-                }
+                return reject(processError(error));
             });
         });
         
-    };
-};
+    },
 
-function processError(error: any, prefix = "eiss") {
-    console.info(error);
-    // If no response at all
-    let message = `${prefix}.no_response`;
+    getOne: (resource, params) => {
+        const url = `${apiUrl}/${resource}/${params.id}`;
 
-    if (error.message === "eiss.no_response") {}
-    else if (error.message === "eiss.auth.expired") {
-        message = "eiss.auth.expired";
+        return new Promise(async (resolve, reject) => {
+            http.get(url)
+            .then(({data}) => {
+                return resolve({data: formatRecord(data)});
+            })
+            .catch((error) => {
+                return reject(processError(error));
+            });
+        });
+    },
+
+    getMany: (resource, params) => {
+        const query = {
+            [`id_like`]: params.ids.join('|'),
+        };
+        const url = `${apiUrl}/${resource}?${stringify(query)}`;
+        return new Promise(async (resolve, reject) => {
+            http.get(url)
+            .then(({data}) => {
+                return resolve({
+                    data: data.map(formatRecord)
+                });
+            })
+            .catch((error) => {
+                return reject(processError(error));
+            });
+        });
+    },
+
+    getManyReference: (resource, params) => {
+        const { page, perPage } = params.pagination;
+        const { field, order } = params.sort;
+        const query = {
+            ...fetchUtils.flattenObject(params.filter),
+            [params.target]: params.id,
+            _sort: field,
+            _order: order,
+            _start: (page - 1) * perPage,
+            _end: page * perPage,
+        };
+        const url = `${apiUrl}/${resource}?${stringify(query)}`;
+
+        return new Promise(async (resolve, reject) => {
+            http.get(url)
+            .then(({data, headers}) => {
+                if (!headers['x-total-count']) {
+                    throw new Error('Did you declare "X-Total-Count" in the Access-Control-Expose-Headers header?');
+                }
+                return resolve({
+                    data: data.map(formatRecord),
+                    total: parseInt(headers["x-total-count"]) 
+                });
+            })
+            .catch((error) => {
+                return reject(processError(error));
+            });
+        });
+    },
+
+    update: (resource, params) => {
+        const url = `${apiUrl}/${resource}/${params.id}`;
+        return new Promise(async (resolve, reject) => {
+            http.put(url, {body: JSON.stringify(params.data)})
+            .then(({data}) => {
+                return resolve({data: formatRecord(data)});
+            })
+            .catch((error) => {
+                return reject(processError(error));
+            });
+        });
+    },
+
+    updateMany: (resource, params) => {
+        return Promise.all(
+            params.ids.map(id => 
+                http.put(`${apiUrl}/${resource}/${id}`, {body: JSON.stringify(params.data)})
+            )
+        )
+        .then(responses => ({
+            data: responses.map(data => formatRecord(data).id)
+        }))
+        .catch(error => {
+            return Promise.reject(processError(error));
+        })
+    },
+
+    create: (resource, params) => {
+        const url = `${apiUrl}/${resource}`;
+        return new Promise(async (resolve, reject) => {
+            http.post(url, {body: JSON.stringify(params.data)})
+            .then(({data}) => {
+                return resolve({data: { ...params.data, id: formatRecord(data.id)}})
+            })
+            .catch((error) => {
+                return reject(processError(error));
+            })
+        });
+    },
+
+    delete: (resource, params) => {
+        const url = `${apiUrl}/${resource}/${params.id}`;
+        return new Promise(async (resolve, reject) => {
+            http.delete(url)
+            .then(({data}) => {
+                return resolve({data: formatRecord(data)});
+            })
+            .catch((error) => {
+                return reject(processError(error));
+            });
+        });
+    },
+
+    deleteMany: (resource, params) => {
+        return Promise.all(
+            params.ids.map(id => 
+                http.delete(`${apiUrl}/${resource}/${id}`)
+            )
+        )
+        .then(responses => ({
+            data: responses.map(data => formatRecord(data).id)
+        }))
+        .catch((error) => {
+            return Promise.reject(processError(error));
+        })
+    },
+
+    count: (resource, params) => {
+        const query = {
+            ...fetchUtils.flattenObject(params.filter),
+        };
+        const url = `${apiUrl}/${resource}-count?${stringify(query)}`;
+        return new Promise(async (resolve, reject) => {
+            http.get(url)
+            .then(({data}) => {
+                return resolve({data});
+            })
+            .catch((error) => {
+                return reject(processError(error));
+            })
+        })
+    },
+    
+    validate: (resource, params) => {
+        const url = `${apiUrl}/${resource}/validate`; 
+        return new Promise(async (resolve, reject) => {
+            http.post(url, {body: params.data})
+            .then((response) => {
+                return resolve(response);
+            })
+            .catch(error => {
+                // Pass validation error handling upstream
+                return reject(error);
+            })
+        })
+    },
+
+    usage: (resource, params) => {
+        const url = `${apiUrl}/${resource}`;
+        return new Promise(async (resolve, reject) => {
+            http.post(url, {body: params.data})
+            .then((response) => {
+                return resolve(response);
+            })
+            .catch(error => {
+                return reject(error);
+            })
+        })
+    }
+});
+
+function formatRecord (record: any) {
+    if (record["_id"]) record.id = record["_id"];
+    return record;
+} 
+
+function processError(error: any) {
+    if (error.message === "auth.expired" || error.message.statusText === "token expired") {
+        return new HttpError(`${prefix}.auth.expired`, 401);
+    }
+    else if (error.message === 'no_response') {
+        return new HttpError(`${prefix}.no_response`, 504);
     }
     else if (error.message === "Network Error") {
-        message = "axios.error";
+        return new HttpError("axios.error", 504);
     }
     else if (error.response) {
-        if (error.response.status === 401 && error.response.statusText?.toLowerCase() === "token expired") {
-            message = "eiss.auth.expired";
-        }
         if (error.response.status === 404) {
-            message = "ra.page.not_found";
-        } 
-        else if (error.response.status === 500 || error.response.status === 405) {
-            message = `${prefix}.server_error`;
+            return new HttpError("ra.page.not_found", 404);
         }
-        else if (error.response.data && typeof error.response.data === "string") {
-            // Server should return a translatable key for bad requests
-            message = `${prefix}.${error.response.data.toLowerCase()}`;
-        } else if (error.response.statusText) {
-            // Server status text contains non-translatable error message
-            message = error.response.statusText;
+        else {
+            return new HttpError(`${prefix}.server_error`, error.response.status);
         }
     }
-    // If no `response` property, error message is assumed to be translatable
-    else if (error.message) {
-        message = `${prefix}.${error.message.toLowerCase().replace(" ", "_")}`;
+    else {
+        return new HttpError(`${prefix}.server_error`, 500);
     }
+}
 
-    return message;
-};
+export default DataProvider;
