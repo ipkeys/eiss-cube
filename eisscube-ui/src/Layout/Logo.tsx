@@ -4,10 +4,9 @@ const useStyles = makeStyles(theme => ({
     logo: {
         background: 'url(Logo.png)',
         backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
         minHeight: theme.spacing(10),
-        marginTop: theme.spacing(3),
-        marginLeft: theme.spacing(3),
-        marginRight: theme.spacing(2)
+        marginTop: theme.spacing(2)  
     }
 }));
 
