@@ -33,6 +33,9 @@ const ReportListFilter = (props: any) => {
     return (
         <Filter {...props}>
             <SearchInput source='q' alwaysOn />
+            <ReferenceInput label='for EISS™Cube' source='cubeID' reference='cubes'>
+                <AutocompleteInput optionText='name'/>
+            </ReferenceInput>
             {isSuper(permissions) && 
                 <ReferenceInput source="group_id" reference="grps" sort={{ field: 'displayName', order: 'ASC' }} allowEmpty >
                     <AutocompleteInput optionText='displayName' />

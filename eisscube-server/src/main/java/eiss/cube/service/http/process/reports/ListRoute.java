@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import dev.morphia.Datastore;
 import dev.morphia.query.FindOptions;
 import dev.morphia.query.Query;
+import org.bson.types.ObjectId;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -55,14 +56,6 @@ public class ListRoute implements Handler<RoutingContext> {
         FindOptions o = new FindOptions();
         o.collation(Collation.builder().locale("en").collationStrength(SECONDARY).build());
 
-        // search
-        String search = request.getParam(FILTER);
-        if (search != null && !search.isEmpty()) {
-            q.filter(Filters.regex("cubeName").pattern("^" + search).caseInsensitive());
-        }
-        // ~search
-
-        // filters
         if (context.get("role").equals("securityadmin")) {
             // filters
             String group_id = request.getParam("group_id");
@@ -74,6 +67,20 @@ public class ListRoute implements Handler<RoutingContext> {
             q.filter(Filters.eq("group_id", context.get("group_id")));
         }
 
+        // search
+        String search = request.getParam(FILTER);
+        if (search != null && !search.isEmpty()) {
+            q.filter(Filters.regex("cubeName").pattern("^" + search).caseInsensitive());
+        }
+        // ~search
+
+        // filters
+        String cubeID = request.getParam("cubeID");
+        if (cubeID != null && !cubeID.isEmpty()) {
+            if (ObjectId.isValid(cubeID)) {
+                q.filter(Filters.eq("cubeID", new ObjectId(cubeID)));
+            }
+        }
         String type = request.getParam("type");
         if (type != null && !type.isEmpty()) {
             q.filter(Filters.eq("type", type));

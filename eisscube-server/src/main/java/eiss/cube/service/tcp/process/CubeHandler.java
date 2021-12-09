@@ -130,7 +130,8 @@ public class CubeHandler implements Handler<NetSocket> {
             updates.add(UpdateOperators.set("socket", ""));
             updates.add(UpdateOperators.set("online", FALSE));
 
-            q.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute();
+            // update All documents
+            q.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute(new UpdateOptions().multi(true));
 
             op.complete();
         }, res -> log.info("Server was restarted! Set status of ALL devices to OFFLINE"));

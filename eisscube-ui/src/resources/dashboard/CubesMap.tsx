@@ -82,7 +82,7 @@ const CubesMarkerMap = (props: any) => {
                     { markers }
                 </MarkerClusterGroup>
                 */}
-                    { markers }
+                { markers }
             </LayersControl>
         </>
     );
