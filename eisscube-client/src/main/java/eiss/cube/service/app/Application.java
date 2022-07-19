@@ -9,8 +9,8 @@ import javax.inject.Inject;
 @Slf4j
 public class Application {
 
-    private Vertx vertx;
-    private Tcp tcpClient;
+    private final Vertx vertx;
+    private final Tcp tcpClient;
 
     private String tcpDeploymentID = null;
 

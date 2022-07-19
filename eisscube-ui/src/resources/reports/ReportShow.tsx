@@ -1,29 +1,33 @@
-import ChevronLeft from '@material-ui/icons/ChevronLeft';
+import ChevronLeft from '@mui/icons-material/ChevronLeft';
 import { 
     Show,
     SimpleShowLayout,
 	TopToolbar,
-	ListButton
+	ListButton,
+	useRecordContext
 } from 'react-admin';
-import { NavReportTitle } from '../common';
 import ReportChart from './ReportChart';
 
-const ReportShowActions = ({ basePath }: any) => {
-    return (
-        <TopToolbar>
-            <ListButton basePath={basePath} label="Back" icon={<ChevronLeft />} />
-        </TopToolbar>
-    );
+const ReportShowTitle = () => {
+	const record = useRecordContext();
+	if (!record) return null;
+
+	return <span>Report from EISS™Cube - {record.cubeName}</span>;
 };
+
+const ReportShowActions = () => (
+	<TopToolbar>
+		<ListButton label="Back" icon={<ChevronLeft />} />
+	</TopToolbar>
+);
 
 const ReportShow = (props: any) => {
     return (
-		<Show {...props}
-			title={<NavReportTitle title='Report from' />} 
-			actions={<ReportShowActions {...props} />}
+		<Show title={<ReportShowTitle />}
+			actions={<ReportShowActions />}
 		>
 			<SimpleShowLayout>
-				<ReportChart {...props} />
+				<ReportChart />
 			</SimpleShowLayout>
 		</Show>
 	);

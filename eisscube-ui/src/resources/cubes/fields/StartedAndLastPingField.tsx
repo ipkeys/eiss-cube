@@ -1,7 +1,6 @@
-import PropTypes from 'prop-types';
 import moment from 'moment';
 import { useRecordContext } from 'react-admin';
-import Typography from '@material-ui/core/Typography';
+import Typography from '@mui/material/Typography';
 import { DateTimeMomentFormat } from '../../../App';
 
 const StartedAndLastPingField = (props: any) => {
@@ -19,15 +18,9 @@ const StartedAndLastPingField = (props: any) => {
     
     return (
         <Typography variant="body2">
-            <i>Started:</i> { started } | <i>Last ping:</i> { lastping }
+            <i>Started:</i> <b>{ started }</b> <i>Last ping:</i> <b>{ lastping }</b>
         </Typography>
     );
-};
-
-StartedAndLastPingField.propTypes = {
-    label: PropTypes.string,
-    record: PropTypes.object,
-    source: PropTypes.string.isRequired,
 };
 
 export default StartedAndLastPingField;

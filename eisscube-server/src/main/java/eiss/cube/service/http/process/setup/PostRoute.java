@@ -51,7 +51,7 @@ public class PostRoute implements Handler<RoutingContext> {
     public void handle(RoutingContext context) {
         HttpServerResponse response = context.response();
 
-        String json = context.getBodyAsString();
+        String json = context.body().asString();
         log.info("Create a new CubeSetup: {}", json);
 
         CubeSetup setup = gson.fromJson(json, CubeSetup.class);

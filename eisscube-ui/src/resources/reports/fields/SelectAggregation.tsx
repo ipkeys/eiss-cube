@@ -1,24 +1,5 @@
 import { useState, useEffect } from 'react';
-import { makeStyles, Theme } from '@material-ui/core/styles';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
-
-const useStyles = makeStyles((theme: Theme) => ({ 
-	container: {
-		marginTop: 0,
-		marginBottom: 0,
-		display: 'inline-flex',
-		flexWrap: 'wrap'
-	},
-	textField: {
-		marginLeft: theme.spacing(1),
-		marginRight: theme.spacing(1),
-		width: 120
-	},
-	menu: {
-		width: 120
-	}
-}));
+import { Box, TextField, MenuItem } from '@mui/material';
 
 const day_aggregations = [
 	{ value: '1m',  label: '1 minute'},
@@ -38,8 +19,7 @@ const year_aggregations = [
 ];
 
 const SelectAggregation = (props: any) => {
-	const { aggregation, daterange, onChange} = props;
-	const classes = useStyles();
+	const { label, aggregation, daterange, onChange} = props;
 	const [value, setValue] = useState(aggregation);
 
 	useEffect(() => {
@@ -74,24 +54,22 @@ const SelectAggregation = (props: any) => {
 	}
 
 	return (
-		<form className={classes.container} noValidate autoComplete='off'>
-			<TextField
+		<Box
+			component='form'
+			autoComplete='off'
+			noValidate
+		>
+			<TextField sx={{mr: 2, width: '150px'}}
 				id='select-aggregation'
 				select
-				label={false}
-				className={classes.textField}
+				label={label}
 				value={value}
 				onChange={handleChange}
-				SelectProps={{
-					MenuProps: {
-						className: classes.menu,
-					},
-				}}
-				margin='dense'
+				size='small'
 			>
 				{renderDropDown}
 			</TextField>
-		</form>
+		</Box>
 	);
 }
 

@@ -1,6 +1,7 @@
-import { AuthProvider, HttpError } from 'react-admin';
+import { HttpError } from 'ra-core';
+import { AuthProvider } from 'react-admin';
 import { redirectLogin } from '../App';
-import { development } from '../global';
+import { development, authUrl } from '../global';
 import TokenManager from './TokenManager';
 
 // The amount of time between checks
@@ -10,97 +11,119 @@ const CHECK_DURATION = 15; // seconds
 let _idleCounter = 0;
 
 document.addEventListener("click", () => {
-    _idleCounter = 0;
+	_idleCounter = 0;
 });
 
 document.addEventListener("mousemove", () => {
-    _idleCounter = 0;
+	_idleCounter = 0;
 });
 
 document.addEventListener("keypress", () => {
-    _idleCounter = 0;
+	_idleCounter = 0;
 });
 
-export default function LoginService(tokenManager: TokenManager): AuthProvider {
+type Extended = {
+	checkMfa: (mfatoken?: string) => Promise<void>
+}
 
-    let interval = CHECK_DURATION * 1000;
+export default function LoginService(tokenManager: TokenManager): AuthProvider & Extended {
 
-    const start = () => {
-        if (!development) {
-            interval = window.setInterval(checkIdleTime, CHECK_DURATION * 1000);
-        }
-    }
+	let interval = CHECK_DURATION * 1000;
 
-    const logout = () => {
-        tokenManager.removeToken();
-        clearInterval(interval);
-    }
+	const start = () => {
+		if (!development) {
+			interval = window.setInterval(checkIdleTime, CHECK_DURATION * 1000);
+		}
+	}
 
-    const checkIdleTime = () => {
-        _idleCounter++;
-        const timeoutDuration = tokenManager.getTimeoutDuration();
-        if (timeoutDuration === null || _idleCounter * CHECK_DURATION >= Number(timeoutDuration) * 60) {
-            logout();
-            redirectLogin();
-        }
-    }
+	const logout = () => {
+		tokenManager.removeToken();
+		clearInterval(interval);
+	}
 
-    const getUser = () => {
-        const token = tokenManager.readToken();
-        
-        if (token) {
-            const { user_id, group_id, role } = token;
-            if (user_id && group_id && role) {
-                return { user_id, group_id, role };
-            }
-        } 
+	const checkIdleTime = () => {
+		_idleCounter++;
+		const timeoutDuration = tokenManager.getTimeoutDuration();
+		if (timeoutDuration === null || _idleCounter * CHECK_DURATION >= Number(timeoutDuration) * 60) {
+			logout();
+			redirectLogin();
+		}
+	}
 
-        return null;
-    }
+	const getUser = () => {
+		const token = tokenManager.readToken();
+		
+		if (token) {
+			const { user_id, group_id, role } = token;
+			if (user_id && group_id && role) {
+				return { user_id, group_id, role };
+			}
+		} 
 
-    // If user is already logged in on page (re)load
-    if (getUser() !== null) {
-        start();
-    }
+		return null;
+	}
 
-    return ({
-        login: ({username, password}: { username: string; password: string }) => {
-            return tokenManager.login(username, password)
-            .then(() => {
-                start();
-            })
-            .catch((error) => {
-                throw (error);
-            });
-        },
+	// If user is already logged in on page (re)load
+	if (getUser() !== null) {
+		start();
+	}
 
-        logout: () => {
-            logout();
-            // route to redirect to after logout, defaults to /login
-            return Promise.resolve();
-        },
+	return ({
+		login: ({username, password}: { username: string; password: string }) => {
+			return tokenManager.login(username, password)
+			.then(() => {
+				start();
+			})
+			.catch(error => {
+				throw (error);
+			});
+		},
 
-        getIdentity: () => {
-            const user = getUser();
-            return user ? Promise.resolve({id: user.user_id}) : Promise.reject();
-        },
+		checkError: (error: HttpError) => {
+			const status = error.status;
+			if (status === 401 || status === 403) {
+				return Promise.reject();
+			}
+			return Promise.resolve();
+		},
 
-        checkError: (error: HttpError) => {
-            const status = error.status;
-            if (status === 401 || status === 403) {
-                return Promise.reject();
-            }
-            return Promise.resolve();
-        },
+		checkAuth: () => {
+			return getUser() ? Promise.resolve() : Promise.reject();
+		},
 
-        checkAuth: () => {
-            return getUser() ? Promise.resolve() : Promise.reject();
-        },
+		logout: () => {
+			logout();
+			return Promise.resolve();
+		},
+		
+		getIdentity: () => {
+			const user = getUser();
+			return user ? Promise.resolve({id: user.user_id}) : Promise.reject();
+		},
 
-        getPermissions: () => {
-            const user = getUser();
-            return user ? Promise.resolve(user) : Promise.reject();
-        }
-    });
+		getPermissions: () => {
+			const user = getUser();
+			return user ? Promise.resolve(user) : Promise.reject();
+		},
+		
+		checkMfa: (mfatoken?: string) => {
+			return new Promise<void>((resolve, reject) => {
+				const token = tokenManager.readToken();
+				const user_id = token?.user_id;
+				const device = token?.device;
+
+				user_id && device &&
+				fetch(`${authUrl}/checkmfa`, {
+					method: 'post',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ user_id, mfatoken, device }) 
+				})
+				.then(response => response.json())
+				.then(data => tokenManager.processToken(data, device))
+				.then(() => resolve())
+				.catch(error => reject(error));
+			});
+		}
+	});
 
 }

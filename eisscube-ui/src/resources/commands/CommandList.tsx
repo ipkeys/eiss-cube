@@ -1,5 +1,4 @@
-import { makeStyles, Theme } from '@material-ui/core/styles';
-import { useMediaQuery } from '@material-ui/core';
+import { useMediaQuery, Theme } from '@mui/material';
 import {
     downloadCSV,
     List,
@@ -10,6 +9,7 @@ import {
     TextField,
     SelectField,
     ReferenceField,
+	DateTimeInput,
     ReferenceInput,
     AutocompleteInput,
     ShowButton,
@@ -22,17 +22,9 @@ import jsonExport from 'jsonexport/dist';
 import { AppDateTimeFormat, DateTimeMomentFormat } from '../../App';
 import { isSuper } from '../common/Roles';
 import CommandStatusField from './fields/CommandStatusField';
-import { DateTimeFilterInput } from './fields/DateTimePickerInput';
 import moment from 'moment';
 import useRecursiveTimeout from '../../useRecursiveTimeout';
-import { NavCommandTitle } from '../common';
 import { cmds } from '.';
-
-const useStyles = makeStyles((theme: Theme) => ({ 
-    rowEven: {
-        backgroundColor: theme.palette.grey[100]
-    }
-}));
 
 const exportCommandList = (data: any) => {
     const records = data.map((record: any) => {
@@ -48,7 +40,7 @@ const exportCommandList = (data: any) => {
 
     jsonExport(records, {
         headers: ['command', 'for EISS™Cubes', 'created', 'status']
-        }, (err, csv) => {
+        }, (_err, csv) => {
             downloadCSV(csv, 'EISS™Cubes Commands');
         }
     );
@@ -61,58 +53,39 @@ const CommandFilter = (props: any) => {
         <Filter {...props}>
             <SearchInput source='q' alwaysOn />
             <ReferenceInput label='for EISS™Cube' source='cubeID' reference='cubes'>
-                <AutocompleteInput optionText='name'/>
+                <AutocompleteInput label='for EISS™Cube' optionText='name' sx={{minWidth: '14em'}} />
             </ReferenceInput>
-            {isSuper(permissions) ? 
-                <ReferenceInput 
+            {isSuper(permissions) ?
+                <ReferenceInput
                     source='group_id'
                     reference='grps'
                     sort={{ field: 'displayName', order: 'ASC' }}
                     allowEmpty
                 >
-                    <AutocompleteInput optionText='displayName' />
+                    <AutocompleteInput label='Group' optionText='displayName' sx={{minWidth: '14em'}} />
                 </ReferenceInput>
             : null }
-            <DateTimeFilterInput label='Created Before' source='timestamp_lte' 
-                options={{ 
-                    format: DateTimeMomentFormat, 
-                    ampm: false, 
-                    margin: 'dense', 
-                    variant: 'inline', 
-                    inputVariant: 'filled' 
-                }} 
-            />
-            <DateTimeFilterInput label='Created Since' source='timestamp_gte' 
-                options={{ 
-                    format: DateTimeMomentFormat, 
-                    ampm: false, 
-                    margin: 'dense', 
-                    variant: 'inline', 
-                    inputVariant: 'filled' 
-                }} 
-            />
+            <DateTimeInput label='Created Before' source='timestamp_lte' />
+            <DateTimeInput label='Created Since' source='timestamp_gte' />
         </Filter>
     );
 };
 
 export const CommandList = (props: any) => {
-    const classes = useStyles();
-    const isSmall = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
-    const { permissions } = usePermissions();    
+	const isSmall = useMediaQuery<Theme>(theme => theme.breakpoints.down('sm'));
+    const { permissions } = usePermissions();
     const { bulkActionButtons } = props;
     const refresh = useRefresh();
-       
+
     useRecursiveTimeout(() => refresh, 10000);
 
     return (
-        <List  
-            title={<NavCommandTitle title='Commands' />}
+        <List title='Commands' {...props}
             filters={<CommandFilter />}
             sort={{ field: 'created', order: 'DESC' }}
             perPage={10}
             exporter={exportCommandList}
             {...(isSuper(permissions) ? {bulkActionButtons } : {bulkActionButtons: false})}
-            {...props}
         >
             {isSmall ? (
                 <SimpleList
@@ -121,26 +94,37 @@ export const CommandList = (props: any) => {
                         const cmd = record && record.command && find(cmds, { 'id': record.command });
                         return cmd.name;
                     }}
-                    secondaryText={record => 
+                    secondaryText={record =>
                         <ReferenceField source='cubeID' reference='cubes' link='show' {...record}>
                             <TextField source='name' />
                         </ReferenceField>
                     }
                 />
             ) : (
-                <Datagrid classes={{ rowEven: classes.rowEven }} >
+                <Datagrid
+                    sx={{
+                        '& .RaDatagrid-rowOdd': {
+                            backgroundColor: theme => theme.palette.grey[50],
+                        },
+                    }}
+				>
                     <SelectField label='Command' source='command' choices={cmds} />
+
                     <ReferenceField label='for EISS™Cube' source='cubeID' reference='cubes' link='show'>
                         <TextField source='name' />
                     </ReferenceField>
-                    {isSuper(permissions) &&
+
+					{isSuper(permissions) &&
                     <ReferenceField source='group_id' label='Group' reference='grps' link={false} >
                         <TextField source='displayName' />
                     </ReferenceField>
                     }
-                    <DateField label='Created' source='created' showTime options={AppDateTimeFormat} />
-                    <CommandStatusField source='status' />
-                    <ShowButton />
+
+					<DateField label='Created' source='created' showTime options={AppDateTimeFormat} />
+
+					<CommandStatusField />
+
+					<ShowButton />
                 </Datagrid>
             )}
         </List>

@@ -56,7 +56,7 @@ public class PutLocationRoute implements Handler<RoutingContext> {
             return;
         }
 
-        String json = context.getBodyAsString();
+        String json = context.body().asString();
         log.info("Update existing EISScube: id: {} by: {}", id, json);
 
         CubePoint location = gson.fromJson(json, CubePoint.class);

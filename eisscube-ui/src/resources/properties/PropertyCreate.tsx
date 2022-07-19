@@ -1,54 +1,45 @@
-import { makeStyles, Theme } from '@material-ui/core/styles';
-import ChevronLeft from '@material-ui/icons/ChevronLeft';
-import { 
-    Create, 
-    SelectInput, 
-    SimpleForm, 
-    TextInput,
-    TopToolbar,
-    ListButton,
-    required, 
-    maxLength
+import { Box } from '@mui/material';
+import ChevronLeft from '@mui/icons-material/ChevronLeft';
+import {
+	Create,
+	SelectInput,
+	SimpleForm,
+	TextInput,
+	TopToolbar,
+	ListButton,
+	required,
+	maxLength
 } from 'react-admin';
-import { NavTitle, PropertyTypes } from '../common';
+import { PropertyTypes } from '../common';
 
-const useStyles = makeStyles((theme: Theme) => ({ 
-    longText: {
-        minWidth: theme.spacing(66) 
-    },
-    inline: { 
-        display: 'inline-block', 
-        marginRight: theme.spacing(2)
-    },
-}));
-
-const PropertyCreateActions = ({data, basePath}: any) => {
-    return (
-        <TopToolbar>
-            <ListButton basePath={basePath} label="Back" icon={<ChevronLeft />} />
-        </TopToolbar>
-    );
-};
+const PropertyCreateActions = () => (
+	<TopToolbar>
+		<ListButton label="Back" icon={<ChevronLeft />} />
+	</TopToolbar>
+);
 
 const validateValue = [required(), maxLength(20)];
 
-const PropertyCreate = (props: any) => {
-    const classes = useStyles();
+const PropertyCreate = () => (
+	<Create title='Create a new Property'
+		redirect='list'
+		actions={<PropertyCreateActions />}
+	>
+		<SimpleForm>
+			<SelectInput source='type' choices={PropertyTypes} sx={{minWidth: '20em'}}/>
 
-    return (
-        <Create 
-            title={<NavTitle title='Create a new Custom Property' {...props} />} 
-            actions={<PropertyCreateActions {...props} />}
-            {...props}
-        >
-            <SimpleForm redirect='list'>
-                <SelectInput source='type' choices={PropertyTypes} />
-                <TextInput label='Name' source='name' validate={validateValue} formClassName={classes.inline} />
-                <TextInput label='Label' source='label' validate={validateValue} formClassName={classes.inline} />
-                <TextInput label='Description' source='description' validate={[maxLength(50)]} className={classes.longText} />
-            </SimpleForm>
-        </Create>
-    );
-};
+			<Box display={'inline-flex'}>
+				<Box flex={1} mr={2} minWidth={'20em'} >
+					<TextInput label='Name' source='name' validate={validateValue} fullWidth />
+				</Box>
+				<Box flex={1} minWidth={'20em'} >
+					<TextInput label='Label' source='label' validate={validateValue} fullWidth />
+				</Box>
+			</Box>
+
+			<TextInput label='Description' source='description' validate={[maxLength(50)]} sx={{minWidth: '41em'}} />
+		</SimpleForm>
+	</Create>
+);
 
 export default PropertyCreate;

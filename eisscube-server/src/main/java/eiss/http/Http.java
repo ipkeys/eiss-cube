@@ -86,7 +86,6 @@ public class Http extends AbstractVerticle {
 
     private void setupRoutes() {
         router.route()
-            .handler(BodyHandler.create())
             .handler(CorsHandler.create("*")
                 .allowedMethod(HttpMethod.GET)
                 .allowedMethod(HttpMethod.POST)
@@ -94,11 +93,15 @@ public class Http extends AbstractVerticle {
                 .allowedMethod(HttpMethod.PUT)
                 .allowedMethod(HttpMethod.OPTIONS)
 
+                .allowedHeader(HttpHeaderNames.ORIGIN.toString())
                 .allowedHeader(HttpHeaderNames.CONTENT_TYPE.toString())
                 .allowedHeader(HttpHeaderNames.AUTHORIZATION.toString())
+                .allowedHeader(HttpHeaderNames.ACCEPT.toString())
 
                 .exposedHeader("X-Total-Count")
             );
+
+        router.route().handler(BodyHandler.create());
 
         router.route("/*").handler(context -> {
             HttpServerResponse response = context.response();

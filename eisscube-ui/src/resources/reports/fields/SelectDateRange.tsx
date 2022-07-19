@@ -1,23 +1,5 @@
 import { useState, useEffect } from 'react';
-import { makeStyles, Theme } from '@material-ui/core/styles';
-import { MenuItem, TextField } from '@material-ui/core';
-
-const useStyles = makeStyles((theme: Theme) => ({ 
-	container: {
-		marginTop: 0,
-		marginBottom: 0,
-		display: 'inline-flex',
-		flexWrap: 'wrap'
-	},
-	textField: {
-		marginLeft: theme.spacing(1),
-		marginRight: theme.spacing(1),
-		width: 120
-	},
-	menu: {
-		width: 120
-	}
-}));
+import { Box, TextField, MenuItem } from '@mui/material';
 
 const dateranges = [
 	{ value: 'd', label: '1 day'},
@@ -27,8 +9,7 @@ const dateranges = [
 ];
 
 const SelectDateRange = (props: any) => {
-	const { daterange, onChange } = props;
-	const classes = useStyles();
+	const { label, daterange, onChange } = props;
 	const [value, setValue] = useState(daterange);
 
 	useEffect(() => {
@@ -40,20 +21,18 @@ const SelectDateRange = (props: any) => {
 	};
 
 	return (
-		<form className={classes.container} noValidate autoComplete='off'>
-			<TextField
+		<Box
+			component='form'
+			autoComplete='off'
+			noValidate
+		>
+			<TextField sx={{mr: 2, width: '150px'}}
 				id='select-daterange'
 				select
-				label={false}
-				className={classes.textField}
+				label={label}
 				value={value}
 				onChange={handleChange}
-				SelectProps={{
-					MenuProps: {
-						className: classes.menu,
-					},
-				}}
-				margin='dense'
+				size='small'
 			>
 				{dateranges.map(option => (
 					<MenuItem key={option.value} value={option.value}>
@@ -61,7 +40,7 @@ const SelectDateRange = (props: any) => {
 					</MenuItem>
 				))}
 			</TextField>
-		</form>
+		</Box>
 	);
 }
 

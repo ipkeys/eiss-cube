@@ -8,7 +8,7 @@ const NavReportTitle = (props: any) => {
 
     return (
         <>
-		{title} {record && record.cubeName && `:: ${record.cubeName}`}
+		{title} {record && record.cubeName && ` - ${record.cubeName}`}
         </>
     )
 };

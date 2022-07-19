@@ -1,24 +1,6 @@
 import { useState } from 'react';
-import { makeStyles, Theme } from '@material-ui/core/styles';
-import PropTypes from 'prop-types';
-import { TextField, MenuItem } from '@material-ui/core';
-
-const useStyles = makeStyles((theme: Theme) => ({ 
-	container: {
-		marginTop: 0,
-		marginBottom: 0,
-		display: 'inline-flex',
-		flexWrap: 'wrap'
-	},
-	textField: {
-		marginLeft: theme.spacing(1),
-		marginRight: theme.spacing(1),
-		width: 120
-	},
-	menu: {
-		width: 120
-	}
-}));
+import { Form } from 'react-admin';
+import { TextField, MenuItem } from '@mui/material';
 
 const durations = [
 	{ value: 60, label: '1 minute'},
@@ -28,25 +10,19 @@ const durations = [
 
 const SelectDuration = (props: any) => {
 	const { onChange } = props;
-	const classes = useStyles();
 	const [duration, setDuration] = useState<number>(60);
 
 	onChange(duration);
 
 	return (
-		<form className={classes.container} noValidate autoComplete="off">
+		<Form noValidate>
 			<TextField
 				id="select-duration"
 				select
 				label="Select duration"
-				className={classes.textField}
+				sx={{mt: -1, ml: 1, mr: 1, width: 140}}
 				value={duration}
 				onChange={(event) => setDuration(parseInt(event.target.value))}
-				SelectProps={{
-					MenuProps: {
-						className: classes.menu,
-					},
-				}}
 				margin="normal"
 			>
 				{durations.map(option => (
@@ -55,12 +31,8 @@ const SelectDuration = (props: any) => {
 					</MenuItem>
 				))}
 			</TextField>
-		</form>
+		</Form>
 	);
 }
-
-SelectDuration.propTypes = {
-	onChange: PropTypes.func
-};
 
 export default SelectDuration;

@@ -1,13 +1,13 @@
 body {
-  margin: 0;
-  padding: 0;
-  font-family: Roboto;
+	margin: 0;
+	padding: 0;
+	font-family: Roboto;
 }
 
 .leaflet-container {
-  height: 670px;
-  width: 100%;
-  margin: 0 auto;
-  font: 14px "Roboto";
-  touch-action: none;
+	height: 670px;
+	width: 100%;
+	margin: 0 auto;
+	font: 14px "Roboto";
+	touch-action: none;
 }

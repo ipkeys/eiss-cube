@@ -62,7 +62,7 @@ public class EventRoute implements Handler<RoutingContext> {
         HttpServerResponse response = context.response();
 
         String event = request.getParam("event");
-        JsonObject json = context.getBodyAsJson();
+        JsonObject json = context.body().asJsonObject();
         log.info("event: {}, body: {}", event, json.encodePrettily());
 
         switch (event) {

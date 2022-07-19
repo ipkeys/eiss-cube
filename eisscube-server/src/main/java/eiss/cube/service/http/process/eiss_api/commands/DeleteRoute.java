@@ -46,7 +46,7 @@ public class DeleteRoute implements Handler<RoutingContext> {
     @Override
     public void handle(RoutingContext context) {
         HttpServerResponse response = context.response();
-        String jsonBody = context.getBodyAsString();
+        String jsonBody = context.body().asString();
 
         if (jsonBody != null && !jsonBody.isEmpty()) {
             vertx.executeBlocking(op -> {
