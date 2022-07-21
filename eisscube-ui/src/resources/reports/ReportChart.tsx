@@ -28,7 +28,7 @@ import YearPicker from './fields/YearPicker';
 import moment from 'moment';
 
 const TimestampTick = (props: any) => {
-	const { x, y, _stroke, payload } = props;
+	const { x, y, payload } = props;
 
 	return (
 		<g transform={`translate(${x},${y})`}>
@@ -112,7 +112,7 @@ const ReportChart = (props: any) => {
 			let new_unit = input && input.unit;
 
 			if (new_meter === 'e') { // remove last 'h' from Wh, kWh or MWh
-				new_unit = new_unit.replace('h', '');
+				new_unit = new_unit.replace(/h$/, '');
 			}
 
 			if (record.type === 'p' && new_factor && new_unit && new_meter) {

@@ -16,7 +16,7 @@ const DutyCycleInput = (props: any) => {
 
     const on = Math.round(cycle * duty / 100);
     const off = Math.round(cycle - on);
-	
+
 	return (
 		<Box sx={{
 			mt: 1,
@@ -32,7 +32,7 @@ const DutyCycleInput = (props: any) => {
 					backgroundColor: 'transparent',
 				},
 			}
-		}} 
+		}}
 		>
 			<Box sx={{fontSize: '0.7em', pt: 1, pl: 1.5}} >
 				<span style={{color: grey[700]}}>Duty Cycle </span>{duty}% (<span style={{color: green[500]}}>{on} sec ON</span> / <span style={{color: red[500]}}>{off} sec OFF</span>)

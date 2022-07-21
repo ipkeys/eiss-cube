@@ -48,7 +48,7 @@ const RebootButton = (props: any) => {
 	return (
 		record &&
 		<Box>
-			<Button label='Reboot...' 
+			<Button label='Reboot...'
 				disabled={record.online === false}
 				onClick={handleOpen}
 				sx={{
@@ -58,7 +58,7 @@ const RebootButton = (props: any) => {
 						'@media (hover: none)': {
 							backgroundColor: 'transparent',
 						},
-					}            
+					}
 				}}
 			>
 				<RebootIcon />
@@ -82,7 +82,7 @@ const RebootButton = (props: any) => {
 						Are you sure you want to reboot the device?
 					</Typography>
 				</DialogContent>
-				
+
 				<DialogActions>
 					<Button label='YES' onClick={handleClick} />
 					<Button label='NO' onClick={handleClose} />

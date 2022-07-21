@@ -3,7 +3,6 @@ import { TextField } from '@mui/material';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import moment from "moment";
 
 const DayPicker = (props: any) => {
 	const { date, onChange } = props;
@@ -15,9 +14,8 @@ const DayPicker = (props: any) => {
 
 	return (
 		<LocalizationProvider dateAdapter={AdapterMoment}>
-			<DatePicker
+			<DatePicker disableFuture
 				views={['day']}
-				maxDate={moment()}
 				label="Day"
 				value={value}
 				onChange={(newValue) => {
@@ -25,6 +23,11 @@ const DayPicker = (props: any) => {
 					onChange(newValue);
 				}}
 				renderInput={(params) => <TextField sx={{width: 200}} {...params} />}
+				componentsProps={{
+					actionBar: {
+						actions: ['today']
+					},
+				}}
 			/>
 		</LocalizationProvider>
 	);

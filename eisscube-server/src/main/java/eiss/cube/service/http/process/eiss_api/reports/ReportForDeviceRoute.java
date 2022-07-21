@@ -1,6 +1,9 @@
 package eiss.cube.service.http.process.eiss_api.reports;
 
 import com.google.gson.Gson;
+import dev.morphia.Datastore;
+import dev.morphia.query.Query;
+import dev.morphia.query.experimental.filters.Filters;
 import eiss.cube.input.Conversion;
 import eiss.cube.json.messages.reports.Report;
 import eiss.cube.json.messages.reports.ReportRequest;
@@ -8,11 +11,14 @@ import eiss.cube.json.messages.reports.ReportResponse;
 import eiss.cube.service.http.process.meters.MeterRequest;
 import eiss.cube.service.http.process.meters.MeterResponse;
 import eiss.api.Api;
+import eiss.db.Cubes;
+import eiss.models.cubes.CubeSetup;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 
 import javax.inject.Inject;
 import javax.ws.rs.POST;
@@ -33,12 +39,14 @@ public class ReportForDeviceRoute implements Handler<RoutingContext> {
     private final Vertx vertx;
     private final Gson gson;
     private final Conversion conversion;
+    private final Datastore datastore;
 
     @Inject
-    public ReportForDeviceRoute(Vertx vertx, Gson gson, Conversion conversion) {
+    public ReportForDeviceRoute(Vertx vertx, Gson gson, Conversion conversion, @Cubes Datastore datastore) {
         this.vertx = vertx;
         this.gson = gson;
         this.conversion = conversion;
+        this.datastore = datastore;
     }
 
     @POST
@@ -94,16 +102,36 @@ public class ReportForDeviceRoute implements Handler<RoutingContext> {
         MeterRequest r = new MeterRequest();
 
         r.setCubeID(req.getDeviceID());
-        r.setType(req.getType());
+        //r.setType(req.getType());
         r.setFrom(req.getFrom());
         r.setTo(req.getTo());
-        r.setUtcOffset(req.getUtcOffset());
+        //r.setUtcOffset(req.getUtcOffset());
         r.setAggregation(req.getAggregation());
-        r.setFactor(req.getFactor());
-        r.setWatch(req.getWatch());
-        r.setLoad(req.getLoad());
-        r.setMeter(req.getMeter());
-        r.setUnit(req.getUnit());
+        //r.setFactor(req.getFactor());
+        //r.setWatch(req.getWatch());
+        //r.setLoad(req.getLoad());
+        //r.setMeter(req.getMeter());
+        //r.setUnit(req.getUnit());
+
+        Query<CubeSetup> q = datastore.find(CubeSetup.class);
+        q.filter(Filters.eq("cubeID", new ObjectId(req.getDeviceID())));
+        CubeSetup setup = q.first();
+
+        if (setup != null && setup .getInput() != null) {
+            r.setType(setup.getInput().getSignal()); // Signal type is a type of report - pulse or cycle
+            r.setFactor(setup.getInput().getFactor());
+            r.setWatch(setup.getInput().getWatch());
+            r.setLoad(setup.getInput().getLoad());
+            r.setMeter(setup.getInput().getMeter());
+            r.setUnit(setup.getInput().getUnit());
+        } else { //by default
+            r.setType("p"); // type of report - pulse
+            r.setFactor(1000F);
+            r.setWatch("r");
+            r.setLoad(1000F);
+            r.setMeter("e"); // Electric meter
+            r.setUnit("kWh");
+        }
 
         return r;
     }

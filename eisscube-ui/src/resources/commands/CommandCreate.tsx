@@ -3,7 +3,7 @@ import ChevronLeft from '@mui/icons-material/ChevronLeft';
 import {
     Create,
     SimpleForm,
-	DateTimeInput,
+	//DateTimeInput,
     NumberInput,
     SelectInput,
     ReferenceInput,
@@ -13,6 +13,7 @@ import {
     ListButton,
     required,
 } from 'react-admin';
+import DateTimeInput from './fields/DateTimeInput';
 import moment from 'moment';
 import DutyCycleInput from './fields/DutyCycleInput';
 import { cmds, edges, checkCommandForInputCycle, checkCommandForRelayCycle, checkCommandForInputCount } from '.';

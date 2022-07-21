@@ -3,7 +3,6 @@ import { TextField } from '@mui/material';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import moment from "moment";
 
 const MonthPicker = (props: any) => {
 	const { date, onChange } = props;
@@ -15,9 +14,8 @@ const MonthPicker = (props: any) => {
 
 	return (
 		<LocalizationProvider dateAdapter={AdapterMoment}>
-			<DatePicker
+			<DatePicker disableFuture
 				views={['month']}
-				maxDate={moment()}
 				label="Month"
 				value={value}
 				onChange={(newValue) => {

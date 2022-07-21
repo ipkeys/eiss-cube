@@ -71,7 +71,7 @@ const WeekPicker = (props: any) => {
 
 	return (
 		<LocalizationProvider dateAdapter={AdapterMoment}>
-			<DatePicker
+			<DatePicker disableFuture
 				views={['day']}
 				label='Week of'
 				value={value}

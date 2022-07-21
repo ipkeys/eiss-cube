@@ -3,7 +3,6 @@ import { TextField } from '@mui/material';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import moment from "moment";
 
 const YearPicker = (props: any) => {
 	const { date, onChange } = props;
@@ -15,9 +14,8 @@ const YearPicker = (props: any) => {
 
 	return (
 		<LocalizationProvider dateAdapter={AdapterMoment}>
-			<DatePicker
+			<DatePicker disableFuture
 				views={['year']}
-				maxDate={moment()}
 				label='Year'
 				value={value}
 				onChange={(newValue) => {

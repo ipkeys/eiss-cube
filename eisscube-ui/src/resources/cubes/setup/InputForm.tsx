@@ -64,7 +64,7 @@ const InputSettings = ({formData}: {formData: any}) => (
 		}
 
 		<TextInput label='Label' source='input.label' fullWidth />
-		<TextInput label='Description' source='input.description' fullWidth/>
+		<TextInput label='Description' source='input.description' fullWidth />
 	</>
 	: null
 );
@@ -76,9 +76,9 @@ const InputForm = (props: any) =>  {
 	return (
 		<Form defaultValues={data} onSubmit={onSubmit} >
 			<BooleanInput label='Connected' source='input.connected' />
-			
+
 			<FormDataConsumer>
-				{formDataProps => <InputSettings {...formDataProps} /> }
+				{formDataProps => <InputSettings {...formDataProps} />}
 			</FormDataConsumer>
 
 			<SetupFormButton step={step} onNext={next} onBack={back} />

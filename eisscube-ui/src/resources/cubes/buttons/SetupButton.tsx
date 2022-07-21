@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { 
+import {
 	Button,
-	useRecordContext 
+	useRecordContext
 } from 'react-admin';
 import {
 	Box,
 	Typography,
-	Dialog, 
+	Dialog,
 	DialogTitle,
 	DialogContent,
 	DialogActions
@@ -36,7 +36,7 @@ const SetupButton = (props: any) => {
 
 			<Dialog
 				fullWidth
-				maxWidth='sm'								
+				maxWidth='sm'
 				open={showDialog}
 				scroll={'paper'}
 				onClose={handleClose}
@@ -48,7 +48,7 @@ const SetupButton = (props: any) => {
 						{record && `${record.name}`} - Setup Connections
 					</Typography>
 				</DialogTitle>
-				
+
 				<DialogContent>
 					<SetupCube cubeID={record.id} deviceType={record.deviceType} />
 				</DialogContent>

@@ -9,7 +9,7 @@ import {
     TextField,
     SelectField,
     ReferenceField,
-	DateTimeInput,
+	//DateTimeInput,
     ReferenceInput,
     AutocompleteInput,
     ShowButton,
@@ -17,6 +17,7 @@ import {
     useRefresh,
     usePermissions
 } from 'react-admin';
+import DateTimeFilterInput from './fields/DateTimeFilterInput';
 import find from 'lodash/find';
 import jsonExport from 'jsonexport/dist';
 import { AppDateTimeFormat, DateTimeMomentFormat } from '../../App';
@@ -65,8 +66,8 @@ const CommandFilter = (props: any) => {
                     <AutocompleteInput label='Group' optionText='displayName' sx={{minWidth: '14em'}} />
                 </ReferenceInput>
             : null }
-            <DateTimeInput label='Created Before' source='timestamp_lte' />
-            <DateTimeInput label='Created Since' source='timestamp_gte' />
+            <DateTimeFilterInput label='Created Before' source='timestamp_lte' sx={{minWidth: '14em'}} />
+            <DateTimeFilterInput label='Created Since' source='timestamp_gte' sx={{minWidth: '14em'}} />
         </Filter>
     );
 };

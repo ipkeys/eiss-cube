@@ -17,7 +17,7 @@ const DutyCycleField = (props: any) => {
 		<Labeled label={label}>
 			<Typography className={className}
 				component='span'
-				variant='body2'                
+				variant='body2'
 			>
 				{value}% (<span style={{ color: green[500] }}>{on} sec ON</span> / <span style={{ color: red[500] }}>{off} sec OFF</span>)
 			</Typography>
