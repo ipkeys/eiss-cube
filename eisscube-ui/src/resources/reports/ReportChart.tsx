@@ -293,7 +293,7 @@ const ReportChart = (props: any) => {
 					<BarChart data={dataForCharts} >
 						<CartesianGrid strokeDasharray='3 3' />
 						<XAxis dataKey='t' tick={<TimestampTick />} />
-						<YAxis domain={[0, 'dataMax + 100']}/>
+						<YAxis domain={[0, 'auto']}/>
 						<Tooltip labelFormatter={(value: any) => moment(value).format('MM/DD/YYYY, HH:mm')} formatter={(value: any) => [`${value} ${unit}`, 'Value']} />
 						<Legend align='left' verticalAlign='top' height={40} formatter={() => `${unit}`} />
 						<Brush dataKey='t' height={30} stroke={teal[300]} tickFormatter={(value: any) => moment(value).format('MM/DD/YYYY, HH:mm')} />

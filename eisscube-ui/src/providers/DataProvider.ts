@@ -21,6 +21,7 @@ const DataProvider = (apiUrl: string, httpService: HttpService): DataProviderTyp
 			const {field, order} = params.sort;
 
 			const query = {
+				...fetchUtils.flattenObject(params.meta),
 				...fetchUtils.flattenObject(params.filter),
 				_sort: field,
 				_order: order,
@@ -36,14 +37,14 @@ const DataProvider = (apiUrl: string, httpService: HttpService): DataProviderTyp
 			if (!headers.has('x-total-count')) {
 				throw new Error('Did you declare "X-Total-Count" in the Access-Control-Expose-Headers header?');
 			} else {
-				total = parseInt(headers.get('x-total-count')!); 
+				total = parseInt(headers.get('x-total-count')!);
 			}
 
 			return {
 				data: json,
-				total: total 
+				total: total
 			};
-		});		
+		});
 	},
 
 	getOne: (resource, params) => {
@@ -86,7 +87,7 @@ const DataProvider = (apiUrl: string, httpService: HttpService): DataProviderTyp
 			}
 			return {
 				data: json,
-				total: parseInt(headers.get('x-total-count')!) 
+				total: parseInt(headers.get('x-total-count')!)
 			};
 		});
 	},
@@ -104,7 +105,7 @@ const DataProvider = (apiUrl: string, httpService: HttpService): DataProviderTyp
 
 	updateMany: (resource, params) => {
 		return Promise.all(
-			params.ids.map(id => 
+			params.ids.map(id =>
 				httpService.request(`${apiUrl}/${resource}/${id}`, {
 					method: 'PUT',
 					body: JSON.stringify(params.data)
@@ -137,7 +138,7 @@ const DataProvider = (apiUrl: string, httpService: HttpService): DataProviderTyp
 
 	deleteMany: (resource, params) => {
 		return Promise.all(
-			params.ids.map(id => 
+			params.ids.map(id =>
 				httpService.request(`${apiUrl}/${resource}/${id}`, {
 					method: 'DELETE'
 				})
@@ -158,7 +159,7 @@ const DataProvider = (apiUrl: string, httpService: HttpService): DataProviderTyp
 	},
 
 	validate: (resource, params) => {
-		const url = `${apiUrl}/${resource}/validate`; 
+		const url = `${apiUrl}/${resource}/validate`;
 		return httpService.request(url, {
 			method: 'POST',
 			body: JSON.stringify(params.data)
@@ -167,7 +168,7 @@ const DataProvider = (apiUrl: string, httpService: HttpService): DataProviderTyp
 			return {data: json};
 		})
 	},
-    
+
     usage: (resource, params) => {
         const url = `${apiUrl}/${resource}`;
         return httpService.request(url, {
