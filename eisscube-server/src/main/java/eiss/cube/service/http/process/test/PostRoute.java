@@ -50,7 +50,7 @@ public class PostRoute implements Handler<RoutingContext> {
     public void handle(RoutingContext context) {
         HttpServerResponse response = context.response();
 
-        JsonObject json = context.getBodyAsJson();
+        JsonObject json = context.body().asJsonObject();
         if (json == null) {
             response.setStatusCode(SC_BAD_REQUEST)
                     .end();

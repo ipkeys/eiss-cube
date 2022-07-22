@@ -58,7 +58,7 @@ public class VenMeterReportPostRoute implements Handler<RoutingContext> {
     public void handle(RoutingContext context) {
         HttpServerResponse response = context.response();
 
-        String json = context.getBodyAsString();
+        String json = context.body().asString();
 
         VenReport req = gson.fromJson(json, VenReport.class);
         if (req == null) {

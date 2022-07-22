@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { useRecordContext } from 'react-admin';
-import Typography from '@material-ui/core/Typography';
-import { green, red, amber, blue } from '@material-ui/core/colors';
+import Typography from '@mui/material/Typography';
+import { green, red, amber, blue } from '@mui/material/colors';
 
 const CommandStatusField = (props: any) => {
     const record = useRecordContext(props);
@@ -35,10 +35,8 @@ const CommandStatusField = (props: any) => {
 
 CommandStatusField.propTypes = {
 	addLabel: PropTypes.bool,
-    label: PropTypes.string,
-    record: PropTypes.object,
-	source: PropTypes.string.isRequired,
-	className: PropTypes.string
+	label: PropTypes.string,
+	record: PropTypes.object
 };
 
 CommandStatusField.defaultProps = {

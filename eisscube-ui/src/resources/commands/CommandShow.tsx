@@ -1,124 +1,160 @@
-import { makeStyles, Theme } from '@material-ui/core/styles';
-import ChevronLeft from '@material-ui/icons/ChevronLeft';
+import ChevronLeft from '@mui/icons-material/ChevronLeft';
+import { Box, Divider } from '@mui/material';
 import {
-    TopToolbar,
-    SimpleShowLayout,
-    DateField,
-    TextField,
-    SelectField,
-    ReferenceField,
-    ShowController,
-    ShowView,
-    Labeled,
-    ListButton,
-    usePermissions
+	TopToolbar,
+	SimpleShowLayout,
+	DateField,
+	TextField,
+	SelectField,
+	ReferenceField,
+	Show,
+	Labeled,
+	ListButton,
+	usePermissions,
+	useShowController,
+	useRecordContext
 } from 'react-admin';
 import { AppDateTimeFormat } from '../../App';
 import { isSuper } from '../common/Roles';
-import { NavCommandTitle, DividerField } from '../common';
 import CommandStatusField from './fields/CommandStatusField';
 import CycleField from './fields/CycleField';
 import DutyCycleField from './fields/DutyCycleField';
-import { cmds, edges, checkCommandForInputCycle, checkCommandForRelayCycle, checkCommandForInputCount } from '.';
+import { cmds, edges, checkCommandForParams, checkCommandForInputCycle, checkCommandForRelayCycle, checkCommandForInputCount } from '.';
+import find from 'lodash/find';
 
-const useStyles = makeStyles((theme: Theme) => ({ 
-    inlineField: { 
-        display: 'inline-block',
-        minWidth: theme.spacing(24)   
-    },
-    normalText: {
-        minWidth: theme.spacing(32)   
-    },
-    longText: {
-        minWidth: theme.spacing(64)   
-    },
-    break: {
-        height: 0
-    }
-}));
+const CommandShowTitle = () => {
+	const record = useRecordContext();
+	if (!record) return null;
 
-const CommandShowActions = ({data, basePath}: any) => {
-    return (
-        <TopToolbar>
-            <ListButton basePath={basePath} label="Back" icon={<ChevronLeft />} />
-        </TopToolbar>
-    );
+	const cmd = record.command && find(cmds, { 'id': record.command });
+
+	return <span>Command - {cmd.name}</span>;
 };
 
-export const CommandShow = (props: any) => {
-    const classes = useStyles();
-    const { permissions } = usePermissions();    
+const CommandShowActions = () => (
+	<TopToolbar>
+		<ListButton label="Back" icon={<ChevronLeft />} />
+	</TopToolbar>
+);
 
-    return (
-        <ShowController
-            {...props}
-        >
-            {controllerProps => 
-                <ShowView 
-                    title={<NavCommandTitle title='Command' />}
-                    actions={<CommandShowActions {...props} />}
-                    {...props} 
-                    {...controllerProps}
-                >
-                    <SimpleShowLayout>
-                        <SelectField className={classes.inlineField} label='Command' source='command' choices={cmds} />
+export const CommandShow = () => {
+	const { permissions } = usePermissions();
+	const controllerProps = useShowController();
 
-                        <ReferenceField className={classes.inlineField} label='for EISS™Cube' source='cubeID' reference='cubes' link='show'>
-                            <TextField source='name' />
-                        </ReferenceField>
+	return (
+		<Show
+			title={<CommandShowTitle />}
+			actions={<CommandShowActions />}
+			{...controllerProps}
+		>
+			<SimpleShowLayout>
+			<Box display={'inline-flex'}>
+				<Box flex={1} minWidth={'14em'} >
+					<Labeled label='Command'>
+						<SelectField source='command' choices={cmds} fullWidth />
+					</Labeled>
+				</Box>
+				<Box flex={1} minWidth={'14em'} >
+					<Labeled label='for EISS™Cube'>
+						<ReferenceField source='cubeID' reference='cubes' link='show'>
+							<TextField source='name' fullWidth />
+						</ReferenceField>
+					</Labeled>
+				</Box>
+				{isSuper(permissions) &&
+					<Box flex={1} minWidth={'14em'} >
+						<Labeled label='Group'>
+							<ReferenceField source='group_id' reference='grps' link={false} >
+								<TextField source='displayName' fullWidth />
+							</ReferenceField>
+						</Labeled>
+					</Box>
+				}
+			</Box>
 
-                        {isSuper(permissions) &&
-                            <ReferenceField className={classes.inlineField} source='group_id' label='Group' reference='grps' link={false} >
-                                <TextField source='displayName' />
-                            </ReferenceField>
-                        }
+			{checkCommandForParams(controllerProps.record) &&
+			<Box display={'inline-flex'}>
+				{checkCommandForRelayCycle(controllerProps.record.command) &&
+				<Box flex={1} minWidth={'14em'} >
+					<CycleField label='Cycle' source='completeCycle' suffix='sec' {...controllerProps}/>
+				</Box>
+				}
+				{checkCommandForRelayCycle(controllerProps.record.command) &&
+				<Box flex={1} minWidth={'14em'} >
+					<DutyCycleField label='Duty Cycle' source='dutyCycle' {...controllerProps}/>
+				</Box>
+				}
 
-                        <br className={classes.break} />
+				{checkCommandForInputCount(controllerProps.record.command) &&
+				<Box flex={1} minWidth={'14em'} >
+					<Labeled label='Transition'>
+						<SelectField source='transition' choices={edges} translateChoice={false} {...controllerProps} />
+					</Labeled>
+				</Box>
+				}
+				{checkCommandForInputCount(controllerProps.record.command) &&
+				<Box flex={1} minWidth={'14em'} >
+					<CycleField label='Cycle' source='completeCycle' suffix='sec' {...controllerProps}/>
+				</Box>
+				}
 
-                        {controllerProps.record && controllerProps.record.startTime && 
-                            <DateField className={classes.inlineField} label='Start date, time' source='startTime' showTime options={AppDateTimeFormat} />
-                        }
+				{checkCommandForInputCycle(controllerProps.record.command) &&
+				<Box flex={1} minWidth={'14em'} >
+					<Labeled label='Transition'>
+						<SelectField source='transition' choices={edges} translateChoice={false} {...controllerProps} />
+					</Labeled>
+				</Box>
+				}
 
-                        {controllerProps.record && controllerProps.record.endTime && 
-                            <DateField className={classes.inlineField} label='End date, time' source='endTime' showTime options={AppDateTimeFormat} />
-                        }
+				{controllerProps.record.startTime &&
+				<Box flex={1} minWidth={'14em'} >
+					<Labeled label='Start date, time'>
+						<DateField source='startTime' showTime options={AppDateTimeFormat} />
+					</Labeled>
+				</Box>
+				}
 
-                        {controllerProps.record && checkCommandForRelayCycle(controllerProps.record.command) && 
-                            <>
-                            <CycleField className={classes.inlineField} label='Cycle' source='completeCycle' suffix='sec' {...controllerProps}/>
-                            <DutyCycleField className={classes.inlineField} label='Duty Cycle' source='dutyCycle' {...controllerProps}/>
-                            </>
-                        }
+				{controllerProps.record.endTime &&
+				<Box flex={1} minWidth={'14em'} >
+					<Labeled label='End date, time'>
+						<DateField source='endTime' showTime options={AppDateTimeFormat} />
+					</Labeled>
+				</Box>
+				}
+			</Box>
+			}
 
-                        {controllerProps.record && checkCommandForInputCount(controllerProps.record.command) && 
-                            <>
-                            <Labeled label='Transition'>
-                                <SelectField className={classes.inlineField} source='transition' choices={edges} translateChoice={false} {...controllerProps} {...props} />
-                            </Labeled>
-                            <CycleField className={classes.inlineField} label='Cycle' source='completeCycle' suffix='sec' {...controllerProps}/>
-                            </>
-                        }
+			<Divider />
 
-                        {controllerProps.record && checkCommandForInputCycle(controllerProps.record.command) && 
-                            <>
-                            <Labeled label='Transition'>
-                                <SelectField className={classes.inlineField} source='transition' choices={edges} translateChoice={false} {...controllerProps} {...props} />
-                            </Labeled>
-                            </>
-                        }
-                        
-                        <DividerField />
-                        
-                        <CommandStatusField className={classes.inlineField} source='status' />
-                        <DateField className={classes.inlineField} label='Created' source='created' showTime options={AppDateTimeFormat} />
-                        <DateField className={classes.inlineField} label='Sent' source='sent' showTime options={AppDateTimeFormat} />
-                        <DateField className={classes.inlineField} label='Received' source='received' showTime options={AppDateTimeFormat} />
+			<Box display={'inline-flex'}>
+				<Box flex={1} minWidth={'14em'} >
+					<Labeled label='Status'>
+						<CommandStatusField />
+					</Labeled>
+				</Box>
+				<Box flex={1} minWidth={'14em'} >
+					<Labeled label='Created'>
+						<DateField source='created' showTime options={AppDateTimeFormat} />
+					</Labeled>
+				</Box>
+			</Box>
 
-                    </SimpleShowLayout>
-                </ShowView>
-            }
-        </ShowController>
-    );
+			<Box display={'inline-flex'}>
+				<Box flex={1} minWidth={'14em'} >
+					<Labeled label='Sent'>
+						<DateField source='sent' showTime options={AppDateTimeFormat} emptyText="waiting..." />
+					</Labeled>
+				</Box>
+				<Box flex={1} minWidth={'14em'} >
+					<Labeled label='Received'>
+						<DateField source='received' showTime options={AppDateTimeFormat} emptyText="waiting..." />
+					</Labeled>
+				</Box>
+			</Box>
+
+			</SimpleShowLayout>
+		</Show>
+	);
 };
 
 export default CommandShow;

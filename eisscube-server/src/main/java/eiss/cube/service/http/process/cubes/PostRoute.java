@@ -43,7 +43,7 @@ public class PostRoute implements Handler<RoutingContext> {
     public void handle(RoutingContext context) {
         HttpServerResponse response = context.response();
 
-        String json = context.getBodyAsString();
+        String json = context.body().asString();
         log.debug("Create a new EISScube: {}", json);
 
         EISScube cube = gson.fromJson(json, EISScube.class);

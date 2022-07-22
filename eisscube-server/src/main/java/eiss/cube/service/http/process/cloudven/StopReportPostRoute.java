@@ -48,7 +48,7 @@ public class StopReportPostRoute implements Handler<RoutingContext> {
     public void handle(RoutingContext context) {
         HttpServerResponse response = context.response();
 
-        String json = context.getBodyAsString();
+        String json = context.body().asString();
 
         StartReport req = gson.fromJson(json, StartReport.class);
         if (req == null) {

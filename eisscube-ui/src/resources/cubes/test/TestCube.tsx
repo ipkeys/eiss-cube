@@ -1,410 +1,269 @@
 import { useEffect, useState } from 'react';
-import { makeStyles, Theme } from '@material-ui/core/styles';
 import moment from 'moment';
-import { Button, useDataProvider } from 'react-admin';
-import { TimeSeries, TimeRange} from "pondjs";
+import { Button, useDataProvider, useRecordContext } from 'react-admin';
 import {
-  ChartContainer,
-  ChartRow,
-  Charts,
-  YAxis,
-  LineChart,
-  Baseline,
-  Resizable
-} from "react-timeseries-charts";
+	Box,
+	Divider,
+	Typography,
+	LinearProgress,
+	Accordion,
+	AccordionDetails,
+	AccordionSummary
+} from '@mui/material';
 import {
-    Divider,
-    Typography,
-    LinearProgress,
-    ExpansionPanel,
-    ExpansionPanelDetails,
-    ExpansionPanelSummary
-} from '@material-ui/core';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import StartTestIcon from '@material-ui/icons/PlayCircleOutline';
-import { green, red, blue, amber, yellow, grey } from '@material-ui/core/colors';
+	LineChart,
+	Line,
+	XAxis,
+	YAxis,
+	CartesianGrid,
+	Legend,
+	ReferenceLine
+} from 'recharts';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import StartTestIcon from '@mui/icons-material/PlayCircleOutline';
+import { green, red, blue, yellow } from '@mui/material/colors';
 import SelectDuration from './SelectDuration';
 import SelectCycle from './SelectCycle';
 
-const relayStyle = {
-    value: { 
-        normal: {
-            stroke: blue[800], 
-            fill: 'none', 
-            strokeWidth: 2
-        } 
-    },
-    label: {
-        fill: blue[800]
-    }
-};
-
-const inputStyle = {
-    value: { 
-        normal: {
-            stroke: amber[800], 
-            fill: 'none', 
-            strokeWidth: 2
-        } 
-    },
-    label: {
-        fill: amber[800]
-    }
-};
-
-const baselineUpStyle = {
-    line: {
-        stroke: green[500],
-        strokeWidth: 1,
-        opacity: 0.5
-    },
-    label: {
-        fill: green[500]
-    }
-};
-
-const baselineDownStyle = {
-    line: {
-        stroke: red[500],
-        strokeWidth: 1,
-        opacity: 0.5
-    },
-    label: {
-        fill: red[500]
-    }
-};   
-
-const useStyles = makeStyles((theme: Theme) => ({ 
-	btnPadding: {
-        paddingRight: theme.spacing(1)
-    },
-    title: {
-        display: 'inline-flex',
-        alignItems: 'center',
-    },
-    content: {
-        paddingLeft: theme.spacing(3),
-        paddingRight: theme.spacing(3),
-        paddingBottom: 0
-    },
-    button: {
-        marginTop: theme.spacing(1),
-        marginBottom: theme.spacing(1)
-    },
-    progress: {
-        marginTop: theme.spacing(1),
-        marginBottom: theme.spacing(2)
-    },
-    note: {
-        display: 'inline-flex',
-		alignItems: 'center'
-	},
-	notePanel: {
-        backgroundColor: yellow[50],
-        marginBottom: theme.spacing(1)
-    },
-    panelDetails: {
-        paddingTop: 0
-    },
-    detailsText: {
-        fontWeight: 400,
-        lineHeight: '1.5em',
-        color: grey[900]
-    },
-    divider: {
-        marginTop: theme.spacing(1),
-        marginBottom: theme.spacing(1)
-    },
-    leftgap: {
-        paddingLeft: theme.spacing(2)
-    }
-}));
-
-
 let duration = 60, cycle = 10; // default
-
 let STEP = 0;
 let STEPS = duration / 5; // 5 seconds steps for linear progress
-const normalise = (value: any) => value * 100 / STEPS;
 
-const TestCube = (props: any) => {
-    const { cubeID } = props;
-    const classes = useStyles();
-    const [relaySeries, setRelaySeries] = useState<TimeSeries | null>(null);
-    const [inputSeries, setInputSeries] = useState<TimeSeries | null>(null);
-    const [completed, setCompleted] = useState(0);
-    const [buffer, setBuffer] = useState(0);
-    const [started, setStarted] = useState(false);
-    const [finished, setFinished] = useState(false);
-    const [expanded, setExpanded] = useState('');
-    const dataProvider = useDataProvider();
+const TestCube = () => {
+	const record = useRecordContext();
+	const [completed, setCompleted] = useState(0);
+	const [buffer, setBuffer] = useState(0);
+	const [started, setStarted] = useState(false);
+	const [finished, setFinished] = useState(false);
+	const [expanded, setExpanded] = useState('');
+	const [dataForCharts, setDataForCharts] = useState<any[]>([]);
+	const dataProvider = useDataProvider();
 
-    let timer: any = null;
+	const cubeID = record.id;
 
-    const startTest = () => {
-        STEP = 0;
-        
-        dataProvider.create('test', {
-            data: { cubeID, duration, cycle }
-        });
+	const normalise = (value: any) => value * 100 / STEPS;
 
-        timer = setInterval(progress, 5000); // each 5 sec
+	useEffect(() => {
+		let timer = setInterval(() => {
+			if (started) {
+				progress();
+			}
+			if (finished) {
+				clearInterval(timer);
+			}
+		}, 5000);
 
-        setRelaySeries(null);
-        setInputSeries(null);
-        setCompleted(0);
-        setBuffer(0);
-        setStarted(true);
-        setFinished(false);
-    };
-
-    const progress = () => {
-        if (finished) {
-            clearInterval(timer);
-
-            setCompleted(0);
-            setBuffer(0);
-            setStarted(false);
-            setFinished(true);
-        }
-
-        dataProvider.getOne('test', {
-            id: cubeID
-        })
-        .then(response => response.data)
-        .then(data => {
-            if (data) {
-                let count = data.length;
-                                
-                if (count === 0) { // no data yet
-                    const diff = Math.random() * 2;
-                    const diff2 = Math.random() * 2;
-                    setCompleted(completed + diff);
-                    setBuffer(completed + diff + diff2);
-                } else {
-                    STEP++; // sount steps
-                    console.log("STEP " + STEP + " of " + STEPS);
-
-                    const relays = [] as any[];
-                    const inputs = [] as any[];
-
-                    data.map((item: any) => {
-                        let time = moment.utc(item.timestamp);
-                        let local_time = time.local().valueOf();
-                        relays.push([local_time, item.r]);
-                        inputs.push([local_time, item.i]);
-                        return null;
-                    })
-
-                    const tsForRelay = new TimeSeries({
-                        name: 'relay',
-                        columns: ['time', 'value'],
-                        points: relays
-                    });
-                
-                    const tsForInput = new TimeSeries({
-                        name: 'input',
-                        columns: ['time', 'value'],
-                        points: inputs
-                    });
-
-                    setRelaySeries(tsForRelay);
-                    setInputSeries(tsForInput);
-                    setCompleted(STEP);
-                    setBuffer((STEP % 2) === 0 ? STEP + 1 : STEP);
-                    setFinished(STEP === STEPS);
-                }
-            }
-        });
-    };
-
-    useEffect(() => {
-        setTimeout(() => {
-            window.dispatchEvent(new Event('resize'));
-        }, 0);
-        return () => {
-            clearInterval(timer);
-        };
+		return () => {
+			clearInterval(timer);
+		};
 	});
 
-    const handleNote = (panel: string) => (event: any, exp: boolean) => {
-        setExpanded(exp ? panel : '');
+	if (!record) return null;
+
+	const startTest = () => {
+		STEP = 0;
+
+		dataProvider.create('test', {
+			data: { cubeID, duration, cycle }
+		});
+
+		setCompleted(0);
+		setBuffer(0);
+		setStarted(true);
+		setFinished(false);
 	};
 
-    const handleDuration = (data: number) => {
-        duration = data;
-        STEPS = duration / 5;
-    };
+	const progress = () => {
+		if (finished) {
+			setCompleted(0);
+			setBuffer(0);
+			setStarted(false);
+			setFinished(true);
+		}
 
-    const handleCycle = (data: number) => {
-        cycle = data;
-    };
+		dataProvider.test('test', {
+			data: {id: cubeID}
+		})
+		.then((data: any) => {
+			const arr = data.data;
+			if (arr) {
+				let count = arr.length;
 
-    const beginTime = moment();
-    const endTime = moment().add(5, 'm');
-    let timeRange = new TimeRange(beginTime, endTime);
+				if (count === 0) { // no data yet
+					const diff = Math.random() * 2;
+					const diff2 = Math.random() * 2;
+					setCompleted(completed + diff);
+					setBuffer(completed + diff + diff2);
+				} else {
+					STEP++; // count steps
 
+					const results = [] as any[];
 
-    const relayCharts = [
-        <Baseline
-            key='r1'
-            axis='relay'
-            value={0.99}
-            label='ON'
-            position='right'
-            style={ baselineUpStyle }
-        />,
-        <Baseline
-            key='r2'
-            axis='relay'
-            value={0.01}
-            label='OFF'
-            position='right'
-            style={ baselineDownStyle }
-        />
-    ];
+					arr.forEach((item: any) => {
+						let time = moment.utc(item.timestamp);
+						let local_time = time.local().valueOf();
+						results.push({
+							t: moment(local_time).format('HH:mm:ss'),
+							r: item.r,
+							i: item.i
+						});
+					})
 
-    if (relaySeries) {
-         // @ts-ignore
-        timeRange = relaySeries.range();
-        relayCharts.push(
-            <LineChart
-                key='r3'
-                axis='relay'
-                series={ relaySeries }
-                interpolation='curveStep'
-                style={ relayStyle }
-            />
-        );
-    }
+					setDataForCharts(results);
+					setCompleted(STEP);
+					setBuffer((STEP % 2) === 0 ? (STEP + 1) : STEP);
+					setFinished(STEP === STEPS);
+				}
+			}
+		});
+	};
 
-    const inputCharts = [
-        <Baseline
-            key='i1'
-            axis='input'
-            value={0.99}
-            label='HIGH'
-            position='right'
-            style={ baselineUpStyle }
-        />,
-        <Baseline
-            key='i2'
-            axis='input'
-            value={0.01}
-            label='LOW'
-            position='right'
-            style={ baselineDownStyle }
-        />
-    ];
+	const handleNote = (panel: string) => (_event: any, exp: boolean) => {
+		setExpanded(exp ? panel : '');
+	};
 
-    if (inputSeries) {
-        inputCharts.push(
-            <LineChart
-                key='i3'
-                axis='input'
-                series={ inputSeries }
-                interpolation='curveStep'
-                style={ inputStyle }
-            />
-        );
-    }
+	const handleDuration = (data: number) => {
+		duration = data;
+		STEPS = duration / 5;
+	};
 
-    const linearProgress = started ? 
-        <LinearProgress className={classes.progress} variant='buffer' value={normalise(completed)} valueBuffer={normalise(buffer)} /> 
-        : 
-        <LinearProgress className={classes.progress} variant='determinate' value={0}/>
-        ;
+	const handleCycle = (data: number) => {
+		cycle = data;
+	};
 
-    let message = null;
-        
-    if (started) {
-        message =
-        <Typography className={classes.leftgap} variant='body2'>
-            <i style={{color: green[500]}}>Test in process...</i>
-        </Typography> 
-    }
+	const linearProgress = started ?
+		<LinearProgress sx={{mt: 2, mb: 2}} variant='buffer' value={normalise(completed)} valueBuffer={normalise(buffer)} />
+		:
+		<LinearProgress sx={{mt: 2, mb: 2}} variant='determinate' value={0}/>
+		;
 
-    if (finished) {
-        message = 
-        <Typography className={classes.leftgap} variant='body2'>
-            <i style={{color: red[500]}}>Test is finished!</i>
-        </Typography>
-    }
+	let message = null;
 
-    return (
-        <div>
-            <ExpansionPanel className={classes.notePanel} expanded={expanded === 'test_note'} onChange={handleNote('test_note')}>
-                <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
-                    <i style={{color: red[800], marginRight: '8px'}}>Note!</i>
-                    Testing process will take up to 5 minutes (depends on network speed).<br/>Press [START...] to run.
-                </ExpansionPanelSummary>
-                    <ExpansionPanelDetails className={classes.panelDetails}>
-                        <div className={classes.detailsText}>
-                            RELAY will cycle for <SelectDuration onChange={handleDuration} /> with <SelectCycle onChange={handleCycle}/> <b style={{color: green[400]}}>ON</b>/<b style={{color: red[400]}}>OFF</b> intervals.
-                        <Divider className={classes.divider} />
-                            Connect <b style={{color: blue[400]}}>INPUT (#5)</b> to <b style={{color: blue[400]}}>NC - Normal Close (#8)</b> RELAY's contact
-                            <br/>
-                            Connect <b style={{color: red[400]}}>+12V (#3)</b> to <b style={{color: red[400]}}>COM - Common (#7)</b> RELAY's contact.
-                        <Divider className={classes.divider} />
-                            Input will reflect RELAY's switches and show <b style={{color: green[400]}}>HIGH</b>/<b style={{color: red[400]}}>LOW</b> level. 
-                        </div>
-                    </ExpansionPanelDetails>
-            </ExpansionPanel>
+	if (started) {
+		message =
+		<Typography sx={{pf: 2, ml: 1}} variant='body2'>
+			<i style={{color: green[500]}}>Test in process...</i>
+		</Typography>
+	}
 
-            <span className={classes.title}>
-                <Button 
-                    className={classes.button} 
-                    variant='contained'
-                    color='primary' 
-                    label='Start...' 
-                    onClick={startTest}
-                    disabled={started} 
-                >
-                    <StartTestIcon />
-                </Button>
-                
-                {message}
-            </span>
+	if (finished) {
+		message =
+		<Typography sx={{pf: 2, ml: 1}} variant='body2'>
+			<i style={{color: red[500]}}>Test is finished!</i>
+		</Typography>
+	}
 
-            {linearProgress}
+	return (
+		<Box>
+			<Accordion sx={{backgroundColor: yellow[50], mb: 2}} expanded={expanded === 'test_note'} onChange={handleNote('test_note')}>
+				<AccordionSummary expandIcon={<ExpandMoreIcon />}>
+					<i style={{color: red[500], marginRight: '1em'}}>Note!</i>
+					Testing process will take up to 5 minutes (depends on network speed). Press [START...] to run.
+				</AccordionSummary>
+					<AccordionDetails>
+						<Box sx={{display: 'inline-flex', alignItems: 'center'}}>
+							RELAY will cycle for <SelectDuration onChange={handleDuration} /> with <SelectCycle onChange={handleCycle}/> <b style={{color: green[400]}}>ON</b>/<b style={{color: red[400]}}>OFF</b>&nbsp;intervals.
+						</Box>
 
-            <Resizable>
-                <ChartContainer
-                    timeRange={timeRange} 
-                    format='%H:%M:%S'
-                >
-                    <ChartRow height='100'>
-                        <YAxis
-                            id='relay'
-                            label='RELAY'
-                            min={0} max={1}
-                            tickCount={2}
-                            format=',.0f'
-                            type='linear'
-                            style={ relayStyle }
-                        />
-                        <Charts>
-                            {relayCharts}
-                        </Charts>
-                    </ChartRow>
-                    <ChartRow height='100'>
-                        <YAxis
-                            id='input'
-                            label='INPUT'
-                            min={0} max={1}
-                            tickCount={2}
-                            format=',.0f'
-                            type='linear'
-                            style={ inputStyle }
-                        />
-                        <Charts>
-                            {inputCharts}
-                            </Charts>
-                    </ChartRow>
-                </ChartContainer>
-            </Resizable>
-        </div>
-    );
+						<Divider sx={{mt: 1, mb: 1}}/>
+
+						Connect <b style={{color: blue[400]}}>INPUT (#5)</b> to <b style={{color: blue[400]}}>NC - Normal Close (#8)</b> of RELAY's contact
+						<br/>
+						Connect <b style={{color: red[400]}}>+12V (#3)</b> to <b style={{color: red[400]}}>COM - Common (#7)</b> of RELAY's contact
+
+						<Divider sx={{mt: 1, mb: 1}}/>
+
+						Input will reflect RELAY's switches and show <b style={{color: green[400]}}>HIGH</b>/<b style={{color: red[400]}}>LOW</b> level.
+					</AccordionDetails>
+			</Accordion>
+
+			<Box sx={{display: 'inline-flex', alignItems: 'center'}} >
+				<Button
+					variant='contained'
+					color='primary'
+					label='Start...'
+					onClick={startTest}
+					disabled={started}
+				>
+					<StartTestIcon />
+				</Button>
+
+				{message}
+
+			</Box>
+
+			{linearProgress}
+
+			<LineChart
+				width={850}
+				height={150}
+				data={dataForCharts}
+				margin={{top: 5, right: 30, left: 5, bottom: 5}}
+			>
+				<CartesianGrid strokeDasharray='3 3' horizontal={false} />
+				<ReferenceLine y={1} stroke='green' strokeDasharray='3 3' />
+				<ReferenceLine y={0} stroke='red' strokeDasharray='3 3' />
+				<XAxis dataKey='t' domain={[moment().format('HH:mm:ss'), moment().add('5m').format('HH:mm:ss')]} />
+				<YAxis type='number' domain={[0, 1]} padding={{top: 10, bottom: 10}} interval={3} tickFormatter={n => (n === 0) ? 'OFF' : 'ON'} />
+				<Legend align='left' verticalAlign='top' iconType='circle' />
+				<Line dataKey='r' type='step' name='Relay' stroke={blue.A700} strokeWidth={3} dot={false} isAnimationActive={false} />
+			</LineChart>
+
+			<LineChart
+				width={850}
+				height={150}
+				data={dataForCharts}
+				margin={{top: 5, right: 30, left: 5, bottom: 5}}
+			>
+				<CartesianGrid strokeDasharray='3 3' horizontal={false} />
+				<ReferenceLine y={1} stroke='green' strokeDasharray='3 3' />
+				<ReferenceLine y={0} stroke='red' strokeDasharray='3 3' />
+				<XAxis dataKey='t' domain={[moment().format('HH:mm:ss'), moment().add('5m').format('HH:mm:ss')]} />
+				<YAxis type='number' domain={[0, 1]} padding={{top: 10, bottom: 10}} interval={3} tickFormatter={n => (n === 0) ? 'OFF' : 'ON'} />
+				<Legend align='left' verticalAlign='top' iconType='circle' />
+				<Line dataKey='i' type='step' name='Input' stroke={yellow.A700} strokeWidth={3} dot={false} isAnimationActive={false} />
+			</LineChart>
+		</Box>
+	);
 }
 
 export default TestCube;
+
+/*
+			<Resizable>
+				<ChartContainer
+					timeRange={timeRange}
+					format='%H:%M:%S'
+				>
+					<ChartRow height='100'>
+						<YAxis
+							id='relay'
+							label='RELAY'
+							min={0} max={1}
+							tickCount={2}
+							format=',.0f'
+							type='linear'
+							style={ relayStyle }
+						/>
+						<Charts>
+							{relayCharts}
+						</Charts>
+					</ChartRow>
+					<ChartRow height='100'>
+						<YAxis
+							id='input'
+							label='INPUT'
+							min={0} max={1}
+							tickCount={2}
+							format=',.0f'
+							type='linear'
+							style={ inputStyle }
+						/>
+						<Charts>
+							{inputCharts}
+						</Charts>
+					</ChartRow>
+				</ChartContainer>
+			</Resizable>
+
+*/

@@ -1,141 +1,89 @@
+import * as React from 'react';
 import { useState, useEffect } from "react";
-import { makeStyles, Theme } from '@material-ui/core/styles';
-import { DatePicker } from "@material-ui/pickers";
-import { IconButton } from "@material-ui/core";
+import { styled } from '@mui/material/styles';
+import { TextField } from '@mui/material';
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { PickersDay, PickersDayProps } from '@mui/x-date-pickers/PickersDay';
+import moment from "moment";
 
-import clsx from "clsx";
-import format from "date-fns/format";
-import isValid from "date-fns/isValid";
-import isSameDay from "date-fns/isSameDay";
-import endOfWeek from "date-fns/endOfWeek";
-import startOfWeek from "date-fns/startOfWeek";
-import isWithinInterval from "date-fns/isWithinInterval";
-import moment from 'moment';
+type PickerDayOfWeekProps = PickersDayProps<Date> & {
+	dayIsBetween: boolean;
+	isFirstDay: boolean;
+	isLastDay: boolean;
+};
 
-const useStyles = makeStyles((theme: Theme) => ({ 
-    date: {
-        marginTop: theme.spacing(1),
-        width: theme.spacing(20)
-    },
-    dayWrapper: {
-        position: 'relative'
-    },
-    day: {
-        width: 36,
-        height: 36,
-        fontSize: theme.typography.caption.fontSize,
-        margin: '0 2px',
-        color: 'inherit'
-    },
-    customDayHighlight: {
-        position: 'absolute',
-        top: 0,
-        bottom: 0,
-        left: '2px',
-        right: '2px',
-        border: `1px solid ${theme.palette.secondary.main}`,
-        borderRadius: '50%'
-    },
-    nonCurrentMonthDay: {
-        color: theme.palette.text.disabled
-    },
-    highlightNonCurrentMonthDay: {
-        color: '#676767'
-    },
-    highlight: {
-        background: theme.palette.primary.main,
-        color: theme.palette.common.white
-    },
-    firstHighlight: {
-        extend: 'highlight',
-        borderTopLeftRadius: '50%',
-        borderBottomLeftRadius: '50%'
-    },
-    endHighlight: {
-        extend: 'highlight',
-        borderTopRightRadius: '50%',
-        borderBottomRightRadius: '50%'
-    }
-}));
-
-function makeJSDateObject(date: any) {
-    if (moment.isMoment(date)) {
-        return date.clone().toDate();
-    }
-
-    if (date instanceof Date) {
-        return new Date(date.getTime());
-    }
-
-    return date;
-}
+const PickersDayOfWeek = styled(
+		PickersDay,
+		{ shouldForwardProp: (prop) => prop !== 'dayIsBetween' && prop !== 'isFirstDay' && prop !== 'isLastDay' }
+	)<PickerDayOfWeekProps>(
+		({ theme, dayIsBetween, isFirstDay, isLastDay }) => ({
+		...(dayIsBetween && {
+			borderRadius: '50%',
+			backgroundColor: theme.palette.primary.main,
+			color: theme.palette.common.white,
+			'&:hover, &:focus': {
+				backgroundColor: theme.palette.primary.dark
+			}
+		}),
+		...(isFirstDay && {
+			borderRadius: '50%'
+		}),
+		...(isLastDay && {
+			borderRadius: '50%'
+		})
+	})
+) as React.ComponentType<PickerDayOfWeekProps>;
 
 const WeekPicker = (props: any) => {
-    const { date, onChange } = props;
-    const classes = useStyles();
-	const [value, setValue] = useState(() => startOfWeek(makeJSDateObject(date)));
+	const { date, onChange } = props;
+	const [value, setValue] = useState<Date | null>(date);
 
 	useEffect(() => {
-		setValue(startOfWeek(makeJSDateObject(date)));
+		setValue(date);
 	}, [date]);
 
-	const changeDate = (new_date: any) => {
-        const new_week = startOfWeek(makeJSDateObject(new_date))
-		onChange(new_week);
+	const renderWeekPickerDay = (
+		dt: Date,
+		_selectedDates: Array<Date | null>,
+		pickersDayProps: PickersDayProps<Date>
+	) => {
+		if (!value) {
+			return <PickersDay {...pickersDayProps} />;
+		}
+
+		const start = moment(value).startOf('week');
+		const end = moment(value).endOf('week');
+
+		const dayIsBetween = moment(dt).isBetween(start, end);
+		const isFirstDay = moment(dt).isSame(start);
+		const isLastDay = moment(dt).isSame(end);
+
+		return <PickersDayOfWeek
+			{...pickersDayProps}
+			showDaysOutsideCurrentMonth
+			dayIsBetween={dayIsBetween}
+			isFirstDay={isFirstDay}
+			isLastDay={isLastDay}
+		/>;
 	};
 
-    // @ts-ignore
-    const formatWeekSelectLabel = (dt, invalidLabel) => {
-        let dateClone = makeJSDateObject(dt);
-
-        return dateClone && isValid(dateClone)
-            ? `Week of ${format(startOfWeek(dateClone), "MMM do")}`
-            : invalidLabel;
-    };
-
-    // @ts-ignore
-    const renderWrappedWeekDay = (day, selectedDate, dayInCurrentMonth) => {
-        let dateClone = makeJSDateObject(day);
-        let selectedDateClone = makeJSDateObject(selectedDate);
-
-        const start = startOfWeek(selectedDateClone);
-        const end = endOfWeek(selectedDateClone);
-
-        const dayIsBetween = isWithinInterval(dateClone, { start, end });
-        const isFirstDay = isSameDay(dateClone, start);
-        const isLastDay = isSameDay(dateClone, end);
-
-        const wrapperClassName = clsx({
-            [classes.highlight]: dayIsBetween,
-            [classes.firstHighlight]: isFirstDay,
-            [classes.endHighlight]: isLastDay,
-        });
-
-        const dayClassName = clsx(classes.day, {
-            [classes.nonCurrentMonthDay]: !dayInCurrentMonth,
-            [classes.highlightNonCurrentMonthDay]: !dayInCurrentMonth && dayIsBetween,
-        });
-
-        return (
-            <div className={wrapperClassName}>
-                <IconButton className={dayClassName}>
-                    <span> {format(dateClone, "d")} </span>
-                </IconButton>
-            </div>
-        );
-    };
-
 	return (
-		<DatePicker className={classes.date}
-			autoOk
-			variant='inline'
-			label={false}
-			disableFuture={true}
-			value={value}
-			onChange={changeDate}
-            labelFunc={formatWeekSelectLabel}
-            renderDay={renderWrappedWeekDay}
-        />
+		<LocalizationProvider dateAdapter={AdapterMoment}>
+			<DatePicker disableFuture
+				views={['day']}
+				label='Week of'
+				value={value}
+				onChange={(newValue) => {
+					setValue(newValue);
+					onChange(newValue);
+				}}
+				renderDay={renderWeekPickerDay}
+				renderInput={(params) => <TextField sx={{width: 200}} {...params} />}
+				//inputFormat='MMM d'
+			/>
+		</LocalizationProvider>
 	);
 }
 

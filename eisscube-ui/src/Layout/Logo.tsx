@@ -1,20 +1,14 @@
-import { makeStyles } from '@material-ui/core/styles';
+import { Box } from '@mui/material';
+import { logoUrl } from '../global';
 
-const useStyles = makeStyles(theme => ({
-    logo: {
-        background: 'url(Logo.png)',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center',
-        minHeight: theme.spacing(10),
-        marginTop: theme.spacing(2)  
-    }
-}));
-
-const Logo = () => {
-    const classes = useStyles();
-    return (
-        <div className={classes.logo} />
-    );
-}
+const Logo = () => (
+	<Box sx={{
+		background: `url(${logoUrl})`,
+		backgroundRepeat: 'no-repeat',
+		backgroundPosition: 'center',
+		marginTop: '1em',
+		minHeight: '5em'
+	}} />
+);
 
 export default Logo;

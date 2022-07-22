@@ -60,7 +60,7 @@ public class PutRoute implements Handler<RoutingContext> {
             return;
         }
 
-        String json = context.getBodyAsString();
+        String json = context.body().asString();
         log.info("Update existing Property: {} by: {}", id, json);
         CubeProperty property = gson.fromJson(json, CubeProperty.class);
         if (property == null) {

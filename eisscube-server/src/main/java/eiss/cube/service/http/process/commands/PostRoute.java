@@ -53,7 +53,7 @@ public class PostRoute implements Handler<RoutingContext> {
     public void handle(RoutingContext context) {
         HttpServerResponse response = context.response();
 
-        String json = context.getBodyAsString();
+        String json = context.body().asString();
         log.info("Create new CubeCommand: {}", json);
 
         CubeCommand cmd = gson.fromJson(json, CubeCommand.class);
@@ -64,6 +64,7 @@ public class PostRoute implements Handler<RoutingContext> {
             return;
         }
 
+/*
         CycleAndDutyCycleExtractor cdc = gson.fromJson(json, CycleAndDutyCycleExtractor.class);
 
         if (cdc.getCycleAndDutyCycle() != null && !cdc.getCycleAndDutyCycle().isEmpty()) {
@@ -73,7 +74,7 @@ public class PostRoute implements Handler<RoutingContext> {
                 cmd.setDutyCycle(Integer.valueOf(a[1]));
             }
         }
-
+*/
         vertx.executeBlocking(op -> {
             cmd.setStatus("Created");
             cmd.setCreated(Instant.now());

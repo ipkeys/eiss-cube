@@ -1,83 +1,66 @@
 import { useState } from 'react';
-import { makeStyles, Theme } from '@material-ui/core/styles';
-import { 
-    Button,
-    useRecordContext 
+import {
+	Button,
+	useRecordContext
 } from 'react-admin';
-import { 
-    Dialog, 
-    DialogTitle,
-    DialogContent,
-    DialogActions
-} from '@material-ui/core';
-import SetupIcon from '@material-ui/icons/Settings';
-import CancelIcon from '@material-ui/icons/Close';
-
+import {
+	Box,
+	Typography,
+	Dialog,
+	DialogTitle,
+	DialogContent,
+	DialogActions
+} from '@mui/material';
+import SetupIcon from '@mui/icons-material/Settings';
+import CancelIcon from '@mui/icons-material/Close';
 import SetupCube from '../setup/SetupCube';
 
-const useStyles = makeStyles((theme: Theme) => ({ 
-	btnPadding: {
-        paddingRight: theme.spacing(1)
-    },
-    title: {
-        display: 'inline-flex',
-        alignItems: 'center',
-    },
-    content: {
-		padding: 0
-	}
-}));
-
 const SetupButton = (props: any) => {
-    const [showDialog, setShowDialog] = useState<boolean>(false);
-    const classes = useStyles();
-    const record = useRecordContext(props);
+	const [showDialog, setShowDialog] = useState<boolean>(false);
+	const record = useRecordContext(props);
 
-    const handleOpen = () => {
-        setShowDialog(true);
-    };
+	const handleOpen = () => {
+		setShowDialog(true);
+	};
 
-    const handleClose = () => {
-        setShowDialog(false);
-    };
+	const handleClose = () => {
+		setShowDialog(false);
+	};
 
-    return (
-        record
-        ?
-        <span>
-            <Button label='Setup' onClick={handleOpen} >
-                <SetupIcon />
-            </Button>
-            <Dialog
-                fullWidth
-                maxWidth='sm'								
-                open={showDialog}
-                scroll={'paper'}
-                onClose={handleClose}
-                disableBackdropClick={true}
-                aria-labelledby='setup-dialog-title'
-            >
-                <DialogTitle id='setup-dialog-title'>
-                    <span className={classes.title}>
-                        <SetupIcon className={classes.btnPadding} />
-                        {record && `${record.name}`} - Setup Connections
-                    </span>
-                </DialogTitle>
-                
-                <DialogContent className={classes.content}>
-                    <SetupCube cubeID={record.id} deviceType={record.deviceType} />
-                </DialogContent>
+	return (
+		record &&
+		<Box>
+			<Button label='Setup' onClick={handleOpen} >
+				<SetupIcon />
+			</Button>
 
-                <DialogActions>
-                    <Button label='Close' onClick={handleClose} >
-                        <CancelIcon />
-                    </Button>
-                </DialogActions>
-            </Dialog>
-        </span>
-        :
-        null
-    );
+			<Dialog
+				fullWidth
+				maxWidth='sm'
+				open={showDialog}
+				scroll={'paper'}
+				onClose={handleClose}
+				aria-labelledby='setup-dialog-title'
+			>
+				<DialogTitle id='setup-dialog-title'>
+					<Typography sx={{ display: 'inline-flex' }}>
+						<SetupIcon sx={{ pr: 1 }}/>
+						{record && `${record.name}`} - Setup Connections
+					</Typography>
+				</DialogTitle>
+
+				<DialogContent>
+					<SetupCube cubeID={record.id} deviceType={record.deviceType} />
+				</DialogContent>
+
+				<DialogActions>
+					<Button label='Close' onClick={handleClose} >
+						<CancelIcon />
+					</Button>
+				</DialogActions>
+			</Dialog>
+		</Box>
+	);
 }
 
 export default SetupButton;

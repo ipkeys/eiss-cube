@@ -11,7 +11,7 @@ public class VertxProvider implements Provider<Vertx> {
     public Vertx get() {
         if (vertx == null) {
             VertxOptions options = new VertxOptions();
-            options.setWorkerPoolSize(2);
+            options.setWorkerPoolSize(10);
             vertx = Vertx.vertx(options);
         }
         return vertx;

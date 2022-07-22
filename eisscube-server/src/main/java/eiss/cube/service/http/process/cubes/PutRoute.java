@@ -66,7 +66,7 @@ public class PutRoute implements Handler<RoutingContext> {
             return;
         }
 
-        String json = context.getBodyAsString();
+        String json = context.body().asString();
         log.info("Update existing EISScube: {} by: {}", id, json);
         EISScube cube = gson.fromJson(json, EISScube.class);
         if (cube == null) {

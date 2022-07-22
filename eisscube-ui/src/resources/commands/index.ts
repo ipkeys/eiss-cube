@@ -1,9 +1,12 @@
-import Icon from '@material-ui/icons/Message';
+export {default as CommandIcon} from '@mui/icons-material/Message';
+export {default as CommandList} from './CommandList';
+export {default as CommandShow} from './CommandShow';
+export {default as CommandCreate} from './CommandCreate';
 
-export const CommandIcon = Icon;
-export { default as CommandList } from './CommandList';
-export { default as CommandShow } from './CommandShow';
-export { default as CommandCreate } from './CommandCreate';
+export const checkCommandForParams = (record: any) => {
+    const commands = ['rcyc', 'icp', 'icc'];
+    return (commands.includes(record.command) || record.startTime || record.endTime) ? true : false ;
+};
 
 export const checkCommandForRelayCycle = (v: string) => {
     return (v === 'rcyc') ? true : false ;

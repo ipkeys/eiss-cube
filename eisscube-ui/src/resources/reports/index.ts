@@ -1,10 +1,8 @@
-import Icon from '@material-ui/icons/BarChart';
-
-export const ReportIcon = Icon;
-export { default as ReportList } from './ReportList';
-export { default as ReportShow } from './ReportShow';
+export {default as ReportIcon} from '@mui/icons-material/BarChart';
+export {default as ReportList} from './ReportList';
+export {default as ReportShow} from './ReportShow';
 
 export const reportTypes = [
-    { id: 'p', name: 'Pulses' },
-    { id: 'c', name: 'Cycles' }
+	{ id: 'p', name: 'Pulses' },
+	{ id: 'c', name: 'Cycles' }
 ];

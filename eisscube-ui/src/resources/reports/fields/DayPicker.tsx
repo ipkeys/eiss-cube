@@ -1,37 +1,35 @@
 import { useState, useEffect } from "react";
-import { makeStyles, Theme } from '@material-ui/core/styles';
-import { DatePicker } from "@material-ui/pickers";
-
-const useStyles = makeStyles((theme: Theme) => ({ 
-	date: {
-		marginTop: theme.spacing(1),
-		width: theme.spacing(20)
-	}
-}));
+import { TextField } from '@mui/material';
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
 const DayPicker = (props: any) => {
 	const { date, onChange } = props;
-	const classes = useStyles();
 	const [value, setValue] = useState(date);
 
 	useEffect(() => {
 		setValue(date);
 	}, [date]);
 
-	const changeDate = (new_date: any) => {
-		onChange(new_date);
-	};
-
 	return (
-		<DatePicker className={classes.date}
-			autoOk
-			variant='inline'
-			label={false}
-			format='MM/DD/YYYY'
-			disableFuture={true}
-			value={value}
-			onChange={changeDate}
-		/>
+		<LocalizationProvider dateAdapter={AdapterMoment}>
+			<DatePicker disableFuture
+				views={['day']}
+				label="Day"
+				value={value}
+				onChange={(newValue) => {
+					setValue(newValue);
+					onChange(newValue);
+				}}
+				renderInput={(params) => <TextField sx={{width: 200}} {...params} />}
+				componentsProps={{
+					actionBar: {
+						actions: ['today']
+					},
+				}}
+			/>
+		</LocalizationProvider>
 	);
 }
 

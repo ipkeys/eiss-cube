@@ -1,37 +1,26 @@
-import { makeStyles, Theme } from '@material-ui/core/styles';
-import Card from '@material-ui/core/Card';
-import CardHeader from '@material-ui/core/CardHeader';
-import Avatar from '@material-ui/core/Avatar';
-import LightBulbIcon from '@material-ui/icons/EmojiObjectsOutlined';
+import { Avatar, Card, CardHeader } from '@mui/material/';
+import LightBulbIcon from '@mui/icons-material/EmojiObjectsOutlined';
 
-const useStyles = makeStyles((theme: Theme) => ({ 
-    card: { 
-        borderLeft: `solid 4px ${theme.palette.primary.main}`, 
-        flex: 1, 
-        marginBottom: theme.spacing(1) 
-    },
-    avatar: {
-        color: theme.palette.common.white,
-        backgroundColor: theme.palette.primary.main
-    }
-}));
-
-const Welcome = () => {
-    const classes = useStyles();
-
-    return (
-        <Card className={classes.card} >
-            <CardHeader
-                avatar={
-                    <Avatar className={classes.avatar}>
-                        <LightBulbIcon />
-                    </Avatar>
-                }
-                title='Welcome to the EISS™Cube Server'
-                subheader='Handling EISS™Cubes, sending commands, collecting reports...'
-            />
-        </Card>
-    );
-}
+const Welcome = () => (
+	<Card raised sx={{
+		borderLeft: theme => `solid 4px ${theme.palette.primary.main}`, 
+		flex: 1, 
+		marginBottom: '1em'
+	}}
+	>
+		<CardHeader
+			avatar={
+				<Avatar sx={{
+					color: theme => theme.palette.common.white,
+					backgroundColor: theme => theme.palette.primary.main                
+				}}>
+					<LightBulbIcon />
+				</Avatar>
+			}
+			title='Welcome to the EISS™Cube Server'
+			subheader='Handling EISS™Cubes, sending commands, collecting reports...'
+		/>
+	</Card>
+);
 
 export default Welcome;

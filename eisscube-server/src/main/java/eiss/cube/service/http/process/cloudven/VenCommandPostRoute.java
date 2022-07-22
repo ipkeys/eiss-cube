@@ -49,7 +49,7 @@ public class VenCommandPostRoute implements Handler<RoutingContext> {
     public void handle(RoutingContext context) {
         HttpServerResponse response = context.response();
 
-        String json = context.getBodyAsString();
+        String json = context.body().asString();
 
         VenCommand req = gson.fromJson(json, VenCommand.class);
         if (req == null) {
@@ -88,6 +88,10 @@ public class VenCommandPostRoute implements Handler<RoutingContext> {
                     // ~put command under cube's group
 
                     cmd.setCommand(req.getCommand());
+
+                    // use START and END timestamp
+                    cmd.setStartTime(req.getStart());
+                    cmd.setEndTime(req.getEnd());
 
                     CycleAndDutyCycleExtractor cdc = gson.fromJson(json, CycleAndDutyCycleExtractor.class);
                     if (cdc.getCycleAndDutyCycle() != null && !cdc.getCycleAndDutyCycle().isEmpty()) {

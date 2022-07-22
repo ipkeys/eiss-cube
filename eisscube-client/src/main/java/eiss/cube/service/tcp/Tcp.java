@@ -20,10 +20,10 @@ import static java.lang.Boolean.TRUE;
 @Slf4j
 public class Tcp extends AbstractVerticle {
 
-    private String host;
-    private int port;
+    private final String host;
+    private final int port;
 
-    private CubeClientHandler handler;
+    private final CubeClientHandler handler;
     private NetClient client;
 
     private final AtomicReference<NetSocket> socket = new AtomicReference<>();

@@ -1,256 +1,194 @@
-import { AxiosResponse } from 'axios';
 import { stringify } from 'query-string';
-import { DataProvider as DataProviderType, fetchUtils, HttpError } from "ra-core";
+import { DataProvider as DataProviderType, fetchUtils } from "ra-core";
 import HttpService from "./HttpService";
-import { prefix } from './i18nProvider';
 
 type Extended = {
-    count: (resource: string, params: {filter: any}) => Promise<{data: number}>,
-    validate: (resource: string, params: {data: any}) => Promise<AxiosResponse<any>>
-    usage: (resource: string, params: {data: any}) => Promise<AxiosResponse<any>>
+	count: (resource: string, params: {filter: any}) => Promise<{data: number}>,
+	validate: (resource: string, params: {data: any}) => Promise<{data: any}>,
+    usage: (resource: string, params: {data: any}) => Promise<{data: any}>,
+    test: (resource: string, params: {data: any}) => Promise<{data: any}>
 }
 
-const DataProvider = (apiUrl: string, http: HttpService): DataProviderType & Extended => ({
-    
-    getList: (resource, params) => {
-        let url = '';
+const DataProvider = (apiUrl: string, httpService: HttpService): DataProviderType & Extended => ({
 
-        if (!params) {
-            url = `${apiUrl}/${resource}`;
-        }
-        else {
-            const {page, perPage} = params.pagination;
-            const {field, order} = params.sort;
+	getList: (resource, params) => {
+		let url = '';
 
-            const query = {
-                ...fetchUtils.flattenObject(params.filter),
-                _sort: field,
-                _order: order,
-                _start: (page - 1) * perPage,
-                _end: page * perPage,
-            };
+		if (!params) {
+			url = `${apiUrl}/${resource}`;
+		} else {
+			const {page, perPage} = params.pagination;
+			const {field, order} = params.sort;
 
-            url = `${apiUrl}/${resource}?${stringify(query)}`;
-        }
+			const query = {
+				...fetchUtils.flattenObject(params.meta),
+				...fetchUtils.flattenObject(params.filter),
+				_sort: field,
+				_order: order,
+				_start: (page - 1) * perPage,
+				_end: page * perPage,
+			};
 
-        return new Promise(async (resolve, reject) => {
-            http.get(url)
-            .then(({data, headers}) => {
-                if (!headers['x-total-count']) {
-                    throw new Error('Did you declare "X-Total-Count" in the Access-Control-Expose-Headers header?');
-                }
-    
-                return resolve({
-                    data: data.map(formatRecord),
-                    total: parseInt(headers["x-total-count"]) 
-                });
-            })
-            .catch((error) => {
-                return reject(processError(error));
-            });
-        });
-        
-    },
+			url = `${apiUrl}/${resource}?${stringify(query)}`;
+		}
 
-    getOne: (resource, params) => {
-        const url = `${apiUrl}/${resource}/${params.id}`;
+		return httpService.request(url).then(({ headers, json }) => {
+			let total = 0;
+			if (!headers.has('x-total-count')) {
+				throw new Error('Did you declare "X-Total-Count" in the Access-Control-Expose-Headers header?');
+			} else {
+				total = parseInt(headers.get('x-total-count')!);
+			}
 
-        return new Promise(async (resolve, reject) => {
-            http.get(url)
-            .then(({data}) => {
-                return resolve({data: formatRecord(data)});
-            })
-            .catch((error) => {
-                return reject(processError(error));
-            });
-        });
-    },
+			return {
+				data: json,
+				total: total
+			};
+		});
+	},
 
-    getMany: (resource, params) => {
-        const query = {
-            [`id_like`]: params.ids.join('|'),
-        };
-        const url = `${apiUrl}/${resource}?${stringify(query)}`;
-        return new Promise(async (resolve, reject) => {
-            http.get(url)
-            .then(({data}) => {
-                return resolve({
-                    data: data.map(formatRecord)
-                });
-            })
-            .catch((error) => {
-                return reject(processError(error));
-            });
-        });
-    },
+	getOne: (resource, params) => {
+		const url = `${apiUrl}/${resource}/${params.id}`;
 
-    getManyReference: (resource, params) => {
-        const { page, perPage } = params.pagination;
-        const { field, order } = params.sort;
-        const query = {
-            ...fetchUtils.flattenObject(params.filter),
-            [params.target]: params.id,
-            _sort: field,
-            _order: order,
-            _start: (page - 1) * perPage,
-            _end: page * perPage,
-        };
-        const url = `${apiUrl}/${resource}?${stringify(query)}`;
+		return httpService.request(url)
+		.then(({ json }) => {
+			return {data: json};
+		});
+	},
 
-        return new Promise(async (resolve, reject) => {
-            http.get(url)
-            .then(({data, headers}) => {
-                if (!headers['x-total-count']) {
-                    throw new Error('Did you declare "X-Total-Count" in the Access-Control-Expose-Headers header?');
-                }
-                return resolve({
-                    data: data.map(formatRecord),
-                    total: parseInt(headers["x-total-count"]) 
-                });
-            })
-            .catch((error) => {
-                return reject(processError(error));
-            });
-        });
-    },
+	getMany: (resource, params) => {
+		const query = {
+			[`id_like`]: params.ids.join('|'),
+		};
+		const url = `${apiUrl}/${resource}?${stringify(query)}`;
+		return httpService.request(url)
+		.then(({ json }) => {
+			return {data: json};
+		});
+	},
 
-    update: (resource, params) => {
-        const url = `${apiUrl}/${resource}/${params.id}`;
-        return new Promise(async (resolve, reject) => {
-            http.put(url, {body: JSON.stringify(params.data)})
-            .then(({data}) => {
-                return resolve({data: formatRecord(data)});
-            })
-            .catch((error) => {
-                return reject(processError(error));
-            });
-        });
-    },
+	getManyReference: (resource, params) => {
+		const { page, perPage } = params.pagination;
+		const { field, order } = params.sort;
+		const query = {
+			...fetchUtils.flattenObject(params.filter),
+			[params.target]: params.id,
+			_sort: field,
+			_order: order,
+			_start: (page - 1) * perPage,
+			_end: page * perPage,
+		};
+		const url = `${apiUrl}/${resource}?${stringify(query)}`;
 
-    updateMany: (resource, params) => {
-        return Promise.all(
-            params.ids.map(id => 
-                http.put(`${apiUrl}/${resource}/${id}`, {body: JSON.stringify(params.data)})
-            )
-        )
-        .then(responses => ({
-            data: responses.map(data => formatRecord(data).id)
-        }))
-        .catch(error => {
-            return Promise.reject(processError(error));
-        })
-    },
+		return httpService.request(url)
+		.then(({ headers, json}) => {
+			if (!headers.has('x-total-count')) {
+				throw new Error('Did you declare "X-Total-Count" in the Access-Control-Expose-Headers header?');
+			}
+			return {
+				data: json,
+				total: parseInt(headers.get('x-total-count')!)
+			};
+		});
+	},
 
-    create: (resource, params) => {
-        const url = `${apiUrl}/${resource}`;
-        return new Promise(async (resolve, reject) => {
-            http.post(url, {body: JSON.stringify(params.data)})
-            .then(({data}) => {
-                return resolve({data: { ...params.data, id: formatRecord(data.id)}})
-            })
-            .catch((error) => {
-                return reject(processError(error));
-            })
-        });
-    },
+	update: (resource, params) => {
+		const url = `${apiUrl}/${resource}/${params.id}`;
+		return httpService.request(url, {
+			method: 'PUT',
+			body: JSON.stringify(params.data)
+		})
+		.then(({ json }) => {
+			return {data: json};
+		});
+	},
 
-    delete: (resource, params) => {
-        const url = `${apiUrl}/${resource}/${params.id}`;
-        return new Promise(async (resolve, reject) => {
-            http.delete(url)
-            .then(({data}) => {
-                return resolve({data: formatRecord(data)});
-            })
-            .catch((error) => {
-                return reject(processError(error));
-            });
-        });
-    },
+	updateMany: (resource, params) => {
+		return Promise.all(
+			params.ids.map(id =>
+				httpService.request(`${apiUrl}/${resource}/${id}`, {
+					method: 'PUT',
+					body: JSON.stringify(params.data)
+				})
+			)
+		)
+		.then(responses => ({ data: responses.map(({ json }) => json.id) }));
+	},
 
-    deleteMany: (resource, params) => {
-        return Promise.all(
-            params.ids.map(id => 
-                http.delete(`${apiUrl}/${resource}/${id}`)
-            )
-        )
-        .then(responses => ({
-            data: responses.map(data => formatRecord(data).id)
-        }))
-        .catch((error) => {
-            return Promise.reject(processError(error));
-        })
-    },
+	create: (resource, params) => {
+		const url = `${apiUrl}/${resource}`;
+		return httpService.request(url, {
+			method: 'POST',
+			body: JSON.stringify(params.data)
+		})
+		.then(({ json }) => {
+			return {data: { ...params.data, id: json}}
+		});
+	},
 
-    count: (resource, params) => {
-        const query = {
-            ...fetchUtils.flattenObject(params.filter),
-        };
-        const url = `${apiUrl}/${resource}-count?${stringify(query)}`;
-        return new Promise(async (resolve, reject) => {
-            http.get(url)
-            .then(({data}) => {
-                return resolve({data});
-            })
-            .catch((error) => {
-                return reject(processError(error));
-            })
-        })
-    },
-    
-    validate: (resource, params) => {
-        const url = `${apiUrl}/${resource}/validate`; 
-        return new Promise(async (resolve, reject) => {
-            http.post(url, {body: params.data})
-            .then((response) => {
-                return resolve(response);
-            })
-            .catch(error => {
-                // Pass validation error handling upstream
-                return reject(error);
-            })
-        })
-    },
+	delete: (resource, params) => {
+		const url = `${apiUrl}/${resource}/${params.id}`;
+		return httpService.request(url, {
+			method: 'DELETE'
+		})
+		.then(({json}) => {
+			return {data: json};
+		});
+	},
+
+	deleteMany: (resource, params) => {
+		return Promise.all(
+			params.ids.map(id =>
+				httpService.request(`${apiUrl}/${resource}/${id}`, {
+					method: 'DELETE'
+				})
+			)
+		)
+		.then(responses => ({ data: responses.map(({ json }) => json.id) }))
+	},
+
+	count: (resource, params) => {
+		const query = {
+			...fetchUtils.flattenObject(params.filter),
+		};
+		const url = `${apiUrl}/${resource}-count?${stringify(query)}`;
+		return httpService.request(url)
+		.then(({json}) => {
+			return {data: json};
+		});
+	},
+
+	validate: (resource, params) => {
+		const url = `${apiUrl}/${resource}/validate`;
+		return httpService.request(url, {
+			method: 'POST',
+			body: JSON.stringify(params.data)
+		})
+		.then(({json}) => {
+			return {data: json};
+		})
+	},
 
     usage: (resource, params) => {
         const url = `${apiUrl}/${resource}`;
-        return new Promise(async (resolve, reject) => {
-            http.post(url, {body: params.data})
-            .then((response) => {
-                return resolve(response);
-            })
-            .catch(error => {
-                return reject(error);
-            })
+        return httpService.request(url, {
+            method: 'POST',
+            body: JSON.stringify(params.data)
         })
-    }
+        .then(({json}) => {
+            return {data: json};
+        })
+    },
+
+	test: (resource, params) => {
+		const url = `${apiUrl}/${resource}/${params.data.id}`;
+
+		return httpService.request(url)
+		.then(({ json }) => {
+			return {data: json};
+		});
+	}
+
 });
-
-function formatRecord (record: any) {
-    if (record["_id"]) record.id = record["_id"];
-    return record;
-} 
-
-function processError(error: any) {
-    if (error.message === "auth.expired" || error.message.statusText === "token expired") {
-        return new HttpError(`${prefix}.auth.expired`, 401);
-    }
-    else if (error.message === 'no_response') {
-        return new HttpError(`${prefix}.no_response`, 504);
-    }
-    else if (error.message === "Network Error") {
-        return new HttpError("axios.error", 504);
-    }
-    else if (error.response) {
-        if (error.response.status === 404) {
-            return new HttpError("ra.page.not_found", 404);
-        }
-        else {
-            return new HttpError(`${prefix}.server_error`, error.response.status);
-        }
-    }
-    else {
-        return new HttpError(`${prefix}.server_error`, 500);
-    }
-}
 
 export default DataProvider;

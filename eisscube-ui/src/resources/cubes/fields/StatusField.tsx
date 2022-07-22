@@ -1,9 +1,13 @@
-import PropTypes from 'prop-types';
 import moment from 'moment';
-import Typography from '@material-ui/core/Typography';
-import { green, red } from '@material-ui/core/colors';
+import { useRecordContext } from 'react-admin';
+import Typography from '@mui/material/Typography';
+import { green, red } from '@mui/material/colors';
 
-const StatusField = ({ record = {}}: {record: any} ) => {
+const StatusField = (props: any) => {
+    const record = useRecordContext(props);
+
+	if (!record) return null;
+
 	let dur = '';
 
 	if (record.online === true) {
@@ -25,11 +29,6 @@ const StatusField = ({ record = {}}: {record: any} ) => {
 			</Typography>
 		);
 	}
-};
-
-StatusField.propTypes = {
-	label: PropTypes.string,
-    record: PropTypes.object
 };
 
 export default StatusField;
