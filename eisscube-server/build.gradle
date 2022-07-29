@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'eiss-cube'
-version '3.3.20'
+version '3.3.21'
 
 application {
     mainClass.set('Launcher')
@@ -30,7 +30,7 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
 
-    implementation 'eiss:eiss-commons:0.0.4'
+    implementation 'eiss:eiss-commons:0.0.5'
     implementation 'eiss:eiss-models:0.1.0'
 
     implementation 'io.vertx:vertx-core:4.3.2'
