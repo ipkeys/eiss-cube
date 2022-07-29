@@ -191,7 +191,8 @@ public class CubeHandler implements Handler<NetSocket> {
 
                 updateCube(deviceID, socket, ss);
 
-                getPendingCommands(deviceID);
+                getWaitingCommands(deviceID, "Pending");
+                getWaitingCommands(deviceID, "Sending");
             }
         }
     }
@@ -225,7 +226,7 @@ public class CubeHandler implements Handler<NetSocket> {
         }, res -> log.info("DeviceID: {} is ONLINE", deviceID));
     }
 
-    private void getPendingCommands(String deviceID) {
+    private void getWaitingCommands(String deviceID, String status) {
         Query<EISScube> q = datastore.find(EISScube.class);
         q.filter(Filters.eq("deviceID", deviceID));
 
@@ -236,7 +237,7 @@ public class CubeHandler implements Handler<NetSocket> {
                 qc.filter(
                     Filters.and(
                         Filters.eq("cubeID", cube.getId()),
-                        Filters.eq("status", "Pending")
+                        Filters.eq("status", status)
                     )
                 );
                 FindOptions o = new FindOptions();
