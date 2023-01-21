@@ -5,9 +5,9 @@ import { Button } from 'react-admin';
 
 const Online = ({ value } : any) => (
 	<Card raised sx={{
-			borderLeft: `solid 4px ${green[500]}`, 
-			flex: 1, 
-			marginBottom: '1em' 
+			borderLeft: `solid 4px ${green[500]}`,
+			flex: 1,
+			marginBottom: '1em'
 		}}
 	>
 		<CardHeader
@@ -23,7 +23,7 @@ const Online = ({ value } : any) => (
 			title={`${value} EISS™Cube(s)`}
 			subheader={<span style={{ color: green[500] }}>ONLINE</span>}
 			action={
-				<Button label='List' 
+				<Button label='List'
 					href={'#/cubes?filter={"online":true}&page=1&perPage=10&sort=deviceID&order=DESC'} >
 					<List />
 				</Button>

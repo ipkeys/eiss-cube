@@ -52,13 +52,13 @@ export default function LoginService(tokenManager: TokenManager): AuthProvider &
 
 	const getUser = () => {
 		const token = tokenManager.readToken();
-		
+
 		if (token) {
 			const { user_id, group_id, role } = token;
 			if (user_id && group_id && role) {
 				return { user_id, group_id, role };
 			}
-		} 
+		}
 
 		return null;
 	}
@@ -95,7 +95,7 @@ export default function LoginService(tokenManager: TokenManager): AuthProvider &
 			logout();
 			return Promise.resolve();
 		},
-		
+
 		getIdentity: () => {
 			const user = getUser();
 			return user ? Promise.resolve({id: user.user_id}) : Promise.reject();
@@ -105,7 +105,7 @@ export default function LoginService(tokenManager: TokenManager): AuthProvider &
 			const user = getUser();
 			return user ? Promise.resolve(user) : Promise.reject();
 		},
-		
+
 		checkMfa: (mfatoken?: string) => {
 			return new Promise<void>((resolve, reject) => {
 				const token = tokenManager.readToken();
@@ -116,7 +116,7 @@ export default function LoginService(tokenManager: TokenManager): AuthProvider &
 				fetch(`${authUrl}/checkmfa`, {
 					method: 'post',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ user_id, mfatoken, device }) 
+					body: JSON.stringify({ user_id, mfatoken, device })
 				})
 				.then(response => response.json())
 				.then(data => tokenManager.processToken(data, device))

@@ -3,8 +3,8 @@ import LightBulbIcon from '@mui/icons-material/EmojiObjectsOutlined';
 
 const Welcome = () => (
 	<Card raised sx={{
-		borderLeft: theme => `solid 4px ${theme.palette.primary.main}`, 
-		flex: 1, 
+		borderLeft: theme => `solid 4px ${theme.palette.primary.main}`,
+		flex: 1,
 		marginBottom: '1em'
 	}}
 	>
@@ -12,7 +12,7 @@ const Welcome = () => (
 			avatar={
 				<Avatar sx={{
 					color: theme => theme.palette.common.white,
-					backgroundColor: theme => theme.palette.primary.main                
+					backgroundColor: theme => theme.palette.primary.main
 				}}>
 					<LightBulbIcon />
 				</Avatar>

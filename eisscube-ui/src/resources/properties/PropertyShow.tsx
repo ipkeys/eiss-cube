@@ -1,11 +1,11 @@
 import { Box, Divider } from '@mui/material';
 import ChevronLeft from '@mui/icons-material/ChevronLeft';
-import { 
-	Show, 
-	SimpleShowLayout, 
+import {
+	Show,
+	SimpleShowLayout,
 	SelectField,
-	TextField, 
-	TopToolbar, 
+	TextField,
+	TopToolbar,
 	EditButton,
 	ListButton,
 	Labeled,

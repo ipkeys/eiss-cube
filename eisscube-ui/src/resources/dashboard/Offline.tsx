@@ -5,16 +5,16 @@ import { Button } from 'react-admin';
 
 const Offline = ({ value } : any) => (
 	<Card raised sx={{
-		borderLeft: `solid 4px ${red[500]}`, 
-		flex: 1, 
-		marginBottom: '1em'     
+		borderLeft: `solid 4px ${red[500]}`,
+		flex: 1,
+		marginBottom: '1em'
 	}}
 	>
 		<CardHeader
 			avatar={
 				<Avatar sx={{
 					color: theme => theme.palette.common.white,
-					backgroundColor: red[500]                
+					backgroundColor: red[500]
 				}}
 				>
 					<ThumbDown />

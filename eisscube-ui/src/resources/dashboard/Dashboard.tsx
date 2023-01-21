@@ -12,8 +12,8 @@ const Dashboard = () =>  {
 	const { data, isLoading } = useGetList('cubes',
 		{
 			pagination: { page: 1, perPage: 100 },
-			sort: { field: 'name', order: 'ASC' }  
-		} 
+			sort: { field: 'name', order: 'ASC' }
+		}
 	);
 
 	useEffect(() => {
@@ -33,7 +33,7 @@ const Dashboard = () =>  {
 	return (
 		<Box sx={{
 				paddingTop: '2em',
-				flexGrow: 1    
+				flexGrow: 1
 			}}
 		>
 			<Title title="EISS™Cube Server" />
