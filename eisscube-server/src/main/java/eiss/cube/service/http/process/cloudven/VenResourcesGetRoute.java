@@ -2,7 +2,7 @@ package eiss.cube.service.http.process.cloudven;
 
 import dev.morphia.Datastore;
 import dev.morphia.query.Query;
-import dev.morphia.query.experimental.filters.Filters;
+import dev.morphia.query.filters.Filters;
 import eiss.api.Api;
 import eiss.models.cubes.EISScube;
 import eiss.db.Cubes;
@@ -18,6 +18,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import java.util.List;
 
+import static dev.morphia.query.filters.Filters.eq;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.*;
@@ -47,7 +48,7 @@ public class VenResourcesGetRoute implements Handler<RoutingContext> {
             JsonArray resources = new JsonArray();
 
             Query<EISScube> q = datastore.find(EISScube.class);
-            q.filter(Filters.eq("settings.VEN", ven));
+            q.filter(eq("settings.VEN", ven));
 
             List<EISScube> cubes = q.iterator().toList();
             if (cubes != null) {

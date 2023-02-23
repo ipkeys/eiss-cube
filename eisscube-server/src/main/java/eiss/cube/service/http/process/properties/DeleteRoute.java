@@ -1,9 +1,10 @@
 package eiss.cube.service.http.process.properties;
 
 import com.google.gson.Gson;
-import dev.morphia.query.experimental.filters.Filters;
-import dev.morphia.query.experimental.updates.UpdateOperator;
-import dev.morphia.query.experimental.updates.UpdateOperators;
+import dev.morphia.UpdateOptions;
+import dev.morphia.query.filters.Filters;
+import dev.morphia.query.updates.UpdateOperator;
+import dev.morphia.query.updates.UpdateOperators;
 import eiss.api.Api;
 import eiss.models.cubes.CubeProperty;
 import eiss.models.cubes.EISScube;
@@ -22,9 +23,12 @@ import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.Path;
 
+import static dev.morphia.query.filters.Filters.eq;
+import static dev.morphia.query.updates.UpdateOperators.unset;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.*;
+import static org.bson.types.ObjectId.isValid;
 
 @Slf4j
 @Api
@@ -49,7 +53,7 @@ public class DeleteRoute implements Handler<RoutingContext> {
         HttpServerResponse response = context.response();
 
         String id = request.getParam("id");
-        if (!ObjectId.isValid(id)) {
+        if (!isValid(id)) {
             response.setStatusCode(SC_BAD_REQUEST)
                     .setStatusMessage(String.format("id: %s is not valid", id))
                     .end();
@@ -57,7 +61,7 @@ public class DeleteRoute implements Handler<RoutingContext> {
         }
 
         Query<CubeProperty> q = datastore.find(CubeProperty.class);
-        q.filter(Filters.eq("_id", new ObjectId(id)));
+        q.filter(eq("_id", new ObjectId(id)));
 
         vertx.executeBlocking(op -> {
             // react-admin expect previous data
@@ -66,8 +70,7 @@ public class DeleteRoute implements Handler<RoutingContext> {
             if (property != null) {
                 // remove the property from all EISSCube records
                 Query<EISScube> qc = datastore.find(EISScube.class);
-                UpdateOperator op1 = UpdateOperators.unset("settings." + property.getName());
-                qc.update(op1).execute();
+                qc.update(new UpdateOptions(), unset("settings." + property.getName()));
 
                 op.complete(property);
             } else {

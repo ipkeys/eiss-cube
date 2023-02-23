@@ -7,7 +7,7 @@ import dev.morphia.query.Query;
 import eiss.cube.json.messages.commands.Command;
 import eiss.cube.json.messages.commands.CommandListForDeviceRequest;
 import eiss.cube.json.messages.commands.CommandListResponse;
-import dev.morphia.query.experimental.filters.Filters;
+import dev.morphia.query.filters.Filters;
 import eiss.api.Api;
 import eiss.models.cubes.CubeCommand;
 import eiss.db.Cubes;
@@ -22,6 +22,7 @@ import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 
+import static dev.morphia.query.filters.Filters.eq;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.*;
@@ -82,7 +83,7 @@ public class ListForDeviceRoute implements Handler<RoutingContext> {
         CommandListResponse rc = new CommandListResponse();
 
         Query<CubeCommand> commands = datastore.find(CubeCommand.class);
-        commands.filter(Filters.eq("cubeID", new ObjectId(req.getDeviceID())));
+        commands.filter(eq("cubeID", new ObjectId(req.getDeviceID())));
 
         FindOptions options = new FindOptions();
         Integer s = req.getStart();

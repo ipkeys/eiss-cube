@@ -2,7 +2,7 @@ package eiss.cube.service.http.process.test;
 
 import com.google.gson.Gson;
 import dev.morphia.query.FindOptions;
-import dev.morphia.query.experimental.filters.Filters;
+import dev.morphia.query.filters.Filters;
 import eiss.api.Api;
 import eiss.models.cubes.CubeTest;
 import eiss.db.Cubes;
@@ -23,9 +23,11 @@ import javax.ws.rs.Path;
 
 import java.util.List;
 
+import static dev.morphia.query.filters.Filters.eq;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.*;
+import static org.bson.types.ObjectId.isValid;
 
 @Slf4j
 @Api
@@ -50,7 +52,7 @@ public class GetRoute implements Handler<RoutingContext> {
         HttpServerResponse response = context.response();
 
         String cubeID = request.getParam("cubeID");
-        if (!ObjectId.isValid(cubeID)) {
+        if (!isValid(cubeID)) {
             response.setStatusCode(SC_BAD_REQUEST)
                     .setStatusMessage(String.format("id: %s is not valid", cubeID))
                     .end();
@@ -58,7 +60,7 @@ public class GetRoute implements Handler<RoutingContext> {
         }
 
         Query<CubeTest> qt = datastore.find(CubeTest.class);
-        qt.filter(Filters.eq("cubeID", new ObjectId(cubeID)));
+        qt.filter(eq("cubeID", new ObjectId(cubeID)));
 
         FindOptions o = new FindOptions();
         o.projection().exclude("_id", "cubeID");

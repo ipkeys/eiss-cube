@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import dev.morphia.Datastore;
 import dev.morphia.query.Query;
 import eiss.cube.json.messages.commands.*;
-import dev.morphia.query.experimental.filters.Filters;
+import dev.morphia.query.filters.Filters;
 import eiss.api.Api;
 import eiss.models.cubes.CubeCommand;
 import eiss.models.cubes.EISScube;
@@ -23,10 +23,12 @@ import javax.ws.rs.Path;
 import java.time.Instant;
 import java.util.List;
 
+import static dev.morphia.query.filters.Filters.eq;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static org.bson.types.ObjectId.isValid;
 
 @Slf4j
 @Api
@@ -85,13 +87,13 @@ public class MultipleSendRoute implements Handler<RoutingContext> {
 
         List<Command> commandList = req.getCommands();
         commandList.forEach(c -> {
-            if (c != null && ObjectId.isValid(c.getDeviceID())) {
+            if (c != null && isValid(c.getDeviceID())) {
                 CubeCommand cmd = new CubeCommand();
                 cmd.setCubeID(new ObjectId(c.getDeviceID()));
 
                 // put command under cube's group
                 Query<EISScube> q = datastore.find(EISScube.class);
-                q.filter(Filters.eq("id", cmd.getCubeID()));
+                q.filter(eq("id", cmd.getCubeID()));
                 EISScube cube = q.first();
                 if (cube != null) {
                     cmd.setCubeName(cube.getName());
@@ -126,7 +128,7 @@ public class MultipleSendRoute implements Handler<RoutingContext> {
 
     private void sendIt(CubeCommand cmd) {
         Query<EISScube> q = datastore.find(EISScube.class);
-        q.filter(Filters.eq("id", cmd.getCubeID()));
+        q.filter(eq("id", cmd.getCubeID()));
 
         vertx.executeBlocking(op -> {
             EISScube cube = q.first();

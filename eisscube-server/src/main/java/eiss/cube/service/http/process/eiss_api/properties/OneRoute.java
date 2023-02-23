@@ -6,7 +6,7 @@ import dev.morphia.query.Query;
 import eiss.cube.json.messages.properties.Property;
 import eiss.cube.json.messages.properties.PropertyIdRequest;
 import eiss.cube.json.messages.properties.PropertyResponse;
-import dev.morphia.query.experimental.filters.Filters;
+import dev.morphia.query.filters.Filters;
 import eiss.api.Api;
 import eiss.models.cubes.CubeProperty;
 import eiss.db.Cubes;
@@ -21,10 +21,12 @@ import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 
+import static dev.morphia.query.filters.Filters.eq;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static org.bson.types.ObjectId.isValid;
 
 @Slf4j
 @Api
@@ -82,9 +84,9 @@ public class OneRoute implements Handler<RoutingContext> {
         PropertyResponse rc = new PropertyResponse();
 
         String id = req.getId();
-        if (ObjectId.isValid(id)) {
+        if (isValid(id)) {
             Query<CubeProperty> property = datastore.find(CubeProperty.class);
-            property.filter(Filters.eq("_id", new ObjectId(id)));
+            property.filter(eq("_id", new ObjectId(id)));
 
             CubeProperty p = property.first();
             if (p != null) {

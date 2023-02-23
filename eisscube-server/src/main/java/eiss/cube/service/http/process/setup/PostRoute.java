@@ -2,9 +2,9 @@ package eiss.cube.service.http.process.setup;
 
 import com.google.gson.Gson;
 import dev.morphia.UpdateOptions;
-import dev.morphia.query.experimental.filters.Filters;
-import dev.morphia.query.experimental.updates.UpdateOperator;
-import dev.morphia.query.experimental.updates.UpdateOperators;
+import dev.morphia.query.filters.Filters;
+import dev.morphia.query.updates.UpdateOperator;
+import dev.morphia.query.updates.UpdateOperators;
 import eiss.api.Api;
 import eiss.models.cubes.CubeInput;
 import eiss.models.cubes.CubeRelay;
@@ -25,6 +25,8 @@ import javax.ws.rs.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import static dev.morphia.query.filters.Filters.eq;
+import static dev.morphia.query.updates.UpdateOperators.set;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static java.lang.Boolean.TRUE;
@@ -63,22 +65,22 @@ public class PostRoute implements Handler<RoutingContext> {
         }
 
         Query<CubeSetup> q = datastore.find(CubeSetup.class);
-        q.filter(Filters.eq("cubeID", setup.getCubeID()));
+        q.filter(eq("cubeID", setup.getCubeID()));
 
         List<UpdateOperator> updates = new ArrayList<>();
-        updates.add(UpdateOperators.set("deviceType", setup.getDeviceType()));
+        updates.add(set("deviceType", setup.getDeviceType()));
 
         CubeRelay relay = setup.getRelay();
         if (relay != null) {
-            updates.add(UpdateOperators.set("relay", relay));
+            updates.add(set("relay", relay));
         }
         CubeInput input = setup.getInput();
         if (input != null) {
-            updates.add(UpdateOperators.set("input", input));
+            updates.add(set("input", input));
         }
 
         vertx.executeBlocking(op -> {
-            q.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute(new UpdateOptions().upsert(TRUE));
+            q.update(new UpdateOptions().upsert(TRUE), updates.toArray(UpdateOperator[]::new));
             op.complete(setup);
         }, res -> {
             if (res.succeeded()) {

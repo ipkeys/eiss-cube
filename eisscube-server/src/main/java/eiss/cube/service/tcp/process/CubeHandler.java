@@ -8,9 +8,9 @@ import eiss.models.cubes.CubeCommand;
 import eiss.models.cubes.CubeMeter;
 import eiss.models.cubes.CubeTest;
 import eiss.models.cubes.EISScube;
-import dev.morphia.query.experimental.filters.Filters;
-import dev.morphia.query.experimental.updates.UpdateOperator;
-import dev.morphia.query.experimental.updates.UpdateOperators;
+import dev.morphia.query.filters.Filters;
+import dev.morphia.query.updates.UpdateOperator;
+import dev.morphia.query.updates.UpdateOperators;
 import eiss.db.Cubes;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -30,6 +30,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import static dev.morphia.query.updates.UpdateOperators.set;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 
@@ -86,16 +87,16 @@ public class CubeHandler implements Handler<NetSocket> {
 
                 eventBus.send(socket, outBuffer);
 
-                updates.add(UpdateOperators.set("sent", Instant.now()));
-                updates.add(UpdateOperators.set("status", "Sending"));
+                updates.add(set("sent", Instant.now()));
+                updates.add(set("status", "Sending"));
 
-                q.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute();
+                q.update(new UpdateOptions(), updates.toArray(UpdateOperator[]::new));
 
                 op.complete(String.format("DeviceID: %s is ONLINE. Sending message: %s", deviceID, command));
             } else {
-                updates.add(UpdateOperators.set("status", "Pending"));
+                updates.add(set("status", "Pending"));
 
-                q.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute();
+                q.update(new UpdateOptions(), updates.toArray(UpdateOperator[]::new));
 
                 op.fail(String.format("DeviceID: %s is OFFLINE. Pending message: %s", deviceID, command));
             }
@@ -127,11 +128,11 @@ public class CubeHandler implements Handler<NetSocket> {
             Query<EISScube> q = datastore.find(EISScube.class);
             List<UpdateOperator> updates = new ArrayList<>();
 
-            updates.add(UpdateOperators.set("socket", ""));
-            updates.add(UpdateOperators.set("online", FALSE));
+            updates.add(set("socket", ""));
+            updates.add(set("online", FALSE));
 
             // update All documents
-            q.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute(new UpdateOptions().multi(true));
+            q.update(new UpdateOptions().multi(TRUE), updates.toArray(UpdateOperator[]::new));
 
             op.complete();
         }, res -> log.info("Server was restarted! Set status of ALL devices to OFFLINE"));
@@ -268,10 +269,10 @@ public class CubeHandler implements Handler<NetSocket> {
             if (cube != null) {
                 List<UpdateOperator> updates = new ArrayList<>();
 
-                updates.add(UpdateOperators.set("online", TRUE));
-                updates.add(UpdateOperators.set("lastPing", Instant.now()));
+                updates.add(set("online", TRUE));
+                updates.add(set("lastPing", Instant.now()));
 
-                q.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute();
+                q.update(new UpdateOptions(), updates.toArray(UpdateOperator[]::new));
 
                 Buffer outBuffer = Buffer.buffer()
                     .appendString("O")
@@ -301,9 +302,9 @@ public class CubeHandler implements Handler<NetSocket> {
             if (cube != null) {
                 List<UpdateOperator> updates = new ArrayList<>();
 
-                updates.add(UpdateOperators.set("online", FALSE));
+                updates.add(set("online", FALSE));
 
-                q.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute();
+                q.update(new UpdateOptions(), updates.toArray(UpdateOperator[]::new));
 
                 op.complete(cube.getDeviceID());
             } else {
@@ -354,10 +355,10 @@ public class CubeHandler implements Handler<NetSocket> {
 
                         List<UpdateOperator> updates = new ArrayList<>();
 
-                        updates.add(UpdateOperators.set("received", Instant.now()));
-                        updates.add(UpdateOperators.set("status", "Received"));
+                        updates.add(set("received", Instant.now()));
+                        updates.add(set("status", "Received"));
 
-                        qc.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute();
+                        q.update(new UpdateOptions(), updates.toArray(UpdateOperator[]::new));
 
                         op.complete(String.format("DeviceID: %s acknowledge the command id: %s", deviceID, id));
                     } else {
@@ -416,12 +417,12 @@ public class CubeHandler implements Handler<NetSocket> {
 
                     updates.add(UpdateOperators.setOnInsert(Map.of("cubeID", cube.getId())));
                     updates.add(UpdateOperators.setOnInsert(Map.of("timestamp", ts)));
-                    updates.add(UpdateOperators.set("type", type));
+                    updates.add(set("type", type));
                     if (!v.equalsIgnoreCase("z")) { // interval is finished - set value = dur
-                        updates.add(UpdateOperators.set("value", Double.valueOf(v)));
+                        updates.add(set("value", Double.valueOf(v)));
                     }
 
-                    qm.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute(new UpdateOptions().upsert(true));
+                    qm.update(new UpdateOptions().upsert(TRUE), updates.toArray(UpdateOperator[]::new));
 
                     if (!v.equalsIgnoreCase("z")) { // after update of interval - fix the previous record
                         fixNotFinishedCycleReport(cube.getId()); // finish unfinished interval - set to 1 minute
@@ -453,8 +454,7 @@ public class CubeHandler implements Handler<NetSocket> {
                 )
             );
 
-            UpdateOperator upd = UpdateOperators.set("value", 60);
-            q.update(upd).execute();
+            q.update(new UpdateOptions(), set("value", 60));
 
             op.complete();
         }, res -> {

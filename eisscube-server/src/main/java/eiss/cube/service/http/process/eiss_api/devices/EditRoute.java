@@ -2,14 +2,15 @@ package eiss.cube.service.http.process.eiss_api.devices;
 
 import com.google.gson.Gson;
 import dev.morphia.Datastore;
+import dev.morphia.UpdateOptions;
 import dev.morphia.query.Query;
 import eiss.cube.json.messages.devices.Device;
 import eiss.cube.json.messages.devices.DeviceRequest;
 import eiss.cube.json.messages.devices.DeviceResponse;
 import eiss.cube.json.messages.devices.Location;
-import dev.morphia.query.experimental.filters.Filters;
-import dev.morphia.query.experimental.updates.UpdateOperator;
-import dev.morphia.query.experimental.updates.UpdateOperators;
+import dev.morphia.query.filters.Filters;
+import dev.morphia.query.updates.UpdateOperator;
+import dev.morphia.query.updates.UpdateOperators;
 import eiss.api.Api;
 import eiss.models.cubes.EISScube;
 import eiss.db.Cubes;
@@ -27,10 +28,14 @@ import javax.ws.rs.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import static dev.morphia.query.filters.Filters.eq;
+import static dev.morphia.query.updates.UpdateOperators.set;
+import static dev.morphia.query.updates.UpdateOperators.unset;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static org.bson.types.ObjectId.isValid;
 
 @Slf4j
 @Api
@@ -90,76 +95,76 @@ public class EditRoute implements Handler<RoutingContext> {
         Device d = req.getDevice();
 
         String id = req.getDevice().getId();
-        if (ObjectId.isValid(id)) {
+        if (isValid(id)) {
             Query<EISScube> q = datastore.find(EISScube.class);
-            q.filter(Filters.eq("_id", new ObjectId(id)));
+            q.filter(eq("_id", new ObjectId(id)));
 
             List<UpdateOperator> updates = new ArrayList<>();
             if (d.getName() == null) {
-                updates.add(UpdateOperators.unset("name"));
+                updates.add(unset("name"));
             } else {
-                updates.add(UpdateOperators.set("name", d.getName()));
+                updates.add(set("name", d.getName()));
             }
 
             if (d.getAddress() == null) {
-                updates.add(UpdateOperators.unset("address"));
+                updates.add(unset("address"));
             } else {
-                updates.add(UpdateOperators.set("address", d.getAddress()));
+                updates.add(set("address", d.getAddress()));
             }
 
             if (d.getCity() == null) {
-                updates.add(UpdateOperators.unset("city"));
+                updates.add(unset("city"));
             } else {
-                updates.add(UpdateOperators.set("city", d.getCity()));
+                updates.add(set("city", d.getCity()));
             }
 
             if (d.getZipCode() == null) {
-                updates.add(UpdateOperators.unset("zipCode"));
+                updates.add(unset("zipCode"));
             } else {
-                updates.add(UpdateOperators.set("zipCode", d.getZipCode()));
+                updates.add(set("zipCode", d.getZipCode()));
             }
 
             if (d.getCustomerID() == null) {
-                updates.add(UpdateOperators.unset("customerID"));
+                updates.add(unset("customerID"));
             } else {
-                updates.add(UpdateOperators.set("customerID", d.getCustomerID()));
+                updates.add(set("customerID", d.getCustomerID()));
             }
 
             if (d.getZone() == null) {
-                updates.add(UpdateOperators.unset("zone"));
+                updates.add(unset("zone"));
             } else {
-                updates.add(UpdateOperators.set("zone", d.getZone()));
+                updates.add(set("zone", d.getZone()));
             }
 
             if (d.getSubZone() == null) {
-                updates.add(UpdateOperators.unset("subZone"));
+                updates.add(unset("subZone"));
             } else {
-                updates.add(UpdateOperators.set("subZone", d.getSubZone()));
+                updates.add(set("subZone", d.getSubZone()));
             }
 
             if (d.getLocation() != null) {
                 if (d.getLocation().getLat() == null) {
-                    updates.add(UpdateOperators.unset("location.lat"));
+                    updates.add(unset("location.lat"));
                 } else {
-                    updates.add(UpdateOperators.set("location.lat", d.getLocation().getLat()));
+                    updates.add(set("location.lat", d.getLocation().getLat()));
                 }
 
                 if (d.getLocation().getLng() == null) {
-                    updates.add(UpdateOperators.unset("location.lng"));
+                    updates.add(unset("location.lng"));
                 } else {
-                    updates.add(UpdateOperators.set("location.lng", d.getLocation().getLng()));
+                    updates.add(set("location.lng", d.getLocation().getLng()));
                 }
             } else {
-                updates.add(UpdateOperators.unset("location"));
+                updates.add(unset("location"));
             }
 
             if (d.getSettings() == null) {
-                updates.add(UpdateOperators.unset("settings"));
+                updates.add(unset("settings"));
             } else {
-                updates.add(UpdateOperators.set("settings", d.getSettings()));
+                updates.add(set("settings", d.getSettings()));
             }
 
-            q.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute();
+            q.update(new UpdateOptions(), updates.toArray(UpdateOperator[]::new));
 
             // get an updated version
             EISScube ud = q.first();

@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import dev.morphia.Datastore;
 import dev.morphia.query.Query;
 import eiss.cube.json.messages.cloudven.StartReport;
-import dev.morphia.query.experimental.filters.Filters;
+import dev.morphia.query.filters.Filters;
 import eiss.api.Api;
 import eiss.models.cubes.CubeCommand;
 import eiss.models.cubes.EISScube;
@@ -22,6 +22,8 @@ import javax.ws.rs.Path;
 import java.time.Instant;
 import java.util.List;
 
+import static dev.morphia.query.filters.Filters.and;
+import static dev.morphia.query.filters.Filters.eq;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
@@ -65,14 +67,12 @@ public class StopReportPostRoute implements Handler<RoutingContext> {
         vertx.executeBlocking(op -> {
             Query<EISScube> q = datastore.find(EISScube.class);
             if (resource != null && !resource.isEmpty()) {
-                q.filter(
-                    Filters.and(
-                        Filters.eq("settings.VEN", ven),
-                        Filters.eq("name", resource)
-                    )
-                );
+                q.filter(and(
+                    eq("settings.VEN", ven),
+                    eq("name", resource)
+                ));
             } else {
-                q.filter(Filters.eq("settings.VEN", ven));
+                q.filter(eq("settings.VEN", ven));
             }
 
             List<EISScube> cubes = q.iterator().toList();

@@ -3,10 +3,11 @@ package eiss.cube.service.http.process.cubes;
 import com.google.gson.Gson;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.result.UpdateResult;
+import dev.morphia.UpdateOptions;
 import eiss.db.Cubes;
-import dev.morphia.query.experimental.filters.Filters;
-import dev.morphia.query.experimental.updates.UpdateOperator;
-import dev.morphia.query.experimental.updates.UpdateOperators;
+import dev.morphia.query.filters.Filters;
+import dev.morphia.query.updates.UpdateOperator;
+import dev.morphia.query.updates.UpdateOperators;
 import eiss.api.Api;
 import eiss.models.cubes.EISScube;
 import eiss.db.Users;
@@ -29,10 +30,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static dev.morphia.query.filters.Filters.eq;
+import static dev.morphia.query.updates.UpdateOperators.set;
+import static dev.morphia.query.updates.UpdateOperators.unset;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static java.util.stream.Collectors.toMap;
 import static javax.servlet.http.HttpServletResponse.*;
+import static org.bson.types.ObjectId.isValid;
 
 @Slf4j
 @Api
@@ -59,7 +64,7 @@ public class PutRoute implements Handler<RoutingContext> {
         HttpServerResponse response = context.response();
 
         String id = request.getParam("id");
-        if (!ObjectId.isValid(id)) {
+        if (!isValid(id)) {
             response.setStatusCode(SC_BAD_REQUEST)
                     .setStatusMessage(String.format("id '%s' is not valid", id))
                     .end();
@@ -78,90 +83,90 @@ public class PutRoute implements Handler<RoutingContext> {
 
         vertx.executeBlocking(op -> {
             Query<EISScube> q = cubesDatastore.find(EISScube.class);
-            q.filter(Filters.eq("_id", new ObjectId(id)));
+            q.filter(eq("_id", new ObjectId(id)));
 
             List<UpdateOperator> updates = new ArrayList<>();
             if (cube.getName() == null) {
-                updates.add(UpdateOperators.unset("name"));
+                updates.add(unset("name"));
             } else {
-                updates.add(UpdateOperators.set("name", cube.getName()));
+                updates.add(set("name", cube.getName()));
             }
 
             if (cube.getAddress() == null) {
-                updates.add(UpdateOperators.unset("address"));
+                updates.add(unset("address"));
             } else {
-                updates.add(UpdateOperators.set("address", cube.getAddress()));
+                updates.add(set("address", cube.getAddress()));
             }
 
             if (cube.getCity() == null) {
-                updates.add(UpdateOperators.unset("city"));
+                updates.add(unset("city"));
             } else {
-                updates.add(UpdateOperators.set("city", cube.getCity()));
+                updates.add(set("city", cube.getCity()));
             }
 
             if (cube.getZipCode() == null) {
-                updates.add(UpdateOperators.unset("zipCode"));
+                updates.add(unset("zipCode"));
             } else {
-                updates.add(UpdateOperators.set("zipCode", cube.getZipCode()));
+                updates.add(set("zipCode", cube.getZipCode()));
             }
 
             if (cube.getCustomerID() == null) {
-                updates.add(UpdateOperators.unset("customerID"));
+                updates.add(unset("customerID"));
             } else {
-                updates.add(UpdateOperators.set("customerID", cube.getCustomerID()));
+                updates.add(set("customerID", cube.getCustomerID()));
             }
 
             if (cube.getZone() == null) {
-                updates.add(UpdateOperators.unset("zone"));
+                updates.add(unset("zone"));
             } else {
-                updates.add(UpdateOperators.set("zone", cube.getZone()));
+                updates.add(set("zone", cube.getZone()));
             }
 
             if (cube.getSubZone() == null) {
-                updates.add(UpdateOperators.unset("subZone"));
+                updates.add(unset("subZone"));
             } else {
-                updates.add(UpdateOperators.set("subZone", cube.getSubZone()));
+                updates.add(set("subZone", cube.getSubZone()));
             }
 
             if (cube.getSettings() == null) {
-                updates.add(UpdateOperators.unset("settings"));
+                updates.add(unset("settings"));
             } else {
                 // do not keep an empty string (convert it to null
                 Map<String, Object> settings = cube.getSettings()
                     .entrySet()
                     .stream()
-                    .filter(entry -> ((entry.getValue() instanceof String) && !(((String) entry.getValue()).isEmpty()))
-                    ).collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+                    .filter(entry -> ((entry.getValue() instanceof String) && !(((String) entry.getValue()).isEmpty())))
+                    .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
 
                 cube.setSettings(new BasicDBObject(settings));
 
-                updates.add(UpdateOperators.set("settings", cube.getSettings()));
+                updates.add(set("settings", cube.getSettings()));
             }
 
             // put cube under group
             Query<Group> groupQuery = usersDatastore.find(Group.class);
             if (cube.getGroup_id() != null && !cube.getGroup_id().isEmpty()) {
-                updates.add(UpdateOperators.set("group_id", cube.getGroup_id()));
-                groupQuery.filter(Filters.eq("_id", new ObjectId(cube.getGroup_id())));
+                updates.add(set("group_id", cube.getGroup_id()));
+                groupQuery.filter(eq("_id", new ObjectId(cube.getGroup_id())));
                 Group group = groupQuery.first();
                 if (group != null) {
-                    updates.add(UpdateOperators.set("group", group.getName()));
+                    updates.add(set("group", group.getName()));
                 } else {
-                    updates.add(UpdateOperators.unset("group"));
+                    updates.add(unset("group"));
                 }
             } else if (cube.getGroup() != null && !cube.getGroup().isEmpty()) {
-                updates.add(UpdateOperators.set("group", cube.getGroup()));
-                groupQuery.filter(Filters.eq("name", cube.getGroup()));
+                updates.add(set("group", cube.getGroup()));
+                groupQuery.filter(eq("name", cube.getGroup()));
                 Group group = groupQuery.first();
                 if (group != null) {
-                    updates.add(UpdateOperators.set("group_id", group.getId().toString()));
+                    updates.add(set("group_id", group.getId().toString()));
                 } else {
-                    updates.add(UpdateOperators.unset("group_id"));
+                    updates.add(unset("group_id"));
                 }
             }
             // ~put cube under group
 
-            UpdateResult result = q.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute();
+            UpdateResult result = q.update(new UpdateOptions(), updates.toArray(UpdateOperator[]::new));
             if (result.getModifiedCount() == 1) {
                 op.complete(cube);
             } else {

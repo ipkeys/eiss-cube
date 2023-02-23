@@ -3,7 +3,7 @@ package eiss.cube.service.http.process.eiss_api.reports;
 import com.google.gson.Gson;
 import dev.morphia.Datastore;
 import dev.morphia.query.Query;
-import dev.morphia.query.experimental.filters.Filters;
+import dev.morphia.query.filters.Filters;
 import eiss.cube.input.Conversion;
 import eiss.cube.json.messages.reports.Report;
 import eiss.cube.json.messages.reports.ReportRequest;
@@ -24,6 +24,7 @@ import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 
+import static dev.morphia.query.filters.Filters.eq;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static java.util.stream.Collectors.toList;
@@ -102,19 +103,12 @@ public class ReportForDeviceRoute implements Handler<RoutingContext> {
         MeterRequest r = new MeterRequest();
 
         r.setCubeID(req.getDeviceID());
-        //r.setType(req.getType());
         r.setFrom(req.getFrom());
         r.setTo(req.getTo());
-        //r.setUtcOffset(req.getUtcOffset());
         r.setAggregation(req.getAggregation());
-        //r.setFactor(req.getFactor());
-        //r.setWatch(req.getWatch());
-        //r.setLoad(req.getLoad());
-        //r.setMeter(req.getMeter());
-        //r.setUnit(req.getUnit());
 
         Query<CubeSetup> q = datastore.find(CubeSetup.class);
-        q.filter(Filters.eq("cubeID", new ObjectId(req.getDeviceID())));
+        q.filter(eq("cubeID", new ObjectId(req.getDeviceID())));
         CubeSetup setup = q.first();
 
         if (setup != null && setup .getInput() != null) {

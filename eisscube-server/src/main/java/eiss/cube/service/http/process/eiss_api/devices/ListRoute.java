@@ -8,7 +8,7 @@ import eiss.cube.json.messages.devices.Device;
 import eiss.cube.json.messages.devices.DeviceListRequest;
 import eiss.cube.json.messages.devices.DeviceListResponse;
 import eiss.cube.json.messages.devices.Location;
-import dev.morphia.query.experimental.filters.Filters;
+import dev.morphia.query.filters.Filters;
 import eiss.api.Api;
 import eiss.models.cubes.EISScube;
 import eiss.db.Cubes;
@@ -22,6 +22,7 @@ import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 
+import static dev.morphia.query.filters.Filters.eq;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.*;
@@ -86,7 +87,7 @@ public class ListRoute implements Handler<RoutingContext> {
         // filter by "customerID" property
         String customerID = req.getCustomerID();
         if (customerID != null && !customerID.isEmpty()) {
-            cubes.filter(Filters.eq("customerID", customerID));
+            cubes.filter(eq("customerID", customerID));
         }
 
         // projections

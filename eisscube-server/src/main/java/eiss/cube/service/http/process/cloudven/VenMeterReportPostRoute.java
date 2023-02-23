@@ -9,7 +9,7 @@ import eiss.cube.json.messages.cloudven.VenReport;
 import eiss.cube.service.http.process.meters.Meter;
 import eiss.cube.service.http.process.meters.MeterRequest;
 import eiss.cube.service.http.process.meters.MeterResponse;
-import dev.morphia.query.experimental.filters.Filters;
+import dev.morphia.query.filters.Filters;
 import eiss.api.Api;
 import eiss.models.cubes.CubeReport;
 import eiss.models.cubes.CubeSetup;
@@ -30,6 +30,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static dev.morphia.query.filters.Filters.eq;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
@@ -74,8 +75,8 @@ public class VenMeterReportPostRoute implements Handler<RoutingContext> {
         vertx.executeBlocking(op -> {
             Query<EISScube> qe = datastore.find(EISScube.class);
             qe.filter(
-                Filters.eq("settings.VEN", ven),
-                Filters.eq("name", resource)
+                eq("settings.VEN", ven),
+                eq("name", resource)
             );
 
             EISScube eisscube = qe.first();
@@ -102,10 +103,10 @@ public class VenMeterReportPostRoute implements Handler<RoutingContext> {
     private MeterResponse getMeterResponse(ObjectId cubeId, Instant from, Instant to, String aggregation) {
         MeterResponse report_res = new MeterResponse();
 
-        CubeSetup setup = datastore.find(CubeSetup.class).filter(Filters.eq("cubeID", cubeId)).first();
+        CubeSetup setup = datastore.find(CubeSetup.class).filter(eq("cubeID", cubeId)).first();
         if (setup != null && setup.getInput() != null) {
             CubeInput input = setup.getInput();
-            CubeReport report = datastore.find(CubeReport.class).filter(Filters.eq("cubeID", cubeId), Filters.eq("type", input.getSignal())).first();
+            CubeReport report = datastore.find(CubeReport.class).filter(eq("cubeID", cubeId), eq("type", input.getSignal())).first();
             if (report != null) {
                 MeterRequest report_req = new MeterRequest();
 

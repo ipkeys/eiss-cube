@@ -2,14 +2,15 @@ package eiss.cube.service.http.process.lora;
 
 import com.mongodb.client.result.UpdateResult;
 import dev.morphia.Datastore;
+import dev.morphia.UpdateOptions;
 import dev.morphia.query.Query;
 import eiss.config.AppConfig;
 import eiss.config.LoraServerConfig;
 import eiss.cube.utils.CubeCommandToJson;
 import eiss.models.cubes.CubeCommand;
-import dev.morphia.query.experimental.filters.Filters;
-import dev.morphia.query.experimental.updates.UpdateOperator;
-import dev.morphia.query.experimental.updates.UpdateOperators;
+import dev.morphia.query.filters.Filters;
+import dev.morphia.query.updates.UpdateOperator;
+import dev.morphia.query.updates.UpdateOperators;
 import eiss.db.Cubes;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -26,6 +27,9 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+
+import static dev.morphia.query.filters.Filters.eq;
+import static dev.morphia.query.updates.UpdateOperators.set;
 
 @Slf4j
 public class LoraCubeHandler {
@@ -70,13 +74,13 @@ public class LoraCubeHandler {
     private void send(final String id, final String deviceID, final String command) {
         vertx.executeBlocking(op -> {
             Query<CubeCommand> q = datastore.find(CubeCommand.class);
-            q.filter(Filters.eq("_id", new ObjectId(id)));
+            q.filter(eq("_id", new ObjectId(id)));
 
             List<UpdateOperator> updates = new ArrayList<>();
-            updates.add(UpdateOperators.set("sent", Instant.now()));
-            updates.add(UpdateOperators.set("status", "Sending"));
+            updates.add(set("sent", Instant.now()));
+            updates.add(set("status", "Sending"));
 
-            UpdateResult result = q.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute();
+            UpdateResult result = q.update(new UpdateOptions(), updates.toArray(UpdateOperator[]::new));
             if (result.getModifiedCount() == 1) {
                 try {
                     sendToLoraDevice(id, deviceID, q.first()); // working from DB object, not a command string
@@ -142,13 +146,13 @@ public class LoraCubeHandler {
                         log.info("done");
                         if (!id.isEmpty()) {
                             Query<CubeCommand> q = datastore.find(CubeCommand.class);
-                            q.filter(Filters.eq("_id", new ObjectId(id)));
+                            q.filter(eq("_id", new ObjectId(id)));
 
                             List<UpdateOperator> updates = new ArrayList<>();
-                            updates.add(UpdateOperators.set("received", Instant.now()));
-                            updates.add(UpdateOperators.set("status", "Received"));
+                            updates.add(set("received", Instant.now()));
+                            updates.add(set("status", "Received"));
 
-                            q.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute();
+                            q.update(new UpdateOptions(), updates.toArray(UpdateOperator[]::new));
                         }
                     }
                 } else {

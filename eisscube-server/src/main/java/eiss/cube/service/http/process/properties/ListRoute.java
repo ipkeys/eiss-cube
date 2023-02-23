@@ -3,7 +3,7 @@ package eiss.cube.service.http.process.properties;
 import com.google.gson.Gson;
 import com.mongodb.client.model.Collation;
 import dev.morphia.query.Sort;
-import dev.morphia.query.experimental.filters.Filters;
+import dev.morphia.query.filters.Filters;
 import eiss.api.Api;
 import eiss.models.cubes.CubeProperty;
 import eiss.db.Cubes;
@@ -27,9 +27,15 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.mongodb.client.model.CollationStrength.SECONDARY;
+import static dev.morphia.query.Sort.ascending;
+import static dev.morphia.query.Sort.descending;
+import static dev.morphia.query.filters.Filters.eq;
+import static dev.morphia.query.filters.Filters.in;
+import static dev.morphia.query.filters.Filters.regex;
 import static eiss.utils.reactadmin.ParamName.*;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
+import static java.lang.Integer.parseInt;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
@@ -62,7 +68,7 @@ public class ListRoute implements Handler<RoutingContext> {
         // search
         String search = request.getParam(FILTER);
         if (search != null && !search.isEmpty()) {
-            q.filter(Filters.regex("name").pattern("^" + search).caseInsensitive());
+            q.filter(regex("name").pattern("^" + search).caseInsensitive());
         }
         // ~search
 
@@ -71,14 +77,14 @@ public class ListRoute implements Handler<RoutingContext> {
         if (ids_like != null && !ids_like.isEmpty()) {
             if (ids_like.contains("|")) {
                 List<ObjectId> ids = Stream.of(ids_like.split("\\|")).map(ObjectId::new).collect(Collectors.toList());
-                q.filter(Filters.in("_id", ids));
+                q.filter(in("_id", ids));
             } else {
-                q.filter(Filters.eq("_id", new ObjectId(ids_like)));
+                q.filter(eq("_id", new ObjectId(ids_like)));
             }
         }
         String type = request.getParam("type");
         if (type != null && !type.isEmpty()) {
-            q.filter(Filters.eq("type", type));
+            q.filter(eq("type", type));
         }
         // ~filters
 
@@ -86,9 +92,9 @@ public class ListRoute implements Handler<RoutingContext> {
         String byField = request.getParam(SORT);
         String order = request.getParam(ORDER);
         if (byField != null && order != null && !byField.isEmpty() && !order.isEmpty()) {
-            o.sort(order.equalsIgnoreCase(ASC) ? Sort.ascending(byField) : Sort.descending(byField));
+            o.sort(order.equalsIgnoreCase(ASC) ? ascending(byField) : descending(byField));
         } else {
-            o.sort(Sort.ascending("name"));
+            o.sort(ascending("name"));
         }
         // sorts
 
@@ -96,7 +102,7 @@ public class ListRoute implements Handler<RoutingContext> {
         String s = request.getParam(START);
         String e = request.getParam(END);
         if (s != null && e != null && !s.isEmpty() && !e.isEmpty()) {
-            o.skip(Integer.parseInt(s)).limit(Integer.parseInt(e) - Integer.parseInt(s));
+            o.skip(parseInt(s)).limit(parseInt(e) - parseInt(s));
         }
         // ~skip/limit
 

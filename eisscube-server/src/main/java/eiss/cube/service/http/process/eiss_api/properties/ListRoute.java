@@ -92,10 +92,10 @@ public class ListRoute implements Handler<RoutingContext> {
         properties.iterator(options).toList().forEach(p ->
             rc.getProperties().add(
                 Property.builder()
-                        .id(p.getId().toString())
-                        .name(p.getName())
-                        .label(p.getLabel())
-                        .description(p.getDescription())
+                    .id(p.getId().toString())
+                    .name(p.getName())
+                    .label(p.getLabel())
+                    .description(p.getDescription())
                 .build()
             )
         );

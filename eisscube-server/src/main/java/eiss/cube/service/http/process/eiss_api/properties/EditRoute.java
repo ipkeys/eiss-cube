@@ -2,13 +2,14 @@ package eiss.cube.service.http.process.eiss_api.properties;
 
 import com.google.gson.Gson;
 import dev.morphia.Datastore;
+import dev.morphia.UpdateOptions;
 import dev.morphia.query.Query;
 import eiss.cube.json.messages.properties.Property;
 import eiss.cube.json.messages.properties.PropertyRequest;
 import eiss.cube.json.messages.properties.PropertyResponse;
-import dev.morphia.query.experimental.filters.Filters;
-import dev.morphia.query.experimental.updates.UpdateOperator;
-import dev.morphia.query.experimental.updates.UpdateOperators;
+import dev.morphia.query.filters.Filters;
+import dev.morphia.query.updates.UpdateOperator;
+import dev.morphia.query.updates.UpdateOperators;
 import eiss.api.Api;
 import eiss.models.cubes.CubeProperty;
 import eiss.db.Cubes;
@@ -26,10 +27,13 @@ import javax.ws.rs.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import static dev.morphia.query.filters.Filters.eq;
+import static dev.morphia.query.updates.UpdateOperators.set;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static org.bson.types.ObjectId.isValid;
 
 @Slf4j
 @Api
@@ -87,16 +91,16 @@ public class EditRoute implements Handler<RoutingContext> {
         PropertyResponse rc = new PropertyResponse();
 
         String id = req.getProperty().getId();
-        if (ObjectId.isValid(id)) {
+        if (isValid(id)) {
             Query<CubeProperty> property = datastore.find(CubeProperty.class);
-            property.filter(Filters.eq("_id", new ObjectId(id)));
+            property.filter(eq("_id", new ObjectId(id)));
 
             List<UpdateOperator> updates = new ArrayList<>();
-            updates.add(UpdateOperators.set("name", req.getProperty().getName()));
-            updates.add(UpdateOperators.set("label", req.getProperty().getLabel()));
-            updates.add(UpdateOperators.set("description", req.getProperty().getDescription()));
+            updates.add(set("name", req.getProperty().getName()));
+            updates.add(set("label", req.getProperty().getLabel()));
+            updates.add(set("description", req.getProperty().getDescription()));
 
-            property.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute();
+            property.update(new UpdateOptions(), updates.toArray(UpdateOperator[]::new));
 
             // get an updated version
             CubeProperty p = property.first();
@@ -114,6 +118,5 @@ public class EditRoute implements Handler<RoutingContext> {
 
         return rc;
     }
-
 
 }

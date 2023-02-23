@@ -2,9 +2,8 @@ package eiss.cube.input;
 
 import eiss.cube.service.http.process.meters.Meter;
 import dev.morphia.Datastore;
-import dev.morphia.aggregation.experimental.expressions.impls.Expression;
-import dev.morphia.aggregation.experimental.stages.Group;
-import dev.morphia.aggregation.experimental.stages.Projection;
+import dev.morphia.aggregation.stages.Group;
+import dev.morphia.aggregation.stages.Projection;
 import eiss.cube.service.http.process.meters.MeterRequest;
 import eiss.cube.service.http.process.meters.MeterResponse;
 import eiss.models.cubes.AggregatedMeterData;
@@ -13,28 +12,39 @@ import dev.morphia.query.FindOptions;
 import dev.morphia.query.Query;
 import dev.morphia.query.MorphiaCursor;
 import eiss.db.Cubes;
-import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import javax.inject.Inject;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
-import static dev.morphia.aggregation.experimental.expressions.AccumulatorExpressions.sum;
-import static dev.morphia.aggregation.experimental.expressions.Expressions.field;
-import static dev.morphia.aggregation.experimental.stages.Group.id;
-import static dev.morphia.aggregation.experimental.stages.Sort.sort;
-import static dev.morphia.query.experimental.filters.Filters.eq;
-import static dev.morphia.query.experimental.filters.Filters.gte;
-import static dev.morphia.query.experimental.filters.Filters.lt;
-import static dev.morphia.query.experimental.filters.Filters.ne;
+import static dev.morphia.aggregation.expressions.Expressions.value;
+import static dev.morphia.aggregation.expressions.MathExpressions.multiply;
+import static dev.morphia.aggregation.expressions.MathExpressions.ceil;
+import static dev.morphia.aggregation.expressions.MathExpressions.divide;
+import static dev.morphia.aggregation.expressions.AccumulatorExpressions.sum;
+import static dev.morphia.aggregation.expressions.DateExpressions.dateFromParts;
+import static dev.morphia.aggregation.expressions.DateExpressions.hour;
+import static dev.morphia.aggregation.expressions.DateExpressions.minute;
+import static dev.morphia.aggregation.expressions.DateExpressions.month;
+import static dev.morphia.aggregation.expressions.DateExpressions.year;
+import static dev.morphia.aggregation.expressions.DateExpressions.dayOfMonth;
+import static dev.morphia.aggregation.expressions.Expressions.field;
+import static dev.morphia.aggregation.stages.Group.id;
+import static dev.morphia.aggregation.stages.Sort.sort;
+import static dev.morphia.query.filters.Filters.eq;
+import static dev.morphia.query.filters.Filters.gt;
+import static dev.morphia.query.filters.Filters.gte;
+import static dev.morphia.query.filters.Filters.lt;
+import static dev.morphia.query.filters.Filters.lte;
+import static dev.morphia.query.filters.Filters.ne;
+import static java.time.temporal.ChronoUnit.HOURS;
+import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.util.stream.Collectors.averagingDouble;
 import static java.util.stream.Collectors.groupingBy;
 
@@ -82,59 +92,49 @@ public class Conversion {
 		}
 
 		Instant from = req.getFrom();
-		Instant to = req.getTo();
+		Instant to = req.getTo().plus(roundToMin, MINUTES);
 
 		// Step 1 - aggregated Meter data by timestamp to minute
-		MorphiaCursor<AggregatedMeterData> aggregation = datastore.aggregate(CubeMeter.class)
+		List<Meter> usage;
+		try (MorphiaCursor<AggregatedMeterData> aggregation = datastore.aggregate(CubeMeter.class)
 			.match(
 				eq("cubeID", new ObjectId(req.getCubeID())),
 				eq("type", req.getType()),
 				ne("value", Double.NaN),
-				gte("timestamp", from),
-				lt("timestamp", to)
+				gt("timestamp", from),
+				lte("timestamp", to)
 			)
 			.sort(sort().ascending("timestamp"))
 			.project(Projection.project()
 				.include("value")
 				.include("minutely",
-					new Expression("$dateFromParts", new Document()
-						.append("year", new Document("$year", "$timestamp"))
-						.append("month", new Document("$month", "$timestamp"))
-						.append("day", new Document("$dayOfMonth", "$timestamp"))
-						.append("hour", new Document("$hour", "$timestamp"))
-						.append("minute",
-							new Document("$multiply", Arrays.asList(
-									new Document("$ceil",
-										new Document("$divide", Arrays.asList(
-												new Document("$minute", "$timestamp"),
-												roundToMin
-											)
-										)
-									), roundToMin
-								)
-							)
-						)
-					)
+					dateFromParts()
+						.year(year(field("timestamp")))
+						.month(month(field("timestamp")))
+						.day(dayOfMonth(field("timestamp")))
+						.hour(hour(field("timestamp")))
+						.minute(multiply(ceil(divide(minute(field("timestamp")), value(roundToMin))), value(roundToMin)))
 				)
 			)
 			.group(
-				Group.group(id(field("minutely"))).field("value", sum(field("value")))
+					Group.group(id(field("minutely"))).field("value", sum(field("value")))
 			)
-			.execute(AggregatedMeterData.class);
+			.execute(AggregatedMeterData.class)) {
 
-		List<Meter> usage = new ArrayList<>();
-		final int finalPeriodsPerHour = periodsPerHour;
-		aggregation.forEachRemaining(o -> {
-			double value = (o.getValue() * finalPeriodsPerHour) / factor;
-			usage.add(Meter.of(o.getId(), Math.round(value * 100.0) / 100.0));
-		});
+			usage = new ArrayList<>();
+			final int finalPeriodsPerHour = periodsPerHour;
+			aggregation.forEachRemaining(o -> {
+				double value = (o.getValue() * finalPeriodsPerHour) / factor;
+				usage.add(Meter.of(o.getId(), Math.round(value * 100.0) / 100.0));
+			});
+		}
 		// ~Step 1 - aggregated Meter data by timestamp to minute
 
 		// Step 2 - Unwind each "roundToMin" minutes between begin & end into array of timestamp
 		List<Instant> minutes = new ArrayList<>();
 		long num = (long)(Math.ceil(Duration.between(from, to).toMinutes() / (double)roundToMin) * roundToMin);
-		for (long i = 0; i < num; i = i + roundToMin ) {
-			minutes.add(from.plus(i, ChronoUnit.MINUTES));
+		for (long i = 0; i <= num; i = i + roundToMin ) {
+			minutes.add(from.plus(i, MINUTES));
 		}
 		// ~Step 2 - Unwind each "roundToMin" minutes between begin & end into array of timestamp
 
@@ -154,52 +154,58 @@ public class Conversion {
 		usagePerRoundToMin.sort(Comparator.comparing(Meter::getT));
 		// ~Step 4 - make a chronological array
 
+		// Step 5 - remove extra elements from chronological array
+		usagePerRoundToMin.remove(0); // first element
+		usagePerRoundToMin.remove(usagePerRoundToMin.size() - 1); // last element
+		// ~Step 5 - remove extra elements from chronological array
+
 		res.setUsage(usagePerRoundToMin);
 	}
 
 	private void getHourlyReport(MeterRequest req, MeterResponse res) {
 		final double factor = req.getFactor() != null ? req.getFactor() : 1000; // by default - 1000 pulses per 1kWh
 		Instant from = req.getFrom();
-		Instant to = req.getTo();
+		Instant to = req.getTo().plus(1, HOURS);;
 
 		// Step 1 - aggregated Meter data by timestamp to hour
-		MorphiaCursor<AggregatedMeterData> aggregation = datastore.aggregate(CubeMeter.class)
+		List<Meter> usage;
+		try (MorphiaCursor<AggregatedMeterData> aggregation = datastore.aggregate(CubeMeter.class)
 			.match(
 				eq("cubeID", new ObjectId(req.getCubeID())),
 				eq("type", req.getType()),
 				ne("value", Double.NaN),
-				gte("timestamp", from),
-				lt("timestamp", to)
+				gt("timestamp", from),
+				lte("timestamp", to)
 			)
 			.sort(sort().ascending("timestamp"))
 			.project(Projection.project()
 				.include("value")
 				.include("hourly",
-					new Expression("$dateFromParts", new Document()
-						.append("year", new Document("$year", "$timestamp"))
-						.append("month", new Document("$month", "$timestamp"))
-						.append("day", new Document("$dayOfMonth", "$timestamp"))
-						.append("hour", new Document("$hour", "$timestamp"))
-					)
+					dateFromParts()
+						.year(year(field("timestamp")))
+						.month(month(field("timestamp")))
+						.day(dayOfMonth(field("timestamp")))
+						.hour(hour(field("timestamp")))
 				)
 			)
 			.group(
-				Group.group(id(field("hourly"))).field("value", sum(field("value")))
+					Group.group(id(field("hourly"))).field("value", sum(field("value")))
 			)
-			.execute(AggregatedMeterData.class);
+			.execute(AggregatedMeterData.class)) {
 
-		List<Meter> usage = new ArrayList<>();
-		aggregation.forEachRemaining(o -> {
-			double value = o.getValue() / factor;
-			usage.add(Meter.of(o.getId(), Math.round(value * 100.0) / 100.0));
-		});
+			usage = new ArrayList<>();
+			aggregation.forEachRemaining(o -> {
+				double value = o.getValue() / factor;
+				usage.add(Meter.of(o.getId(), Math.round(value * 100.0) / 100.0));
+			});
+		}
 		// ~Step 1 - aggregated Meter data by timestamp to hour
 
 		// Step 2 - Unwind each 1 hour between begin & end into array of hours
 		List<Instant> hours = new ArrayList<>();
 		long num = Duration.between(from, to).toHours();
-		for (long i = 0; i < num; i++ ) {
-			hours.add(from.plus(i, ChronoUnit.HOURS));
+		for (long i = 0; i <= num; i++ ) {
+			hours.add(from.plus(i, HOURS));
 		}
 		// ~Step 2 - Unwind each 1 hour between begin & end into array of hours
 
@@ -218,6 +224,11 @@ public class Conversion {
 		// Step 4 - make a chronological array
 		usagePerHour.sort(Comparator.comparing(Meter::getT));
 		// ~Step 4 - make a chronological array
+
+		// Step 5 - remove extra elements from chronological array
+		usagePerHour.remove(0); // first element
+		usagePerHour.remove(usagePerHour.size() - 1); // last element
+		// ~Step 5 - remove extra elements from chronological array
 
 		res.setUsage(usagePerHour);
 	}
@@ -258,7 +269,7 @@ public class Conversion {
 		List<Instant> minutes = new ArrayList<>();
 		long num = Duration.between(from, to).toMinutes();
 		for (long i = 0; i < num; i++ ) {
-			minutes.add(from.plus(i, ChronoUnit.MINUTES));
+			minutes.add(from.plus(i, MINUTES));
 		}
 		// ~Step 3 - Unwind each 1 minutes between begin & end into array of munutes
 
@@ -312,11 +323,11 @@ public class Conversion {
 		if (roundToMin == 1) {
 			rc = time;
 		} else {
-			Instant timestamp = time.truncatedTo(ChronoUnit.HOURS);
+			Instant timestamp = time.truncatedTo(HOURS);
 			if (roundToMin != 60) {
 				float minute_of_hour = (float)time.atZone(ZoneOffset.UTC).getMinute();
 				long rounded_minute = (long) (Math.ceil(minute_of_hour / roundToMin) * roundToMin);
-				timestamp = timestamp.plus(rounded_minute, ChronoUnit.MINUTES);
+				timestamp = timestamp.plus(rounded_minute, MINUTES);
 			}
 			rc = timestamp;
 		}

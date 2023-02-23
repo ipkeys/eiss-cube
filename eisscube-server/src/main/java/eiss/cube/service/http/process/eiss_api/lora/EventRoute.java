@@ -7,9 +7,9 @@ import dev.morphia.Datastore;
 import dev.morphia.UpdateOptions;
 import dev.morphia.query.Query;
 import eiss.cube.randname.Randname;
-import dev.morphia.query.experimental.filters.Filters;
-import dev.morphia.query.experimental.updates.UpdateOperator;
-import dev.morphia.query.experimental.updates.UpdateOperators;
+import dev.morphia.query.filters.Filters;
+import dev.morphia.query.updates.UpdateOperator;
+import dev.morphia.query.updates.UpdateOperators;
 import eiss.api.Api;
 import eiss.models.cubes.CubeReport;
 import eiss.models.cubes.CubeTest;
@@ -34,6 +34,13 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
+import static dev.morphia.query.filters.Filters.and;
+import static dev.morphia.query.filters.Filters.eq;
+import static dev.morphia.query.filters.Filters.exists;
+import static dev.morphia.query.updates.UpdateOperators.set;
+import static dev.morphia.query.updates.UpdateOperators.setOnInsert;
+import static dev.morphia.query.updates.UpdateOperators.unset;
+import static java.lang.Boolean.TRUE;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
@@ -91,7 +98,7 @@ public class EventRoute implements Handler<RoutingContext> {
         Integer ss = json.getJsonArray("rxInfo").getJsonObject(0).getInteger("rssi");
 
         Query<EISScube> q = datastore.find(EISScube.class);
-        q.filter(Filters.eq("deviceID", deviceID));
+        q.filter(eq("deviceID", deviceID));
 
         vertx.executeBlocking(op -> {
             EISScube cube = q.first();
@@ -105,7 +112,7 @@ public class EventRoute implements Handler<RoutingContext> {
 
             Instant timestamp = Instant.now();
 
-            cube.setOnline(Boolean.TRUE);
+            cube.setOnline(TRUE);
             cube.setSignalStrength(convertDBm(ss));
             cube.setTimeStarted(timestamp);
             cube.setLastPing(timestamp);
@@ -124,7 +131,7 @@ public class EventRoute implements Handler<RoutingContext> {
         Integer ss = json.getJsonArray("rxInfo").getJsonObject(0).getInteger("rssi");
 
         Query<EISScube> q = datastore.find(EISScube.class);
-        q.filter(Filters.eq("deviceID", deviceID));
+        q.filter(eq("deviceID", deviceID));
 
         vertx.executeBlocking(op -> {
             EISScube cube = q.first();
@@ -138,7 +145,7 @@ public class EventRoute implements Handler<RoutingContext> {
 
             Instant timestamp = Instant.now();
 
-            cube.setOnline(Boolean.TRUE);
+            cube.setOnline(TRUE);
             cube.setSignalStrength(convertDBm(ss));
             cube.setLastPing(timestamp);
 
@@ -242,23 +249,21 @@ public class EventRoute implements Handler<RoutingContext> {
         Double v = dataJSON.getDouble("dur");
 
         Query<CubeMeter> qm = datastore.find(CubeMeter.class);
-        qm.filter(
-            Filters.and(
-                Filters.eq("cubeID", cube.getId()),
-                Filters.eq("timestamp", ts)
-            )
-        );
+        qm.filter(and(
+            eq("cubeID", cube.getId()),
+            eq("timestamp", ts)
+        ));
 
         List<UpdateOperator> updates = new ArrayList<>();
 
-        updates.add(UpdateOperators.set("type", "c"));
-        updates.add(UpdateOperators.setOnInsert(Map.of("cubeID", cube.getId())));
-        updates.add(UpdateOperators.setOnInsert(Map.of("timestamp", ts)));
+        updates.add(set("type", "c"));
+        updates.add(setOnInsert(Map.of("cubeID", cube.getId())));
+        updates.add(setOnInsert(Map.of("timestamp", ts)));
         if (v > -1) { // interval is finished - set value = dur, if -1 - do not save it
-            updates.add(UpdateOperators.set("value", v)); // do not update timestamp
+            updates.add(set("value", v)); // do not update timestamp
         }
 
-        qm.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute(new UpdateOptions().upsert(true));
+        qm.update(new UpdateOptions().upsert(TRUE), updates.toArray(UpdateOperator[]::new));
 
         if (v > -1) { // after update of interval - fix the previous record
             fixNotFinishedCycleReport(cube.getId()); // finish unfinished interval - set to 1 minute
@@ -269,15 +274,14 @@ public class EventRoute implements Handler<RoutingContext> {
         vertx.executeBlocking(op -> {
             Query<CubeMeter> q = datastore.find(CubeMeter.class);
             q.filter(
-                Filters.and(
-                    Filters.eq("cubeID", cubeID),
-                    Filters.eq("type", "c"),
-                    Filters.exists("value").not()
+                and(
+                    eq("cubeID", cubeID),
+                    eq("type", "c"),
+                    exists("value").not()
                 )
             );
 
-            UpdateOperator upd = UpdateOperators.set("value", 60);
-            q.update(upd).execute();
+            q.update(new UpdateOptions(), set("value", 60));
 
             op.complete();
         }, res -> {
@@ -292,14 +296,14 @@ public class EventRoute implements Handler<RoutingContext> {
 
     private void doBusinessWithDevice(String deviceID, JsonObject dataJSON) {
         Query<EISScube> q = datastore.find(EISScube.class);
-        q.filter(Filters.eq("deviceID", deviceID));
-        q.filter(Filters.eq("deviceType", "l"));
+        q.filter(eq("deviceID", deviceID));
+        q.filter(eq("deviceType", "l"));
 
         vertx.executeBlocking(op -> {
             EISScube cube = q.first();
             if (cube != null) {
                 Query<CubeReport> qr = datastore.find(CubeReport.class);
-                qr.filter(Filters.eq("cubeID", cube.getId()));
+                qr.filter(eq("cubeID", cube.getId()));
 
                 CubeReport cr = qr.first();
                 if (cr != null) {
@@ -320,7 +324,7 @@ public class EventRoute implements Handler<RoutingContext> {
                                         (start_edge.equalsIgnoreCase("r") && DI1_status.equalsIgnoreCase("H"))
                                 ) {
                                     if (cr.getTs() == null) { // cycle not started yet?
-                                        qr.update(UpdateOperators.set("ts", ts)).execute();
+                                        qr.update(new UpdateOptions(), set("ts", ts));
                                         // create an open meter record with no value
                                         CubeMeter meter = new CubeMeter();
                                         meter.setCubeID(cube.getId());
@@ -340,16 +344,14 @@ public class EventRoute implements Handler<RoutingContext> {
                                         Duration dur = Duration.between(cr.getTs(), ts);
                                         // update an open record with duration
                                         Query<CubeMeter> qm = datastore.find(CubeMeter.class);
-                                        qm.filter(
-                                                Filters.and(
-                                                        Filters.eq("cubeID", cube.getId()),
-                                                        Filters.eq("type", "c"),
-                                                        Filters.eq("timestamp", cr.getTs())
-                                                )
-                                        );
-                                        qm.update(UpdateOperators.set("value", (double) dur.toSeconds())).execute();
+                                        qm.filter(and(
+                                            eq("cubeID", cube.getId()),
+                                            eq("type", "c"),
+                                            eq("timestamp", cr.getTs())
+                                        ));
+                                        qm.update(new UpdateOptions(), set("value", (double) dur.toSeconds()));
                                         // remove start timestamp of cycle from report - waiting for the next
-                                        qr.update(UpdateOperators.unset("ts")).execute();
+                                        qr.update(new UpdateOptions(), unset("ts"));
                                     }
                                 }
                             }

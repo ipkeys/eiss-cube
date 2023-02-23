@@ -5,9 +5,9 @@ import dev.morphia.Datastore;
 import dev.morphia.UpdateOptions;
 import dev.morphia.query.Query;
 import eiss.cube.json.messages.cloudven.StartReport;
-import dev.morphia.query.experimental.filters.Filters;
-import dev.morphia.query.experimental.updates.UpdateOperator;
-import dev.morphia.query.experimental.updates.UpdateOperators;
+import dev.morphia.query.filters.Filters;
+import dev.morphia.query.updates.UpdateOperator;
+import dev.morphia.query.updates.UpdateOperators;
 import eiss.api.Api;
 import eiss.models.cubes.CubeCommand;
 import eiss.models.cubes.CubeInput;
@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static dev.morphia.query.filters.Filters.and;
+import static dev.morphia.query.filters.Filters.eq;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
@@ -74,20 +76,18 @@ public class StartReportPostRoute implements Handler<RoutingContext> {
 
             Query<EISScube> q = datastore.find(EISScube.class);
             if (resource != null && !resource.isEmpty()) {
-                q.filter(
-                    Filters.and(
-                        Filters.eq("settings.VEN", ven),
-                        Filters.eq("name", resource)
-                    )
-                );
+                q.filter(and(
+                    eq("settings.VEN", ven),
+                    eq("name", resource)
+                ));
             } else {
-                q.filter(Filters.eq("settings.VEN", ven));
+                q.filter(eq("settings.VEN", ven));
             }
 
             List<EISScube> cubes = q.iterator().toList();
             if (cubes != null) {
                 cubes.forEach(cube -> {
-                    CubeSetup setup = datastore.find(CubeSetup.class).filter(Filters.eq("cubeID", cube.getId())).first();
+                    CubeSetup setup = datastore.find(CubeSetup.class).filter(eq("cubeID", cube.getId())).first();
                     if (setup != null && setup.getInput() != null) {
                         CubeInput input = setup.getInput();
                         if (input != null && input.getConnected()) {
@@ -101,17 +101,17 @@ public class StartReportPostRoute implements Handler<RoutingContext> {
                             // ~put command under cube's group
 
                             switch (input.getSignal()) {
-                                case "p":
+                                case "p" -> {
                                     cmd.setCommand("icp");
                                     cmd.setTransition(input.getWatch());
                                     cmd.setCompleteCycle(sampleRateSeconds);
-                                    break;
-                                case "c":
+                                }
+                                case "c" -> {
                                     cmd.setCommand("icc");
                                     cmd.setTransition(input.getWatch());
-                                    break;
-                                default:
-                                    break;
+                                }
+                                default -> {
+                                }
                             }
 
                             cmd.setStatus("Created");
@@ -130,14 +130,14 @@ public class StartReportPostRoute implements Handler<RoutingContext> {
                             // prepare report record
                             if (cmd.getCommand().startsWith("ic")) {
                                 Query<CubeReport> qR = datastore.find(CubeReport.class);
-                                qR.filter(Filters.eq("cubeID", cube.getId()));
+                                qR.filter(eq("cubeID", cube.getId()));
 
                                 List<UpdateOperator> updates = new ArrayList<>();
 
                                 updates.add(UpdateOperators.setOnInsert(Map.of("cubeID", cube.getId())));
                                 updates.add(UpdateOperators.set("type", cmd.getCommand().replace("ic", ""))); // leave just "p" or "c"
 
-                                qR.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute(new UpdateOptions().upsert(true));
+                                qR.update(new UpdateOptions().upsert(true), updates.toArray(UpdateOperator[]::new));
                             }
 
                         }

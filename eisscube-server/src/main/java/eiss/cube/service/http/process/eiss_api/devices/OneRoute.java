@@ -7,7 +7,7 @@ import eiss.cube.json.messages.devices.Device;
 import eiss.cube.json.messages.devices.DeviceIdRequest;
 import eiss.cube.json.messages.devices.DeviceResponse;
 import eiss.cube.json.messages.devices.Location;
-import dev.morphia.query.experimental.filters.Filters;
+import dev.morphia.query.filters.Filters;
 import eiss.api.Api;
 import eiss.models.cubes.EISScube;
 import eiss.db.Cubes;
@@ -22,10 +22,12 @@ import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 
+import static dev.morphia.query.filters.Filters.eq;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static org.bson.types.ObjectId.isValid;
 
 @Slf4j
 @Api
@@ -83,9 +85,9 @@ public class OneRoute implements Handler<RoutingContext> {
         DeviceResponse rc = new DeviceResponse();
 
         String id = req.getId();
-        if (ObjectId.isValid(id)) {
+        if (isValid(id)) {
             Query<EISScube> cube = datastore.find(EISScube.class);
-            cube.filter(Filters.eq("_id", new ObjectId(id)));
+            cube.filter(eq("_id", new ObjectId(id)));
 
             EISScube d = cube.first();
             if (d != null) {

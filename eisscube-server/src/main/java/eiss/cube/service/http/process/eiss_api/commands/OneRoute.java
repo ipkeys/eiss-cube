@@ -6,7 +6,7 @@ import dev.morphia.query.Query;
 import eiss.cube.json.messages.commands.Command;
 import eiss.cube.json.messages.commands.CommandIdRequest;
 import eiss.cube.json.messages.commands.CommandResponse;
-import dev.morphia.query.experimental.filters.Filters;
+import dev.morphia.query.filters.Filters;
 import eiss.api.Api;
 import eiss.models.cubes.CubeCommand;
 import eiss.db.Cubes;
@@ -21,10 +21,12 @@ import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 
+import static dev.morphia.query.filters.Filters.eq;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static org.bson.types.ObjectId.isValid;
 
 @Slf4j
 @Api
@@ -82,9 +84,9 @@ public class OneRoute implements Handler<RoutingContext> {
         CommandResponse rc = new CommandResponse();
 
         String id = req.getId();
-        if (ObjectId.isValid(id)) {
+        if (isValid(id)) {
             Query<CubeCommand> command = datastore.find(CubeCommand.class);
-            command.filter(Filters.eq("_id", new ObjectId(id)));
+            command.filter(eq("_id", new ObjectId(id)));
 
             CubeCommand c = command.first();
             if (c != null) {

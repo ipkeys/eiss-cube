@@ -2,9 +2,9 @@ package eiss.cube.service.http.process.commands;
 
 import com.google.gson.Gson;
 import dev.morphia.UpdateOptions;
-import dev.morphia.query.experimental.filters.Filters;
-import dev.morphia.query.experimental.updates.UpdateOperator;
-import dev.morphia.query.experimental.updates.UpdateOperators;
+import dev.morphia.query.filters.Filters;
+import dev.morphia.query.updates.UpdateOperator;
+import dev.morphia.query.updates.UpdateOperators;
 import eiss.api.Api;
 import eiss.cube.json.messages.CycleAndDutyCycleExtractor;
 import eiss.models.cubes.CubeCommand;
@@ -27,6 +27,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
+import static dev.morphia.query.filters.Filters.eq;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static java.lang.Boolean.TRUE;
@@ -80,7 +81,7 @@ public class PostRoute implements Handler<RoutingContext> {
             cmd.setCreated(Instant.now());
 
             Query<EISScube> q = datastore.find(EISScube.class);
-            q.filter(Filters.eq("id", cmd.getCubeID()));
+            q.filter(eq("id", cmd.getCubeID()));
             EISScube cube = q.first();
             if (cube != null) {
                 cmd.setCubeName(cube.getName());
@@ -114,7 +115,7 @@ public class PostRoute implements Handler<RoutingContext> {
 
     private void sendToEISScube(CubeCommand cmd) {
         Query<EISScube> q = datastore.find(EISScube.class);
-        q.filter(Filters.eq("id", cmd.getCubeID()));
+        q.filter(eq("id", cmd.getCubeID()));
 
         vertx.executeBlocking(op -> {
             EISScube cube = q.first();
@@ -134,8 +135,8 @@ public class PostRoute implements Handler<RoutingContext> {
                 if (cmd.getCommand().startsWith("ic")) {
                     String type = cmd.getCommand().replace("ic", ""); // leave just "p" or "c"
                     Query<CubeReport> qR = datastore.find(CubeReport.class);
-                    qR.filter(Filters.eq("cubeID", cube.getId()));
-                    qR.filter(Filters.eq("type", type));
+                    qR.filter(eq("cubeID", cube.getId()));
+                    qR.filter(eq("type", type));
 
                     Map<String, Object> values = new HashMap<>();
                     values.put("type", type);
@@ -147,7 +148,7 @@ public class PostRoute implements Handler<RoutingContext> {
                     UpdateOperator op3 = UpdateOperators.set("group", cube.getGroup());
                     UpdateOperator op4 = UpdateOperators.set("cubeName", cube.getName());
 
-                    qR.update(op1, op2, op3, op4).execute(new UpdateOptions().upsert(TRUE));
+                    qR.update(new UpdateOptions().upsert(TRUE), op1, op2, op3, op4);
                 }
 
                 op.complete();

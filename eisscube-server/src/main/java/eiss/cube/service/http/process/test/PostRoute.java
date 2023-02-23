@@ -1,7 +1,7 @@
 package eiss.cube.service.http.process.test;
 
 import dev.morphia.DeleteOptions;
-import dev.morphia.query.experimental.filters.Filters;
+import dev.morphia.query.filters.Filters;
 import eiss.api.Api;
 import eiss.models.cubes.CubeTest;
 import eiss.models.cubes.EISScube;
@@ -25,11 +25,13 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
+import static dev.morphia.query.filters.Filters.eq;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static java.lang.Boolean.TRUE;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static org.bson.types.ObjectId.isValid;
 
 @Slf4j
 @Api
@@ -58,7 +60,7 @@ public class PostRoute implements Handler<RoutingContext> {
         }
 
         String cubeID = json.getString("cubeID");
-        if (!ObjectId.isValid(cubeID)) {
+        if (!isValid(cubeID)) {
             response.setStatusCode(SC_BAD_REQUEST)
                     .setStatusMessage(String.format("id: %s is not valid", cubeID))
                     .end();
@@ -88,13 +90,13 @@ public class PostRoute implements Handler<RoutingContext> {
 
     private void doEISScubeTest(String cubeID, Integer duration, Integer cycle, Promise<Object> op) {
         Query<EISScube> q = datastore.find(EISScube.class);
-        q.filter(Filters.eq("id", new ObjectId(cubeID)));
+        q.filter(eq("id", new ObjectId(cubeID)));
 
         EISScube cube = q.first();
         if (cube != null && cube.getOnline()) {
             // remove old test's results
             Query<CubeTest> qt = datastore.find(CubeTest.class);
-            qt.filter(Filters.eq("cubeID", cube.getId()));
+            qt.filter(eq("cubeID", cube.getId()));
             qt.delete(new DeleteOptions().multi(TRUE));
 
             String busAddress = cube.getDeviceType().equalsIgnoreCase("e")
@@ -108,17 +110,17 @@ public class PostRoute implements Handler<RoutingContext> {
 
             // do Input Cycle
             vertx.eventBus().send(busAddress, new JsonObject()
-                    .put("to", cube.getDeviceID())
-                    .put("socket", cube.getSocket())
-                    .put("cmd", String.format(testCmd, startTime, duration))
+                .put("to", cube.getDeviceID())
+                .put("socket", cube.getSocket())
+                .put("cmd", String.format(testCmd, startTime, duration))
             );
 
             vertx.setTimer(1000, id -> {
                 // do Relay Cycle
                 vertx.eventBus().send(busAddress, new JsonObject()
-                        .put("to", cube.getDeviceID())
-                        .put("socket", cube.getSocket())
-                        .put("cmd", String.format("c=rcyc&each=%d&pct=50&st=%d&dur=%d&id=test", cycle, startTime, duration))
+                    .put("to", cube.getDeviceID())
+                    .put("socket", cube.getSocket())
+                    .put("cmd", String.format("c=rcyc&each=%d&pct=50&st=%d&dur=%d&id=test", cycle, startTime, duration))
                 );
             });
 

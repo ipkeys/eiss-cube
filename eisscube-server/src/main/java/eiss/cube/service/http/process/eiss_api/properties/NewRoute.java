@@ -98,5 +98,4 @@ public class NewRoute implements Handler<RoutingContext> {
         return rc;
     }
 
-
 }

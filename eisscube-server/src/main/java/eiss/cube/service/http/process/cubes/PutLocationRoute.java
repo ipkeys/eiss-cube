@@ -2,9 +2,10 @@ package eiss.cube.service.http.process.cubes;
 
 import com.google.gson.Gson;
 import com.mongodb.client.result.UpdateResult;
-import dev.morphia.query.experimental.filters.Filters;
-import dev.morphia.query.experimental.updates.UpdateOperator;
-import dev.morphia.query.experimental.updates.UpdateOperators;
+import dev.morphia.UpdateOptions;
+import dev.morphia.query.filters.Filters;
+import dev.morphia.query.updates.UpdateOperator;
+import dev.morphia.query.updates.UpdateOperators;
 import eiss.api.Api;
 import eiss.models.cubes.CubePoint;
 import eiss.models.cubes.EISScube;
@@ -22,9 +23,12 @@ import javax.inject.Inject;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 
+import static dev.morphia.query.filters.Filters.eq;
+import static dev.morphia.query.updates.UpdateOperators.set;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.*;
+import static org.bson.types.ObjectId.isValid;
 
 @Slf4j
 @Api
@@ -48,7 +52,7 @@ public class PutLocationRoute implements Handler<RoutingContext> {
         HttpServerResponse response = context.response();
 
         String id = context.request().getParam("id");
-        if (!ObjectId.isValid(id)) {
+        if (!isValid(id)) {
             response
                 .setStatusCode(SC_BAD_REQUEST)
                 .setStatusMessage(String.format("id '%s' is not valid", id))
@@ -69,10 +73,9 @@ public class PutLocationRoute implements Handler<RoutingContext> {
 
         vertx.executeBlocking(op -> {
             Query<EISScube> q = datastore.find(EISScube.class);
-            q.filter(Filters.eq("_id", new ObjectId(id)));
+            q.filter(eq("_id", new ObjectId(id)));
 
-            UpdateOperator upd = UpdateOperators.set("location", location);
-            UpdateResult result = q.update(upd).execute();
+            UpdateResult result = q.update(new UpdateOptions(), set("location", location));
 
             if (result.wasAcknowledged()) {
                 op.complete(q.first()); // return EISScube

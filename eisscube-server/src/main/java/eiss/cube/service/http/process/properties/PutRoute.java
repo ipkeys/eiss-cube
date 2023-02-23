@@ -2,9 +2,10 @@ package eiss.cube.service.http.process.properties;
 
 import com.google.gson.Gson;
 import com.mongodb.client.result.UpdateResult;
-import dev.morphia.query.experimental.filters.Filters;
-import dev.morphia.query.experimental.updates.UpdateOperator;
-import dev.morphia.query.experimental.updates.UpdateOperators;
+import dev.morphia.UpdateOptions;
+import dev.morphia.query.filters.Filters;
+import dev.morphia.query.updates.UpdateOperator;
+import dev.morphia.query.updates.UpdateOperators;
 import eiss.api.Api;
 import eiss.models.cubes.CubeProperty;
 import eiss.db.Cubes;
@@ -25,10 +26,14 @@ import javax.ws.rs.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import static dev.morphia.query.filters.Filters.eq;
+import static dev.morphia.query.updates.UpdateOperators.set;
+import static dev.morphia.query.updates.UpdateOperators.unset;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static org.bson.types.ObjectId.isValid;
 
 @Slf4j
 @Api
@@ -53,7 +58,7 @@ public class PutRoute implements Handler<RoutingContext> {
         HttpServerResponse response = context.response();
 
         String id = request.getParam("id");
-        if (!ObjectId.isValid(id)) {
+        if (!isValid(id)) {
             response.setStatusCode(SC_BAD_REQUEST)
                     .setStatusMessage(String.format("id '%s' is not valid", id))
                     .end();
@@ -71,35 +76,35 @@ public class PutRoute implements Handler<RoutingContext> {
         }
 
         Query<CubeProperty> q = datastore.find(CubeProperty.class);
-        q.filter(Filters.eq("_id", new ObjectId(id)));
+        q.filter(eq("_id", new ObjectId(id)));
 
         List<UpdateOperator> updates = new ArrayList<>();
         if (property.getType() == null) {
-            updates.add(UpdateOperators.unset("type"));
+            updates.add(unset("type"));
         } else {
-            updates.add(UpdateOperators.set("type", property.getType()));
+            updates.add(set("type", property.getType()));
         }
 
         if (property.getName() == null) {
-            updates.add(UpdateOperators.unset("name"));
+            updates.add(unset("name"));
         } else {
-            updates.add(UpdateOperators.set("name", property.getName()));
+            updates.add(set("name", property.getName()));
         }
 
         if (property.getLabel() == null) {
-            updates.add(UpdateOperators.unset("label"));
+            updates.add(unset("label"));
         } else {
-            updates.add(UpdateOperators.set("label", property.getLabel()));
+            updates.add(set("label", property.getLabel()));
         }
 
         if (property.getDescription() == null) {
-            updates.add(UpdateOperators.unset("description"));
+            updates.add(unset("description"));
         } else {
-            updates.add(UpdateOperators.set("description", property.getDescription()));
+            updates.add(set("description", property.getDescription()));
         }
 
         vertx.executeBlocking(op -> {
-            UpdateResult result = q.update(updates.get(0), updates.stream().skip(1).toArray(UpdateOperator[]::new)).execute();
+            UpdateResult result = q.update(new UpdateOptions(), updates.toArray(UpdateOperator[]::new));
             if (result.getModifiedCount() == 1) {
                 op.complete(property);
             } else {

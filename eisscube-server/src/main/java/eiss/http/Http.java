@@ -86,7 +86,7 @@ public class Http extends AbstractVerticle {
 
     private void setupRoutes() {
         router.route()
-            .handler(CorsHandler.create("*")
+            .handler(CorsHandler.create()
                 .allowedMethod(HttpMethod.GET)
                 .allowedMethod(HttpMethod.POST)
                 .allowedMethod(HttpMethod.DELETE)

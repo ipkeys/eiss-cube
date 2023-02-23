@@ -9,7 +9,7 @@ import eiss.cube.json.messages.setup.SetupResponse;
 import eiss.models.cubes.CubeSetup;
 import dev.morphia.Datastore;
 import dev.morphia.query.Query;
-import dev.morphia.query.experimental.filters.Filters;
+import dev.morphia.query.filters.Filters;
 import eiss.api.Api;
 import eiss.db.Cubes;
 import io.vertx.core.Handler;
@@ -23,11 +23,13 @@ import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 
+import static dev.morphia.query.filters.Filters.eq;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static org.bson.types.ObjectId.isValid;
 
 @Slf4j
 @Api
@@ -85,9 +87,9 @@ public class SetupForDeviceRoute implements Handler<RoutingContext> {
         SetupResponse rc = new SetupResponse();
 
         String id = req.getDeviceID();
-        if (ObjectId.isValid(id)) {
+        if (isValid(id)) {
             Query<CubeSetup> setup = datastore.find(CubeSetup.class);
-            setup.filter(Filters.eq("cubeID", new ObjectId(req.getDeviceID())));
+            setup.filter(eq("cubeID", new ObjectId(req.getDeviceID())));
 
             CubeSetup c = setup.first();
             if (c != null) {
