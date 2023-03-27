@@ -84,7 +84,7 @@ public class Conversion {
 	}
 
 	private void getMinutelyReport(MeterRequest req, MeterResponse res, final int roundToMin) {
-		final double factor = req.getFactor() != null ? req.getFactor() : 1000; // by default - 1000 pulses per 1kWh
+		final double factor = req.getFactor() != null ? req.getFactor() : 1; // by default - 1 Wh per pulse
 		int periodsPerHour = 60 / roundToMin;
 
 		if (req.getMeter().equalsIgnoreCase("g")) { // for Gas Meter value is not depends on hour!!!
@@ -124,7 +124,7 @@ public class Conversion {
 			usage = new ArrayList<>();
 			final int finalPeriodsPerHour = periodsPerHour;
 			aggregation.forEachRemaining(o -> {
-				double value = (o.getValue() * finalPeriodsPerHour) / factor;
+				double value = (o.getValue() * finalPeriodsPerHour) *  factor ;
 				usage.add(Meter.of(o.getId(), Math.round(value * 100.0) / 100.0));
 			});
 		}
@@ -163,7 +163,7 @@ public class Conversion {
 	}
 
 	private void getHourlyReport(MeterRequest req, MeterResponse res) {
-		final double factor = req.getFactor() != null ? req.getFactor() : 1000; // by default - 1000 pulses per 1kWh
+		final double factor = req.getFactor() != null ? req.getFactor() : 1; // by default - 1 Wh per pulse
 		Instant from = req.getFrom();
 		Instant to = req.getTo().plus(1, HOURS);;
 
@@ -195,7 +195,7 @@ public class Conversion {
 
 			usage = new ArrayList<>();
 			aggregation.forEachRemaining(o -> {
-				double value = o.getValue() / factor;
+				double value = o.getValue() * factor;
 				usage.add(Meter.of(o.getId(), Math.round(value * 100.0) / 100.0));
 			});
 		}

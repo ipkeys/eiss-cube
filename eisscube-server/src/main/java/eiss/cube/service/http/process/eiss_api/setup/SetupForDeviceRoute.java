@@ -20,15 +20,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 
 import javax.inject.Inject;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
 
 import static dev.morphia.query.filters.Filters.eq;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static jakarta.servlet.http.HttpServletResponse.SC_OK;
 import static org.bson.types.ObjectId.isValid;
 
 @Slf4j

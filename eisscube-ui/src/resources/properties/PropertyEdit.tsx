@@ -20,8 +20,10 @@ const PropertyEditTitle = () => {
 const validateValue = [required(), maxLength(20)];
 
 const PropertyEdit = () => (
-	<Edit title={<PropertyEditTitle />} >
-		<SimpleForm redirect='list'>
+	<Edit title={<PropertyEditTitle />}
+		redirect='list'
+	>
+		<SimpleForm>
 			<SelectInput source='type' choices={PropertyTypes} sx={{minWidth: '20em'}} />
 
 			<Box display={'inline-flex'}>

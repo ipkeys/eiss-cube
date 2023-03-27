@@ -21,8 +21,8 @@ import dev.morphia.Datastore;
 import dev.morphia.query.Query;
 
 import javax.inject.Inject;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +31,7 @@ import static dev.morphia.query.filters.Filters.eq;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static java.lang.Boolean.TRUE;
-import static javax.servlet.http.HttpServletResponse.*;
+import static jakarta.servlet.http.HttpServletResponse.*;
 
 @Slf4j
 @Api

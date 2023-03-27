@@ -2,7 +2,6 @@ package eiss.cube.service.http.process.cloudven;
 
 import dev.morphia.Datastore;
 import dev.morphia.query.Query;
-import dev.morphia.query.filters.Filters;
 import eiss.api.Api;
 import eiss.models.cubes.EISScube;
 import eiss.db.Cubes;
@@ -14,14 +13,14 @@ import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
 import java.util.List;
 
 import static dev.morphia.query.filters.Filters.eq;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
-import static javax.servlet.http.HttpServletResponse.*;
+import static jakarta.servlet.http.HttpServletResponse.*;
 
 @Slf4j
 @Api

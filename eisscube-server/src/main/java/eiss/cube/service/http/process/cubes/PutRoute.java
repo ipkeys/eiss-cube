@@ -23,8 +23,8 @@ import dev.morphia.Datastore;
 import dev.morphia.query.Query;
 
 import javax.inject.Inject;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +36,7 @@ import static dev.morphia.query.updates.UpdateOperators.unset;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static java.util.stream.Collectors.toMap;
-import static javax.servlet.http.HttpServletResponse.*;
+import static jakarta.servlet.http.HttpServletResponse.*;
 import static org.bson.types.ObjectId.isValid;
 
 @Slf4j

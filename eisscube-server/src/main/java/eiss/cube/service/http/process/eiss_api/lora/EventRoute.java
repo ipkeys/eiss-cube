@@ -24,8 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 
 import javax.inject.Inject;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.time.Instant;
@@ -42,7 +42,7 @@ import static dev.morphia.query.updates.UpdateOperators.setOnInsert;
 import static dev.morphia.query.updates.UpdateOperators.unset;
 import static java.lang.Boolean.TRUE;
 import static java.time.temporal.ChronoUnit.SECONDS;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static jakarta.servlet.http.HttpServletResponse.SC_OK;
 
 @Slf4j
 @Api

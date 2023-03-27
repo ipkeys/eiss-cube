@@ -19,9 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import java.lang.reflect.Array;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -36,8 +35,8 @@ import static eiss.utils.reactadmin.ParamName.*;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static java.lang.Integer.parseInt;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_OK;
 
 @Slf4j
 @Api

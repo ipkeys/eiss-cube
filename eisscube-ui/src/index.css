@@ -4,6 +4,10 @@ body {
 	font-family: Roboto;
 }
 
+.MuiScopedCssBaseline-root {
+	background-color: white;
+}
+
 .leaflet-container {
 	height: 670px;
 	width: 100%;

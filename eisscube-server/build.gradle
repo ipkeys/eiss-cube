@@ -27,31 +27,31 @@ compileJava {
 }
 
 dependencies {
-    compileOnly 'org.projectlombok:lombok:1.18.24'
-    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+    compileOnly 'org.projectlombok:lombok:1.18.26'
+    annotationProcessor 'org.projectlombok:lombok:1.18.26'
 
     implementation 'eiss:eiss-commons:0.0.7'
-    implementation 'eiss:eiss-models:0.1.3'
+    implementation 'eiss:eiss-models:0.1.4'
 
-    implementation 'io.vertx:vertx-core:4.3.7'
-    implementation 'io.vertx:vertx-web:4.3.7'
-    implementation 'io.vertx:vertx-web-client:4.3.7'
-    implementation 'io.vertx:vertx-auth-common:4.3.7'
-    implementation 'io.netty:netty-transport-native-epoll:4.1.86.Final'
+    implementation 'io.vertx:vertx-core:4.4.0'
+    implementation 'io.vertx:vertx-web:4.4.0'
+    implementation 'io.vertx:vertx-web-client:4.4.0'
+    implementation 'io.netty:netty-transport-native-epoll:4.1.89.Final'
 
     implementation 'com.google.inject:guice:5.1.0'
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'net.jmob:guice.conf:v1.5.0'
 
-    implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
+    implementation 'org.slf4j:slf4j-api:2.0.7'
+    implementation 'ch.qos.logback:logback-core:1.4.6'
+    implementation 'ch.qos.logback:logback-classic:1.4.6'
+
     implementation 'org.reflections:reflections:0.10.2'
-    implementation 'javax.servlet:javax.servlet-api:4.0.1'
+
+    compileOnly    'jakarta.servlet:jakarta.servlet-api:6.0.0'
+    implementation 'jakarta.ws.rs:jakarta.ws.rs-api:3.1.0'
     implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.0'
     implementation 'com.sun.xml.bind:jaxb-impl:3.0.2'
-
-    implementation 'org.slf4j:slf4j-api:2.0.3'
-    implementation 'ch.qos.logback:logback-core:1.4.4'
-    implementation 'ch.qos.logback:logback-classic:1.4.4'
 
     implementation 'dev.morphia.morphia:morphia-core:2.3.0'
 

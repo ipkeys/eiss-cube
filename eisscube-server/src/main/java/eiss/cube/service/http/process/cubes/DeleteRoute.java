@@ -16,13 +16,13 @@ import dev.morphia.Datastore;
 import dev.morphia.query.Query;
 
 import javax.inject.Inject;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.Path;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.Path;
 
 import static dev.morphia.query.filters.Filters.eq;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
-import static javax.servlet.http.HttpServletResponse.*;
+import static jakarta.servlet.http.HttpServletResponse.*;
 import static org.bson.types.ObjectId.isValid;
 
 @Slf4j

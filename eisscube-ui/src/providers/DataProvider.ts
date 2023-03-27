@@ -1,4 +1,4 @@
-import { stringify } from 'query-string';
+import queryString from 'query-string';
 import { DataProvider as DataProviderType, fetchUtils } from "ra-core";
 import HttpService from "./HttpService";
 
@@ -29,7 +29,7 @@ const DataProvider = (apiUrl: string, httpService: HttpService): DataProviderTyp
 				_end: page * perPage,
 			};
 
-			url = `${apiUrl}/${resource}?${stringify(query)}`;
+			url = `${apiUrl}/${resource}?${queryString.stringify(query)}`;
 		}
 
 		return httpService.request(url).then(({ headers, json }) => {
@@ -60,7 +60,7 @@ const DataProvider = (apiUrl: string, httpService: HttpService): DataProviderTyp
 		const query = {
 			[`id_like`]: params.ids.join('|'),
 		};
-		const url = `${apiUrl}/${resource}?${stringify(query)}`;
+		const url = `${apiUrl}/${resource}?${queryString.stringify(query)}`;
 		return httpService.request(url)
 		.then(({ json }) => {
 			return {data: json};
@@ -78,7 +78,7 @@ const DataProvider = (apiUrl: string, httpService: HttpService): DataProviderTyp
 			_start: (page - 1) * perPage,
 			_end: page * perPage,
 		};
-		const url = `${apiUrl}/${resource}?${stringify(query)}`;
+		const url = `${apiUrl}/${resource}?${queryString.stringify(query)}`;
 
 		return httpService.request(url)
 		.then(({ headers, json}) => {
@@ -151,7 +151,7 @@ const DataProvider = (apiUrl: string, httpService: HttpService): DataProviderTyp
 		const query = {
 			...fetchUtils.flattenObject(params.filter),
 		};
-		const url = `${apiUrl}/${resource}-count?${stringify(query)}`;
+		const url = `${apiUrl}/${resource}-count?${queryString.stringify(query)}`;
 		return httpService.request(url)
 		.then(({json}) => {
 			return {data: json};

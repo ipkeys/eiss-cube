@@ -53,7 +53,7 @@ const InputSettings = ({formData}: {formData: any}) => (
 		}
 
 		{formData.input.signal && formData.input.signal === "p" &&
-			<NumberInput label='Factor (Pulses per Unit)' source='input.factor' fullWidth />
+			<NumberInput label='Kp Factor (Unit per pulse)' source='input.factor' fullWidth />
 		}
 
 		{formData.input.signal && formData.input.signal === "c" &&

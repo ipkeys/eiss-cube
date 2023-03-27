@@ -24,7 +24,7 @@ import java.util.Base64;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
-import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
+import static jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
 @Slf4j
 public class Http extends AbstractVerticle {
