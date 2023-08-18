@@ -1,5 +1,6 @@
 package eiss.cube.service.tcp.process;
 
+import com.mongodb.client.result.UpdateResult;
 import dev.morphia.UpdateOptions;
 import dev.morphia.query.FindOptions;
 import dev.morphia.query.Sort;
@@ -30,6 +31,9 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import static dev.morphia.query.filters.Filters.and;
+import static dev.morphia.query.filters.Filters.eq;
+import static dev.morphia.query.filters.Filters.exists;
 import static dev.morphia.query.updates.UpdateOperators.set;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
@@ -78,7 +82,7 @@ public class CubeHandler implements Handler<NetSocket> {
     private void send(final String id, final String deviceID, final String socket, final String command) {
         vertx.executeBlocking(op -> {
             Query<CubeCommand> q = datastore.find(CubeCommand.class);
-            q.filter(Filters.eq("_id", new ObjectId(id)));
+            q.filter(eq("_id", new ObjectId(id)));
 
             List<UpdateOperator> updates = new ArrayList<>();
             if (socket != null && !socket.isEmpty()) {
@@ -163,8 +167,8 @@ public class CubeHandler implements Handler<NetSocket> {
                 netSocket.close();
             });
 
-        // let EISSCube 15 sec to establish connection and send "auth" request
-        vertx.setTimer(15000, id -> {
+        // let EISSCube 10 sec to establish connection and send "auth" request
+        vertx.setTimer(10000, id -> {
             Buffer outBuffer = Buffer.buffer().appendString("auth").appendString("\0");
             eventBus.send(netSocket.writeHandlerID(), outBuffer);
             log.info("Who is connected?...");
@@ -200,7 +204,7 @@ public class CubeHandler implements Handler<NetSocket> {
 
     private void updateCube(String deviceID, String socket, String ss) {
         Query<EISScube> q = datastore.find(EISScube.class);
-        q.filter(Filters.eq("deviceID", deviceID));
+        q.filter(eq("deviceID", deviceID));
 
         vertx.executeBlocking(op -> {
             EISScube cube = q.first();
@@ -229,16 +233,16 @@ public class CubeHandler implements Handler<NetSocket> {
 
     private void getWaitingCommands(String deviceID, String status) {
         Query<EISScube> q = datastore.find(EISScube.class);
-        q.filter(Filters.eq("deviceID", deviceID));
+        q.filter(eq("deviceID", deviceID));
 
         vertx.executeBlocking(future -> {
             EISScube cube = q.first();
             if (cube != null) {
                 Query<CubeCommand> qc = datastore.find(CubeCommand.class);
                 qc.filter(
-                    Filters.and(
-                        Filters.eq("cubeID", cube.getId()),
-                        Filters.eq("status", status)
+                    and(
+                        eq("cubeID", cube.getId()),
+                        eq("status", status)
                     )
                 );
                 FindOptions o = new FindOptions();
@@ -263,7 +267,7 @@ public class CubeHandler implements Handler<NetSocket> {
             String socket = netSocket.writeHandlerID();
 
             Query<EISScube> q = datastore.find(EISScube.class);
-            q.filter(Filters.eq("socket", socket));
+            q.filter(eq("socket", socket));
 
             EISScube cube = q.first();
             if (cube != null) {
@@ -296,7 +300,7 @@ public class CubeHandler implements Handler<NetSocket> {
     private void goOffline(final String socket) {
         vertx.executeBlocking(op -> {
             Query<EISScube> q = datastore.find(EISScube.class);
-            q.filter(Filters.eq("socket", socket));
+            q.filter(eq("socket", socket));
 
             EISScube cube = q.first();
             if (cube != null) {
@@ -342,7 +346,7 @@ public class CubeHandler implements Handler<NetSocket> {
         if (!message.contains("ack=test")) { // ignore test
             vertx.executeBlocking(op -> {
                 Query<EISScube> q = datastore.find(EISScube.class);
-                q.filter(Filters.eq("socket", socket));
+                q.filter(eq("socket", socket));
 
                 EISScube cube = q.first();
                 if (cube != null) {
@@ -350,16 +354,13 @@ public class CubeHandler implements Handler<NetSocket> {
 
                     String id = message.replace("ack=", "");
                     if (ObjectId.isValid(id)) {
-                        Query<CubeCommand> qc = datastore.find(CubeCommand.class);
-                        qc.filter(Filters.eq("_id", new ObjectId(id)));
-
-                        List<UpdateOperator> updates = new ArrayList<>();
-
-                        updates.add(set("received", Instant.now()));
-                        updates.add(set("status", "Received"));
-
-                        q.update(new UpdateOptions(), updates.toArray(UpdateOperator[]::new));
-
+                        UpdateResult result = datastore.find(CubeCommand.class)
+                            .filter(eq("_id", new ObjectId(id)))
+                            .update(new UpdateOptions(),
+                                set("received", Instant.now()),
+                                set("status", "Received")
+                            );
+                        log.debug("{}", result);
                         op.complete(String.format("DeviceID: %s acknowledge the command id: %s", deviceID, id));
                     } else {
                         op.fail(String.format("DeviceID: %s NOT acknowledge the command id: %s", deviceID, id));
@@ -407,9 +408,9 @@ public class CubeHandler implements Handler<NetSocket> {
                 if (ts != null && v != null) {
                     Query<CubeMeter> qm = datastore.find(CubeMeter.class);
                     qm.filter(
-                        Filters.and(
-                            Filters.eq("cubeID", cube.getId()),
-                            Filters.eq("timestamp", ts)
+                        and(
+                            eq("cubeID", cube.getId()),
+                            eq("timestamp", ts)
                         )
                     );
 
@@ -447,13 +448,12 @@ public class CubeHandler implements Handler<NetSocket> {
         vertx.executeBlocking(op -> {
             Query<CubeMeter> q = datastore.find(CubeMeter.class);
             q.filter(
-                Filters.and(
-                    Filters.eq("cubeID", cubeID),
-                    Filters.eq("type", "c"),
-                    Filters.exists("value").not()
+                and(
+                    eq("cubeID", cubeID),
+                    eq("type", "c"),
+                    exists("value").not()
                 )
             );
-
             q.update(new UpdateOptions(), set("value", 60));
 
             op.complete();

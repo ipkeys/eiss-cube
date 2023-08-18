@@ -42,7 +42,8 @@ public class Tcp extends AbstractVerticle {
             .setTcpFastOpen(TRUE)
             .setTcpCork(TRUE)
             .setTcpQuickAck(TRUE)
-            .setReusePort(TRUE);
+            .setReusePort(TRUE)
+            .setRegisterWriteHandler(TRUE); // enable write-handler on the EventBus.
 
         server = vertx.createNetServer(options);
 

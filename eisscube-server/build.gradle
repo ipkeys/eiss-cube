@@ -33,10 +33,10 @@ dependencies {
     implementation 'eiss:eiss-commons:0.0.7'
     implementation 'eiss:eiss-models:0.1.4'
 
-    implementation 'io.vertx:vertx-core:4.4.0'
-    implementation 'io.vertx:vertx-web:4.4.0'
-    implementation 'io.vertx:vertx-web-client:4.4.0'
-    implementation 'io.netty:netty-transport-native-epoll:4.1.89.Final'
+    implementation 'io.vertx:vertx-core:4.4.1'
+    implementation 'io.vertx:vertx-web:4.4.1'
+    implementation 'io.vertx:vertx-web-client:4.4.1'
+    implementation 'io.netty:netty-transport-native-epoll:4.1.90.Final'
 
     implementation 'com.google.inject:guice:5.1.0'
     implementation 'com.google.code.gson:gson:2.10.1'
@@ -53,7 +53,7 @@ dependencies {
     implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.0'
     implementation 'com.sun.xml.bind:jaxb-impl:3.0.2'
 
-    implementation 'dev.morphia.morphia:morphia-core:2.3.0'
+    implementation 'dev.morphia.morphia:morphia-core:2.3.1'
 
     compileOnly 'io.jsonwebtoken:jjwt-api:0.11.5'
     implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
