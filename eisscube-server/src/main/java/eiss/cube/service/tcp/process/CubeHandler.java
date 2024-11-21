@@ -425,9 +425,11 @@ public class CubeHandler implements Handler<NetSocket> {
 
                     qm.update(new UpdateOptions().upsert(TRUE), updates.toArray(UpdateOperator[]::new));
 
+                    /* Nov 21 2024 - think about how to fix it!!!
                     if (!v.equalsIgnoreCase("z")) { // after update of interval - fix the previous record
                         fixNotFinishedCycleReport(cube.getId()); // finish unfinished interval - set to 1 minute
                     }
+                    */
                     op.complete(String.format("DeviceID: %s report saved", deviceID));
                 } else {
                     op.fail(String.format("DeviceID: %s report NOT saved", deviceID));
