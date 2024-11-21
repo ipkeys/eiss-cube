@@ -457,13 +457,7 @@ public class CubeHandler implements Handler<NetSocket> {
             q.update(new UpdateOptions(), set("value", 60));
 
             op.complete();
-        }, res -> {
-            if (res.succeeded()) {
-                log.info(String.valueOf(res.result()));
-            } else {
-                log.error(res.cause().getMessage());
-            }
-        });
+        }, res -> log.info("fixNotFinishedCycleReport for {}", cubeID));
     }
 
     // r=1&i=0&ss=3
